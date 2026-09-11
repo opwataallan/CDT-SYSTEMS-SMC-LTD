@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-burgundy: var(--brand-primary, #920d35);
+  --color-brand-burgundy-dark: var(--brand-primary-hover, #770929);
+  --color-brand-burgundy-light: var(--brand-primary-light, #fbebee);
+  --color-primary: var(--brand-primary, #920d35);
+  --color-primary-hover: var(--brand-primary-hover, #770929);
+  --color-primary-light: var(--brand-primary-light, #fbebee);
+  --color-primary-dark: var(--brand-primary-dark, #5e061f);
+
+  /* Map cyan utilities to brand primary so existing high-density UI instantly adopts the theme */
+  --color-cyan-50: var(--brand-primary-light, #fbebee);
+  --color-cyan-100: var(--brand-primary-100, #f7d5dd);
+  --color-cyan-200: var(--brand-primary-200, #f0abbc);
+  --color-cyan-300: var(--brand-primary-200, #e47593);
+  --color-cyan-400: var(--brand-primary-hover, #aa1240);
+  --color-cyan-500: var(--brand-primary, #920d35);
+  --color-cyan-600: var(--brand-primary, #920d35);
+  --color-cyan-700: var(--brand-primary-hover, #770929);
+  --color-cyan-800: var(--brand-primary-dark, #5e061f);
+  --color-cyan-900: var(--brand-primary-dark, #420415);
+  --color-cyan-950: #2b020d;
+
+  --color-brand-green: #007f19;
+  --color-brand-green-dark: #006013;
+  --color-brand-green-light: #e6f6e8;
+  --color-brand-forest: #0a3000;
+  --color-brand-dark: #141415;
+  --color-brand-slate: #1f2937;
+  --color-brand-gold: #e5a632;
+  --color-brand-whatsapp: #25D366;
+  --color-brand-cyan: var(--brand-primary, #920d35);
+  --color-brand-cyan-dark: var(--brand-primary-hover, #770929);
+  --color-brand-cyan-light: var(--brand-primary-light, #fbebee);
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+:root {
+  --brand-primary: #920d35;
+  --brand-primary-hover: #770929;
+  --brand-primary-dark: #5e061f;
+  --brand-primary-light: #fbebee;
+  --brand-primary-100: #f7d5dd;
+  --brand-primary-200: #f0abbc;
+  --color-primary: #920d35;
+  --color-secondary: #0f172a;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+  color: #0f172a;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Brand utility classes */
+.bg-brand-burgundy { background-color: #920d35; }
+.bg-brand-burgundy-dark { background-color: #770929; }
+.text-brand-burgundy { color: #920d35; }
+.border-brand-burgundy { border-color: #920d35; }
+
+.bg-brand-green { background-color: #007f19; }
+.bg-brand-green-dark { background-color: #006013; }
+.hover\:bg-brand-green-dark:hover { background-color: #006013; }
+.text-brand-green { color: #007f19; }
+.border-brand-green { border-color: #007f19; }
+
+/* Custom scrollbar for horizontal product sliders */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

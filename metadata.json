@@ -1,0 +1,6 @@
+{
+  "name": "Cyber Dynamic Tech Marketplace",
+  "description": "Premier Ugandan technology and electronics e-commerce marketplace for Cyber Dynamic Tech, powered by WooCommerce integration with MTN MoMo, Airtel Money, and real-time catalog syncing.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
