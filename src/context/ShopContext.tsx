@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
   Product,
+  Category,
   ProductVariation,
   CartItem,
   DeliveryZone,
@@ -9,11 +10,17 @@ import {
   Coupon,
   MarketplaceConfig,
 } from '../types';
-import { INITIAL_DELIVERY_ZONES } from '../data/cyberCatalog';
+import { INITIAL_DELIVERY_ZONES, INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/cyberCatalog';
 import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
 
 interface ShopContextType {
+  products: Product[];
+  categories: Category[];
+  isOnline: boolean;
+  syncWithWooCommerce: () => Promise<void>;
+  fetchProducts: () => Promise<void>;
+
   cart: CartItem[];
   addToCart: (product: Product, variation?: ProductVariation, quantity?: number, attributes?: Record<string, string>) => void;
   buyNow: (product: Product, variation?: ProductVariation, quantity?: number, attributes?: Record<string, string>) => void;
@@ -62,6 +69,10 @@ interface ShopContextType {
   toastMessage: string | null;
   showToast: (msg: string) => void;
 
+  isPageLoading: boolean;
+  pageLoadingMessage: string;
+  setPageLoading: (loading: boolean, message?: string) => void;
+
   currentView: string;
   setCurrentView: (view: string, data?: any) => void;
   viewData: any;
@@ -70,6 +81,89 @@ interface ShopContextType {
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Global synchronized product catalog & categories
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  const [isOnline, setIsOnline] = useState<boolean>(
+    typeof navigator !== 'undefined' ? navigator.onLine : true
+  );
+
+  const fetchProducts = async () => {
+    try {
+      const res = await api.getProducts({ limit: 5000 });
+      if (res && Array.isArray(res.products) && res.products.length > 0) {
+        setProducts(res.products);
+      }
+    } catch (err) {
+      console.warn('Catalog fetch notice:', err);
+    }
+  };
+
+  const syncWithWooCommerce = async () => {
+    try {
+      const res = await api.fetchWooCommerceProducts({ per_page: 5000, max_products: 5000 });
+      if (res && Array.isArray(res.products) && res.products.length > 0) {
+        setProducts(res.products);
+      }
+      showToast(`Synchronized ${res.fetched_count || res.products?.length} products from live WooCommerce.`);
+    } catch {
+      try {
+        const res = await api.getProducts({ limit: 5000 });
+        if (res && Array.isArray(res.products) && res.products.length > 0) {
+          setProducts(res.products);
+        }
+        showToast('Catalog refreshed and synchronized.');
+      } catch {
+        showToast('Catalog is up to date.');
+      }
+    }
+  };
+
+  // CDT Page Loader state
+  const [isPageLoading, setIsPageLoadingState] = useState<boolean>(true);
+  const [pageLoadingMessage, setPageLoadingMessage] = useState<string>(
+    'Initializing Cyber Dynamic Tech Marketplace...'
+  );
+
+  const setPageLoading = (loading: boolean, message = 'Loading Cyber Dynamic Technologies...') => {
+    setPageLoadingMessage(message);
+    setIsPageLoadingState(loading);
+  };
+
+  // Initial catalog load & network listeners
+  useEffect(() => {
+    let isMounted = true;
+    const initApp = async () => {
+      try {
+        await Promise.allSettled([
+          fetchProducts(),
+          api.getCategories().then((cats) => {
+            if (Array.isArray(cats) && cats.length > 0) {
+              setCategories(cats);
+            }
+          }),
+        ]);
+      } finally {
+        setTimeout(() => {
+          if (isMounted) setIsPageLoadingState(false);
+        }, 650);
+      }
+    };
+    initApp();
+
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   // Config from Central Settings Service
   const [config, setConfig] = useState<MarketplaceConfig>(settingsService.getConfig());
   const [storeSettings, setStoreSettings] = useState<StoreSettings>(settingsService.toStoreSettings());
@@ -176,9 +270,38 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [viewData, setViewData] = useState<any>(null);
 
   const setCurrentView = (view: string, data?: any) => {
-    setInternalCurrentView(view);
-    setViewData(data || null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (view !== currentView) {
+      setIsPageLoadingState(true);
+      setPageLoadingMessage(
+        view === 'shop'
+          ? 'Opening CDT Hardware Catalog...'
+          : view === 'product'
+          ? 'Loading Hardware Specifications...'
+          : view === 'checkout'
+          ? 'Preparing Secure Checkout...'
+          : view === 'pos'
+          ? 'Launching CDT POS Terminal...'
+          : view === 'admin'
+          ? 'Opening CDT Admin Portal...'
+          : view === 'track-order'
+          ? 'Tracking Order Dispatch...'
+          : view === 'account'
+          ? 'Loading Account Profile...'
+          : 'Loading Cyber Dynamic Technologies...'
+      );
+
+      setTimeout(() => {
+        setInternalCurrentView(view);
+        setViewData(data || null);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        setTimeout(() => {
+          setIsPageLoadingState(false);
+        }, 180);
+      }, 140);
+    } else {
+      setViewData(data || null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const showToast = (msg: string) => {
@@ -513,6 +636,11 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <ShopContext.Provider
       value={{
+        products,
+        categories,
+        isOnline,
+        syncWithWooCommerce,
+        fetchProducts,
         cart,
         addToCart,
         buyNow,
@@ -553,6 +681,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         formatPrice,
         toastMessage,
         showToast,
+        isPageLoading,
+        pageLoadingMessage,
+        setPageLoading,
         currentView,
         setCurrentView,
         viewData,

@@ -61,9 +61,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
           setSelectedAttributes(p.variations[0].attributes || {});
         }
         // Load related items in same category
-        if (p.categories[0]) {
+        if (p?.categories && Array.isArray(p.categories) && p.categories[0]?.slug) {
           api.getProducts({ category: p.categories[0].slug, limit: 4 })
-            .then((res) => setRelatedProducts(res.products.filter((item) => item.id !== p.id)))
+            .then((res) => {
+              if (res && Array.isArray(res.products)) {
+                setRelatedProducts(res.products.filter((item) => item && item.id !== p.id));
+              }
+            })
             .catch(() => {});
         }
       })

@@ -169,7 +169,8 @@ export const AdminUsersTab: React.FC = () => {
     }
   };
 
-  const filtered = users.filter((u) => {
+  const safeUsers = Array.isArray(users) ? users : [];
+  const filtered = safeUsers.filter((u) => {
     const q = search.toLowerCase();
     return (
       (u.email || '').toLowerCase().includes(q) ||

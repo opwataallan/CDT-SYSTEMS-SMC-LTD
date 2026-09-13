@@ -14,10 +14,11 @@ import { AccountPage } from './pages/AccountPage';
 import { AdminPage } from './pages/AdminPage';
 import { PosPage } from './pages/PosPage';
 import { ContactPage, WarrantyPage } from './pages/StaticInfoPages';
+import { CdtPageLoader } from './components/CdtPageLoader';
 import { CheckCircle2 } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
-  const { currentView, viewData, toastMessage } = useShop();
+  const { currentView, viewData, toastMessage, isPageLoading, pageLoadingMessage } = useShop();
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -60,6 +61,9 @@ const MainLayout: React.FC = () => {
   if (currentView === 'pos') {
     return (
       <div className="min-h-screen flex flex-col bg-slate-100 text-slate-900 font-sans selection:bg-cyan-500 selection:text-white">
+        {/* CDT Page Loader */}
+        {isPageLoading && <CdtPageLoader message={pageLoadingMessage} />}
+
         {toastMessage && (
           <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white px-3.5 py-2 rounded-lg shadow-xl border border-slate-700 flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200 max-w-md w-11/12">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -73,6 +77,9 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F1F5F9] text-slate-800 font-sans selection:bg-cyan-500 selection:text-white">
+      {/* CDT Page Loader */}
+      {isPageLoading && <CdtPageLoader message={pageLoadingMessage} />}
+
       {/* Toast Notification Alert */}
       {toastMessage && (
         <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white px-3.5 py-2 rounded-lg shadow-xl border border-slate-700 flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200 max-w-md w-11/12">

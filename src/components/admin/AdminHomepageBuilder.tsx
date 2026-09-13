@@ -9,15 +9,26 @@ import {
   CheckCircle2,
   Image as ImageIcon,
   Sparkles,
+  Laptop,
+  Plus,
+  Trash2,
+  ExternalLink,
+  Tag,
 } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
-import { HomepageSectionConfig } from '../../types';
+import { HomepageSectionConfig, HeroBanner } from '../../types';
+import { INITIAL_HERO_BANNERS } from '../../data/cyberCatalog';
 
 export const AdminHomepageBuilder: React.FC = () => {
-  const { config, updateCategorySettings, showToast, setCurrentView } = useShop();
+  const { config, updateCategorySettings, showToast, setCurrentView, products } = useShop();
 
-  const homepageSettings = config.homepage;
+  const homepageSettings = config.homepage || {};
   const [sections, setSections] = useState<HomepageSectionConfig[]>(homepageSettings.sections || []);
+  const [banners, setBanners] = useState<HeroBanner[]>(
+    homepageSettings.banners && homepageSettings.banners.length > 0
+      ? homepageSettings.banners
+      : INITIAL_HERO_BANNERS
+  );
   const [heroTitle, setHeroTitle] = useState(homepageSettings.hero_title || 'Welcome to Cyber Dynamic Tech');
   const [heroSubtitle, setHeroSubtitle] = useState(homepageSettings.hero_subtitle || 'Genuine Laptops, Printers & Networking in Uganda');
   const [heroImage, setHeroImage] = useState(homepageSettings.hero_image || '');
@@ -43,17 +54,43 @@ export const AdminHomepageBuilder: React.FC = () => {
     setSections(updated);
   };
 
+  const updateBannerField = (index: number, field: keyof HeroBanner, value: any) => {
+    const updated = [...banners];
+    updated[index] = { ...updated[index], [field]: value };
+    setBanners(updated);
+  };
+
+  const handleProductSelectForBanner = (index: number, productId: number) => {
+    const selected = products.find((p) => p.id === productId);
+    if (!selected) return;
+
+    const updated = [...banners];
+    updated[index] = {
+      ...updated[index],
+      productId: selected.id,
+      title: selected.name,
+      subtitle: selected.short_description?.slice(0, 90) || 'Genuine official hardware with 1-Year Warranty',
+      brand: selected.brand || updated[index].brand,
+      highlightPrice: `UGX ${selected.price.toLocaleString()}`,
+      originalPrice: selected.regular_price ? `UGX ${selected.regular_price.toLocaleString()}` : undefined,
+      imageUrl: selected.images?.[0]?.src || updated[index].imageUrl,
+      ctaLink: `product:${selected.id}`,
+    };
+    setBanners(updated);
+  };
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
       await updateCategorySettings('homepage', {
         ...homepageSettings,
         sections,
+        banners,
         hero_title: heroTitle,
         hero_subtitle: heroSubtitle,
         hero_image: heroImage,
       });
-      showToast('Homepage layout and content saved successfully!');
+      showToast('Homepage product banners & layout saved successfully!');
     } catch (err: any) {
       showToast('Failed to save homepage: ' + err.message);
     } finally {
@@ -132,6 +169,116 @@ export const AdminHomepageBuilder: React.FC = () => {
               className="w-full h-8.5 px-3 bg-white border border-slate-200 rounded-lg text-xs"
             />
           </div>
+        </div>
+      </div>
+
+      {/* Featured Hardware Products in Hero Carousel */}
+      <div className="bg-white border border-slate-200 rounded-xl p-4 space-y-4">
+        <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-100">
+          <div>
+            <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+              <Laptop className="w-3.5 h-3.5 text-cyan-600" />
+              <span>Featured Product Banners ({banners.length} Active Items)</span>
+            </h3>
+            <p className="text-[11px] text-slate-500">
+              Each banner displays a specific hardware product with specs, pricing, and direct "Add to Cart" integration.
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {banners.map((banner, bIdx) => (
+            <div
+              key={banner.id || bIdx}
+              className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-cyan-100 text-cyan-800 font-bold text-[10px] flex items-center justify-center">
+                    {bIdx + 1}
+                  </span>
+                  <span className="font-bold text-xs text-slate-900 truncate max-w-xs">{banner.title}</span>
+                  {banner.brand && (
+                    <span className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 text-[10px] font-bold">
+                      {banner.brand}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <label className="text-[11px] font-medium text-slate-600 flex items-center gap-1.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={banner.active !== false}
+                      onChange={(e) => updateBannerField(bIdx, 'active', e.target.checked)}
+                      className="rounded text-cyan-600"
+                    />
+                    <span>Active in Slider</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Link to Catalog Product</label>
+                  <select
+                    value={banner.productId || ''}
+                    onChange={(e) => handleProductSelectForBanner(bIdx, Number(e.target.value))}
+                    className="w-full h-8 px-2 bg-white border border-slate-200 rounded text-xs"
+                  >
+                    <option value="">-- Choose Hardware Product --</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} (UGX {p.price.toLocaleString()})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Product Headline Title</label>
+                  <input
+                    type="text"
+                    value={banner.title}
+                    onChange={(e) => updateBannerField(bIdx, 'title', e.target.value)}
+                    className="w-full h-8 px-2 bg-white border border-slate-200 rounded text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Badge Tag</label>
+                  <input
+                    type="text"
+                    value={banner.badge || ''}
+                    onChange={(e) => updateBannerField(bIdx, 'badge', e.target.value)}
+                    placeholder="e.g. FLAGSHIP LAPTOP"
+                    className="w-full h-8 px-2 bg-white border border-slate-200 rounded text-xs"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Key Specs / Subtitle</label>
+                  <input
+                    type="text"
+                    value={banner.subtitle || ''}
+                    onChange={(e) => updateBannerField(bIdx, 'subtitle', e.target.value)}
+                    className="w-full h-8 px-2 bg-white border border-slate-200 rounded text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-600 block mb-1">Highlight Price</label>
+                  <input
+                    type="text"
+                    value={banner.highlightPrice || ''}
+                    onChange={(e) => updateBannerField(bIdx, 'highlightPrice', e.target.value)}
+                    placeholder="UGX 2,850,000"
+                    className="w-full h-8 px-2 bg-white border border-slate-200 rounded text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

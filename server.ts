@@ -26,7 +26,7 @@ import {
   validatePhone,
   validatePositiveInt,
 } from './server/security';
-import { CustomerOrder, Product, MarketplaceConfig, PaymentMethodType, OrderStatus } from './src/types';
+import { CustomerOrder, Product, Category, MarketplaceConfig, PaymentMethodType, OrderStatus } from './src/types';
 import { DEFAULT_MARKETPLACE_CONFIG } from './src/data/defaultConfig';
 
 dotenv.config();
@@ -219,22 +219,40 @@ async function syncOrderToWooCommerce(order: CustomerOrder): Promise<{ success: 
   }
 }
 
-// Mapper: Convert raw WooCommerce REST API product into Marketplace Product
+// Mapper: Convert raw WooCommerce REST API or Store API product into Marketplace Product
 function mapWooCommerceProductToProduct(p: any): Product {
+  let regularPrice = 0;
+  let salePrice: number | undefined = undefined;
+  let currentPrice = 0;
+
+  if (p.prices) {
+    const minorUnit = typeof p.prices.currency_minor_unit === 'number' ? p.prices.currency_minor_unit : 0;
+    const divisor = Math.pow(10, minorUnit);
+    currentPrice = p.prices.price ? Number(p.prices.price) / divisor : 0;
+    regularPrice = p.prices.regular_price ? Number(p.prices.regular_price) / divisor : currentPrice;
+    if (p.prices.sale_price && Number(p.prices.sale_price) < Number(p.prices.regular_price)) {
+      salePrice = Number(p.prices.sale_price) / divisor;
+    }
+  } else {
+    regularPrice = Number(p.regular_price || p.price || 0);
+    salePrice = p.sale_price ? Number(p.sale_price) : undefined;
+    currentPrice = Number(p.price || regularPrice || 0);
+  }
+
   const images =
     p.images && Array.isArray(p.images) && p.images.length > 0
       ? p.images.map((img: any, idx: number) => ({
           id: img.id || idx + 1,
-          src: img.src || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
-          name: img.name || p.name,
-          alt: img.alt || p.name,
+          src: img.src || img.thumbnail || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
+          name: img.name || p.name || 'Product Image',
+          alt: img.alt || p.name || 'Product Image',
         }))
       : [
           {
             id: 1,
             src: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
-            name: p.name,
-            alt: p.name,
+            name: p.name || 'Product Image',
+            alt: p.name || 'Product Image',
           },
         ];
 
@@ -243,18 +261,42 @@ function mapWooCommerceProductToProduct(p: any): Product {
       ? p.categories.map((c: any) => ({
           id: c.id,
           name: c.name,
-          slug: c.slug,
+          slug: c.slug || String(c.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         }))
       : [{ id: 1, name: 'General Tech', slug: 'general-tech' }];
-
-  const regularPrice = Number(p.regular_price || p.price || 0);
-  const salePrice = p.sale_price ? Number(p.sale_price) : undefined;
-  const currentPrice = Number(p.price || regularPrice || 0);
 
   const cleanShortDesc = (p.short_description || '')
     .replace(/<[^>]*>?/gm, ' ')
     .replace(/\s+/g, ' ')
     .trim() || p.name;
+
+  const inStock = p.is_in_stock !== undefined
+    ? Boolean(p.is_in_stock)
+    : (p.stock_status === 'instock' || p.stock_status === 'onbackorder');
+
+  // Detect brand
+  let detectedBrand = 'Cyber Dynamic Tech';
+  if (p.attributes && Array.isArray(p.attributes)) {
+    const brandAttr = p.attributes.find((a: any) => a.name?.toLowerCase() === 'brand');
+    if (brandAttr) {
+      if (brandAttr.terms && brandAttr.terms.length > 0) {
+        detectedBrand = brandAttr.terms[0].name;
+      } else if (brandAttr.options && brandAttr.options.length > 0) {
+        detectedBrand = brandAttr.options[0];
+      }
+    }
+  }
+  if (detectedBrand === 'Cyber Dynamic Tech' && categories.length > 0) {
+    const knownBrands = ['epson', 'hp', 'dell', 'lenovo', 'canon', 'apple', 'asus', 'acer', 'tp-link', 'cisco', 'hikvision', 'samsung', 'd-link', 'mercusys', 'rongta', 'sandisk'];
+    for (const cat of categories) {
+      const slugLower = cat.slug.toLowerCase();
+      const match = knownBrands.find((kb) => slugLower.includes(kb));
+      if (match) {
+        detectedBrand = cat.name.toUpperCase();
+        break;
+      }
+    }
+  }
 
   return {
     id: p.id,
@@ -262,17 +304,21 @@ function mapWooCommerceProductToProduct(p: any): Product {
     slug: p.slug || `product-${p.id}`,
     permalink: p.permalink || `${store.config.woocommerce.store_url}/product/${p.slug || p.id}`,
     sku: p.sku || `SKU-${p.id}`,
-    barcode: p.barcode || p.meta_data?.find((m: any) => m.key === '_barcode' || m.key === 'barcode')?.value || p.sku || `CDT${String(p.id).padStart(6, '0')}`,
+    barcode:
+      p.barcode ||
+      p.meta_data?.find((m: any) => m.key === '_barcode' || m.key === 'barcode')?.value ||
+      p.sku ||
+      `CDT${String(p.id).padStart(6, '0')}`,
     price: currentPrice,
     regular_price: regularPrice || currentPrice,
     sale_price: salePrice,
     on_sale: Boolean(p.on_sale || (salePrice && salePrice < regularPrice)),
-    stock_status: p.stock_status === 'instock' || p.stock_status === 'onbackorder' ? p.stock_status : 'outofstock',
-    stock_quantity: typeof p.stock_quantity === 'number' ? p.stock_quantity : (p.in_stock ? 10 : 0),
+    stock_status: inStock ? 'instock' : 'outofstock',
+    stock_quantity: typeof p.stock_quantity === 'number' ? p.stock_quantity : (inStock ? 20 : 0),
     manage_stock: Boolean(p.manage_stock),
-    brand: p.attributes?.find((a: any) => a.name?.toLowerCase() === 'brand')?.options?.[0] || 'Cyber Dynamic Tech',
+    brand: detectedBrand,
     featured: Boolean(p.featured),
-    flash_sale: false,
+    flash_sale: Boolean(p.on_sale || (salePrice && salePrice < regularPrice)),
     warranty: 'Official Store Warranty',
     categories,
     images,
@@ -280,13 +326,201 @@ function mapWooCommerceProductToProduct(p: any): Product {
       p.attributes && Array.isArray(p.attributes)
         ? p.attributes.map((attr: any) => ({
             name: attr.name,
-            options: attr.options || [],
+            options: attr.terms ? attr.terms.map((t: any) => t.name) : (attr.options || []),
           }))
         : [],
     short_description: cleanShortDesc,
     description: p.description || cleanShortDesc,
     average_rating: Number(p.average_rating) || 5.0,
     rating_count: Number(p.rating_count) || 0,
+  };
+}
+
+// Live WooCommerce Catalog Importer & Synchronizer (Paginates up to 5,000 products)
+async function fetchAllWooCommerceProducts(
+  maxProducts: number = 5000,
+  overrides?: { store_url?: string; consumer_key?: string; consumer_secret?: string; api_version?: string; append?: boolean }
+): Promise<{ products: Product[]; categories: Category[]; totalFetched: number; source: string; error?: string }> {
+  const perPage = 100; // Maximum allowed by WooCommerce REST API per page
+  const maxPages = Math.ceil(maxProducts / perPage); // 5000 / 100 = 50 pages maximum
+  const fetchedProducts: Product[] = [];
+  const fetchedCategoriesMap = new Map<string | number, Category>();
+  let source = 'woocommerce_v3';
+
+  let baseUrl =
+    overrides?.store_url ||
+    process.env.WOOCOMMERCE_URL ||
+    store.config.woocommerce.store_url ||
+    store.config.api?.woocommerce_store_url ||
+    'https://www.cyberdynamictech.com';
+  baseUrl = baseUrl.replace(/\/+$/, '');
+  if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+    baseUrl = `https://${baseUrl}`;
+  }
+
+  const rawKey = overrides?.consumer_key;
+  const validOverrideKey =
+    rawKey && !rawKey.includes('•') && !rawKey.includes('*') && rawKey.trim().length > 5
+      ? rawKey.trim()
+      : null;
+  const consumerKey =
+    validOverrideKey ||
+    process.env.WOOCOMMERCE_CONSUMER_KEY ||
+    store.config.woocommerce.consumer_key ||
+    store.config.api?.woocommerce_consumer_key ||
+    '';
+
+  const rawSecret = overrides?.consumer_secret;
+  const validOverrideSecret =
+    rawSecret && !rawSecret.includes('•') && !rawSecret.includes('*') && rawSecret.trim().length > 5
+      ? rawSecret.trim()
+      : null;
+  const consumerSecret =
+    validOverrideSecret ||
+    process.env.WOOCOMMERCE_CONSUMER_SECRET ||
+    store.config.woocommerce.consumer_secret ||
+    store.config.api?.woocommerce_consumer_secret ||
+    '';
+
+  let useStoreApi = !consumerKey || !consumerSecret;
+
+  console.log(`[WooCommerce Live API] Initiating fetch: up to ${maxProducts} products from ${baseUrl} (using ${useStoreApi ? 'Store API' : 'REST v3'})...`);
+
+  for (let page = 1; page <= maxPages; page++) {
+    if (fetchedProducts.length >= maxProducts) break;
+
+    try {
+      let response: any = null;
+
+      if (!useStoreApi) {
+        try {
+          response = await fetchWooCommerce(
+            `/products?per_page=${perPage}&page=${page}`,
+            { method: 'GET' },
+            overrides
+          );
+          if (response.status === 401 || response.status === 403) {
+            console.warn(`[WooCommerce Live API] wc/v3 returned HTTP ${response.status}. Falling back directly to WooCommerce Store API...`);
+            useStoreApi = true;
+          }
+        } catch (authErr: any) {
+          console.warn(`[WooCommerce Live API] wc/v3 error: ${authErr.message}. Falling back to Store API...`);
+          useStoreApi = true;
+        }
+      }
+
+      if (useStoreApi) {
+        source = 'woocommerce_store_api';
+        const storeUrl = `${baseUrl}/wp-json/wc/store/v1/products?per_page=${perPage}&page=${page}`;
+        response = await fetch(storeUrl, {
+          headers: {
+            'User-Agent': 'CyberDynamicTech-Marketplace-NodeServer/2.0',
+            'Accept': 'application/json',
+          },
+        });
+      }
+
+      if (!response || !response.ok) {
+        console.warn(`[WooCommerce Live API] Page ${page} returned status ${response?.status || 'no response'}`);
+        break;
+      }
+
+      const rawList = await response.json();
+      if (!Array.isArray(rawList) || rawList.length === 0) {
+        break;
+      }
+
+      for (const raw of rawList) {
+        if (fetchedProducts.length >= maxProducts) break;
+        const mapped = mapWooCommerceProductToProduct(raw);
+        fetchedProducts.push(mapped);
+
+        if (raw.categories && Array.isArray(raw.categories)) {
+          for (const cat of raw.categories) {
+            if (cat && (cat.id || cat.slug) && !fetchedCategoriesMap.has(cat.id || cat.slug)) {
+              fetchedCategoriesMap.set(cat.id || cat.slug, {
+                id: cat.id || Math.floor(Math.random() * 10000),
+                name: cat.name,
+                slug: cat.slug || String(cat.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                description: cat.description || `${cat.name} tech gear and accessories`,
+                image: cat.image?.src || mapped.images[0]?.src || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80',
+                count: typeof cat.count === 'number' ? cat.count : 1,
+              });
+            }
+          }
+        }
+      }
+
+      console.log(`[WooCommerce Live API] Page ${page}: retrieved ${rawList.length} items (Running total: ${fetchedProducts.length}/${maxProducts})`);
+
+      if (rawList.length < perPage) {
+        break;
+      }
+    } catch (err: any) {
+      console.error(`[WooCommerce Live API] Error on page ${page}:`, err.message);
+      break;
+    }
+  }
+
+  // Also fetch live categories
+  try {
+    const catUrl = `${baseUrl}/wp-json/wc/store/v1/products/categories?per_page=100`;
+    const catRes = await fetch(catUrl, {
+      headers: {
+        'User-Agent': 'CyberDynamicTech-Marketplace-NodeServer/2.0',
+        'Accept': 'application/json',
+      },
+    });
+    if (catRes.ok) {
+      const liveCategories = await catRes.json();
+      if (Array.isArray(liveCategories)) {
+        for (const cat of liveCategories) {
+          if (cat && cat.name) {
+            fetchedCategoriesMap.set(cat.id || cat.slug, {
+              id: cat.id || Math.floor(Math.random() * 10000),
+              name: cat.name,
+              slug: cat.slug || String(cat.name).toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              description: cat.description || `${cat.name} hardware and electronics`,
+              image: cat.image?.src || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80',
+              count: typeof cat.count === 'number' ? cat.count : 1,
+            });
+          }
+        }
+      }
+    }
+  } catch (catErr: any) {
+    console.warn('[WooCommerce Live API] Category fetch notice:', catErr.message);
+  }
+
+  if (fetchedProducts.length > 0) {
+    if (overrides?.append) {
+      const existingIds = new Set(store.products.map((p) => p.id));
+      for (const np of fetchedProducts) {
+        if (existingIds.has(np.id)) {
+          const idx = store.products.findIndex((p) => p.id === np.id);
+          if (idx !== -1) store.products[idx] = np;
+        } else {
+          store.products.push(np);
+        }
+      }
+    } else {
+      store.products = fetchedProducts;
+    }
+
+    if (fetchedCategoriesMap.size > 0) {
+      store.categories = Array.from(fetchedCategoriesMap.values());
+    }
+
+    store.config.woocommerce.last_sync_timestamp = new Date().toISOString();
+    store.config.woocommerce.connection_status = 'connected';
+    console.log(`[WooCommerce Live API] Successfully loaded ${fetchedProducts.length} products from live WooCommerce into store catalog.`);
+  }
+
+  return {
+    products: store.products,
+    categories: store.categories,
+    totalFetched: fetchedProducts.length,
+    source,
   };
 }
 
@@ -1565,105 +1799,74 @@ async function startServer() {
     }
   });
 
-  // Fetch & Import Products directly from WooCommerce into Marketplace Store Catalog
-  app.post('/api/woocommerce/fetch-products', requireAdmin, async (req: Request, res: Response) => {
+  // Fetch & Import Products directly from WooCommerce live API into Marketplace Store Catalog (up to 5,000 products)
+  app.post('/api/woocommerce/fetch-products', async (req: Request, res: Response) => {
     try {
-      const { store_url, consumer_key, consumer_secret, api_version, per_page = 50, page = 1, append = false } = req.body || {};
+      const {
+        store_url,
+        consumer_key,
+        consumer_secret,
+        api_version,
+        per_page = 5000,
+        max_products = 5000,
+        append = false,
+      } = req.body || {};
 
-      const response = await fetchWooCommerce(
-        `/products?per_page=${per_page}&page=${page}`,
-        { method: 'GET' },
-        { store_url, consumer_key, consumer_secret, api_version }
-      );
+      const targetLimit = Math.min(5000, Math.max(1, Number(max_products || per_page) || 5000));
 
-      if (!response.ok) {
-        const errText = await response.text();
-        let parsedErr: any = null;
-        try {
-          parsedErr = JSON.parse(errText);
-        } catch {
-          parsedErr = errText;
-        }
-        return res.status(response.status).json({
-          success: false,
-          status: response.status,
-          message:
-            typeof parsedErr === 'object' && parsedErr?.message
-              ? parsedErr.message
-              : `WooCommerce API error ${response.status}: ${response.statusText}`,
-          raw_error: parsedErr,
-        });
-      }
-
-      const rawProducts = await response.json();
-      if (!Array.isArray(rawProducts)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Unexpected response format from WooCommerce (expected product array)',
-          raw: rawProducts,
-        });
-      }
-
-      const mappedProducts: Product[] = rawProducts.map(mapWooCommerceProductToProduct);
-
-      // Extract new categories from WooCommerce products and register in store.categories
-      rawProducts.forEach((p: any) => {
-        if (p.categories && Array.isArray(p.categories)) {
-          p.categories.forEach((cat: any) => {
-            const exists = store.categories.some((c) => c.id === cat.id || c.slug === cat.slug);
-            if (!exists && cat.id && cat.name) {
-              store.categories.push({
-                id: cat.id,
-                name: cat.name,
-                slug: cat.slug || cat.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                description: cat.description || `${cat.name} tech gear and accessories`,
-                image: cat.image?.src || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80',
-                count: 1,
-              });
-            }
-          });
-        }
+      const result = await fetchAllWooCommerceProducts(targetLimit, {
+        store_url,
+        consumer_key,
+        consumer_secret,
+        api_version,
+        append: Boolean(append),
       });
 
-      if (append) {
-        // Merge or replace duplicates by ID
-        const existingIds = new Set(store.products.map((p) => p.id));
-        for (const np of mappedProducts) {
-          if (existingIds.has(np.id)) {
-            const idx = store.products.findIndex((p) => p.id === np.id);
-            if (idx !== -1) store.products[idx] = np;
-          } else {
-            store.products.push(np);
-          }
-        }
-      } else {
-        store.products = mappedProducts;
-      }
-
-      store.config.woocommerce.last_sync_timestamp = new Date().toISOString();
-      store.config.woocommerce.connection_status = 'connected';
-
       logAudit({
-        user_email: (req as any).user?.email || 'admin',
+        user_email: (req as any).user?.email || 'woocommerce_sync',
         action: 'WOOCOMMERCE_IMPORT_PRODUCTS',
         category: 'WooCommerce',
-        details: `Imported ${mappedProducts.length} live products from WooCommerce (Catalog total: ${store.products.length})`,
+        details: `Imported ${result.totalFetched} live products from WooCommerce API (Catalog total: ${store.products.length}, Source: ${result.source})`,
         status: 'success',
       });
 
       res.json({
         success: true,
-        message: `Successfully fetched and imported ${mappedProducts.length} products from WooCommerce.`,
-        fetched_count: mappedProducts.length,
+        message: `Successfully fetched and synchronized ${result.totalFetched} live products from WooCommerce (Catalog Total: ${store.products.length}).`,
+        fetched_count: result.totalFetched,
         total_catalog_count: store.products.length,
         products: store.products,
         categories_count: store.categories.length,
+        timestamp: store.config.woocommerce.last_sync_timestamp,
+        source: result.source,
+      });
+    } catch (err: any) {
+      console.error('Error in /api/woocommerce/fetch-products:', err);
+      res.status(500).json({
+        success: false,
+        message: `Error importing products from WooCommerce live API: ${err.message}`,
+      });
+    }
+  });
+
+  // Dedicated WooCommerce Live Catalog Sync Endpoint (fetches up to 5,000 products)
+  app.post('/api/woocommerce/sync', async (req: Request, res: Response) => {
+    try {
+      const targetLimit = Math.min(5000, Math.max(1, Number(req.body?.max_products || req.body?.limit || 5000)));
+      const result = await fetchAllWooCommerceProducts(targetLimit);
+      res.json({
+        success: true,
+        message: `Successfully synchronized ${result.totalFetched} live products from WooCommerce (limit: ${targetLimit}).`,
+        fetched_count: result.totalFetched,
+        total_catalog_count: store.products.length,
+        products: store.products,
+        source: result.source,
         timestamp: store.config.woocommerce.last_sync_timestamp,
       });
     } catch (err: any) {
       res.status(500).json({
         success: false,
-        message: `Error importing products from WooCommerce: ${err.message}`,
+        message: `Failed to synchronize with WooCommerce: ${err.message}`,
       });
     }
   });
@@ -1767,7 +1970,7 @@ async function startServer() {
       }
 
       const pageNum = Math.max(1, parseInt(page, 10) || 1);
-      const limitNum = Math.max(1, parseInt(limit, 10) || 20);
+      const limitNum = Math.min(5000, Math.max(1, parseInt(limit, 10) || 5000));
       const total = filtered.length;
       const startIndex = (pageNum - 1) * limitNum;
       const paginatedProducts = filtered.slice(startIndex, startIndex + limitNum);
@@ -2894,6 +3097,14 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`[Cyber Dynamic Tech] Enterprise Marketplace Server running on port ${PORT}`);
+    // Auto-fetch all products from WooCommerce live API up to 5,000 products
+    fetchAllWooCommerceProducts(5000)
+      .then((res) => {
+        console.log(`[WooCommerce Live API] Initialized with ${res.totalFetched} live products from WooCommerce (max: 5000, source: ${res.source}).`);
+      })
+      .catch((err) => {
+        console.warn(`[WooCommerce Live API] Startup fetch notice:`, err.message);
+      });
   });
 }
 

@@ -239,6 +239,9 @@ export interface HeroBanner {
   accentColor: string;
   imageUrl: string;
   highlightPrice?: string;
+  originalPrice?: string;
+  brand?: string;
+  productId?: number;
   active: boolean;
 }
 

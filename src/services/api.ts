@@ -339,7 +339,7 @@ export const api = {
     if (params.max_price) query.set('max_price', String(params.max_price));
     if (params.sort) query.set('sort', params.sort);
     if (params.page) query.set('page', String(params.page));
-    if (params.limit) query.set('limit', String(params.limit));
+    query.set('limit', String(params.limit !== undefined ? params.limit : 5000));
     if (params.stock_status) query.set('stock_status', params.stock_status);
 
     return safeFetch(`/api/woocommerce/products?${query.toString()}`, { method: 'GET' }, 'Failed to fetch products');
@@ -520,6 +520,7 @@ export const api = {
     consumer_secret?: string;
     api_version?: string;
     per_page?: number;
+    max_products?: number;
     page?: number;
     append?: boolean;
   }): Promise<{
@@ -530,12 +531,34 @@ export const api = {
     products: Product[];
     categories_count: number;
     timestamp: string;
+    source?: string;
   }> {
+    const payload = {
+      per_page: 5000,
+      max_products: 5000,
+      ...(params || {}),
+    };
     return safeFetch('/api/woocommerce/fetch-products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params || {}),
+      body: JSON.stringify(payload),
     }, 'Failed to fetch products from WooCommerce');
+  },
+
+  async syncWooCommerce(max_products: number = 5000): Promise<{
+    success: boolean;
+    message: string;
+    fetched_count: number;
+    total_catalog_count: number;
+    products: Product[];
+    source?: string;
+    timestamp: string;
+  }> {
+    return safeFetch('/api/woocommerce/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ max_products }),
+    }, 'Failed to synchronize with WooCommerce');
   },
 
   async clearProductsCatalog(): Promise<{

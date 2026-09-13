@@ -119,7 +119,7 @@ export const AdminSettingsCenter: React.FC = () => {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string; latency_ms?: number } | null>(null);
   const [isFetchingProducts, setIsFetchingProducts] = useState(false);
   const [fetchResult, setFetchResult] = useState<{ success: boolean; message: string; count?: number } | null>(null);
-  const [fetchPerPage, setFetchPerPage] = useState(50);
+  const [fetchPerPage, setFetchPerPage] = useState(5000);
   const [fetchAppend, setFetchAppend] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
   const [wcStatus, setWcStatus] = useState<any>(null);
@@ -1262,11 +1262,14 @@ export const AdminSettingsCenter: React.FC = () => {
                         <select
                           value={fetchPerPage}
                           onChange={(e) => setFetchPerPage(Number(e.target.value))}
-                          className="h-7.5 px-2 border border-slate-200 rounded text-xs bg-white"
+                          className="h-7.5 px-2 border border-slate-200 rounded text-xs bg-white font-medium"
                         >
-                          <option value={20}>20</option>
-                          <option value={50}>50</option>
+                          <option value={5000}>5000 (Fetch All Live)</option>
+                          <option value={1000}>1000</option>
+                          <option value={500}>500</option>
                           <option value={100}>100</option>
+                          <option value={50}>50</option>
+                          <option value={20}>20</option>
                         </select>
                       </div>
 

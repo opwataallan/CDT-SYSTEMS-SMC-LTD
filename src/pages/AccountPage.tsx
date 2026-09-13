@@ -101,8 +101,10 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
   useEffect(() => {
     if (wishlist.length > 0) {
       api.getProducts().then((res) => {
-        setWishlistProducts(res.products.filter((p) => wishlist.includes(p.id)));
-      });
+        if (res && Array.isArray(res.products)) {
+          setWishlistProducts(res.products.filter((p) => wishlist.includes(p.id)));
+        }
+      }).catch(() => {});
     } else {
       setWishlistProducts([]);
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, X, SlidersHorizontal, ChevronDown, RefreshCw, Search, Check, Sparkles } from 'lucide-react';
+import { Filter, X, SlidersHorizontal, ChevronDown, Search, Check, Sparkles } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
+import { CdtPageLoader } from '../components/CdtPageLoader';
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
 import { Product, Category } from '../types';
@@ -382,9 +383,12 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         {/* Product Grid Area */}
         <div className="lg:col-span-3">
           {loading ? (
-            <div className="p-12 text-center">
-              <RefreshCw className="w-7 h-7 text-cyan-600 animate-spin mx-auto mb-2" />
-              <p className="text-xs font-bold text-slate-700">Loading verified catalog from Cyber Dynamic Tech...</p>
+            <div className="p-8 sm:p-12 bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-center">
+              <CdtPageLoader
+                inline
+                message="Loading verified catalog..."
+                submessage="Fetching real-time inventory, pricing, and warranty from Cyber Dynamic Tech"
+              />
             </div>
           ) : products.length === 0 ? (
             <div className="p-10 bg-white rounded-lg border border-slate-200 text-center space-y-3">

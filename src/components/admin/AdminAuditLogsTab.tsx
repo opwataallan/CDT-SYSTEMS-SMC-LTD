@@ -27,16 +27,17 @@ export const AdminAuditLogsTab: React.FC = () => {
     loadLogs();
   }, []);
 
-  const categories = Array.from(new Set(logs.map((l) => l.category)));
+  const safeLogs = Array.isArray(logs) ? logs : [];
+  const categories = Array.from(new Set(safeLogs.map((l) => l.category)));
 
-  const filtered = logs.filter((log) => {
+  const filtered = safeLogs.filter((log) => {
     const matchesCategory = filterCategory === 'all' || log.category === filterCategory;
     const q = search.toLowerCase();
     const matchesSearch =
-      log.action.toLowerCase().includes(q) ||
-      log.actor_email.toLowerCase().includes(q) ||
-      log.ip_address.toLowerCase().includes(q) ||
-      JSON.stringify(log.details).toLowerCase().includes(q);
+      (log.action || '').toLowerCase().includes(q) ||
+      (log.actor_email || '').toLowerCase().includes(q) ||
+      (log.ip_address || '').toLowerCase().includes(q) ||
+      JSON.stringify(log.details || {}).toLowerCase().includes(q);
     return matchesCategory && matchesSearch;
   });
 

@@ -559,11 +559,13 @@ export const AdminPage: React.FC = () => {
 
       {/* TAB CONTENT: ORDERS & DISPATCH MANAGEMENT */}
       {activeTab === 'orders' && (() => {
-        const pendingPaymentCount = orders.filter(
-          (o) => o.payment_details?.status === 'awaiting_confirmation' || o.status === 'pending_payment'
+        const safeOrders = Array.isArray(orders) ? orders : [];
+        const pendingPaymentCount = safeOrders.filter(
+          (o) => o?.payment_details?.status === 'awaiting_confirmation' || o?.status === 'pending_payment'
         ).length;
 
-        const filteredOrders = orders.filter((o) => {
+        const filteredOrders = safeOrders.filter((o) => {
+          if (!o) return false;
           if (orderFilter === 'pending') {
             return o.payment_details?.status === 'awaiting_confirmation' || o.status === 'pending_payment';
           }

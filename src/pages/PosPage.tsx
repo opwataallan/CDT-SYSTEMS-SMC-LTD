@@ -229,20 +229,22 @@ export const PosPage: React.FC = () => {
 
   // Filter products by category & search query
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
+    const safeProducts = Array.isArray(products) ? products : [];
+    return safeProducts.filter((p) => {
+      if (!p) return false;
       const matchesCategory =
         selectedCategory === 'all' ||
-        p.categories?.some((c) => c.slug === selectedCategory);
+        (Array.isArray(p.categories) && p.categories.some((c) => c?.slug === selectedCategory));
 
       if (!matchesCategory) return false;
 
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase().trim();
       return (
-        p.name.toLowerCase().includes(q) ||
+        (p.name || '').toLowerCase().includes(q) ||
         (p.sku && p.sku.toLowerCase().includes(q)) ||
         (p.brand && p.brand.toLowerCase().includes(q)) ||
-        p.id.toString() === q
+        (p.id !== undefined && p.id.toString() === q)
       );
     });
   }, [products, selectedCategory, searchQuery]);
