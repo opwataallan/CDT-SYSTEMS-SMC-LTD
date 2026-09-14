@@ -2,6 +2,7 @@ import React from 'react';
 import { Star, ShoppingCart, Heart, Zap, ShieldCheck } from 'lucide-react';
 import { Product } from '../types';
 import { useShop } from '../context/ShopContext';
+import { OptimizedImage } from './OptimizedImage';
 
 interface ProductCardProps {
   product: Product;
@@ -61,10 +62,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
 
       {/* Product Image Container (High Density Compact Aspect Ratio) */}
       <div className="relative w-full pt-[78%] bg-slate-100 rounded overflow-hidden mb-1 flex items-center justify-center">
-        <img
+        <OptimizedImage
           src={product.images[0]?.src}
           alt={product.images[0]?.alt || product.name}
-          loading="lazy"
+          width={320}
+          height={250}
           className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
       </div>

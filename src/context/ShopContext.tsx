@@ -88,9 +88,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (limit: number = 48) => {
     try {
-      const res = await api.getProducts({ limit: 5000 });
+      const res = await api.getProducts({ limit });
       if (res && Array.isArray(res.products)) {
         setProducts(res.products);
       }
@@ -112,14 +112,14 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const syncWithWooCommerce = async () => {
     try {
-      const res = await api.fetchWooCommerceProducts({ per_page: 5000, max_products: 5000 });
+      const res = await api.fetchWooCommerceProducts({ per_page: 48, max_products: 48 });
       if (res && Array.isArray(res.products) && res.products.length > 0) {
         setProducts(res.products);
       }
       showToast(`Synchronized ${res.fetched_count || res.products?.length} products from live WooCommerce.`);
     } catch {
       try {
-        const res = await api.getProducts({ limit: 5000 });
+        const res = await api.getProducts({ limit: 48 }, { forceRefresh: true });
         if (res && Array.isArray(res.products) && res.products.length > 0) {
           setProducts(res.products);
         }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, X, SlidersHorizontal, ChevronDown, Search, Check, Sparkles } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
+import { ProductCardSkeleton } from '../components/ProductCardSkeleton';
 import { CdtPageLoader } from '../components/CdtPageLoader';
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
@@ -383,12 +384,16 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         {/* Product Grid Area */}
         <div className="lg:col-span-3">
           {loading ? (
-            <div className="p-8 sm:p-12 bg-white rounded-xl border border-slate-200 shadow-xs flex items-center justify-center">
-              <CdtPageLoader
-                inline
-                message="Loading verified catalog..."
-                submessage="Fetching real-time inventory, pricing, and warranty from Cyber Dynamic Tech"
-              />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <div className="h-3 w-32 bg-slate-200 animate-pulse rounded"></div>
+                <div className="h-3 w-20 bg-slate-200 animate-pulse rounded"></div>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 md:gap-2.5">
+                {Array.from({ length: 18 }).map((_, idx) => (
+                  <ProductCardSkeleton key={idx} />
+                ))}
+              </div>
             </div>
           ) : products.length === 0 ? (
             <div className="p-10 bg-white rounded-lg border border-slate-200 text-center space-y-3">
@@ -414,7 +419,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                 ))}
               </div>
 
-              {/* Pagination (High Density Clean Numbers) */}
+              {/* Pagination with Responsive Windowing */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-1.5 mt-5 sm:mt-6">
                   <button
@@ -425,19 +430,35 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                     Previous
                   </button>
 
-                  {Array.from({ length: totalPages }).map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setPage(idx + 1)}
-                      className={`w-8 h-8 rounded font-bold text-xs transition-colors cursor-pointer ${
-                        page === idx + 1
-                          ? 'bg-cyan-500 text-white shadow-2xs'
-                          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      {idx + 1}
-                    </button>
-                  ))}
+                  {Array.from({ length: totalPages })
+                    .map((_, idx) => idx + 1)
+                    .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+                    .reduce<(number | string)[]>((acc, p, i, arr) => {
+                      if (i > 0 && p - (arr[i - 1] as number) > 1) {
+                        acc.push('...');
+                      }
+                      acc.push(p);
+                      return acc;
+                    }, [])
+                    .map((item, idx) =>
+                      typeof item === 'string' ? (
+                        <span key={`ellipsis-${idx}`} className="px-2 text-slate-400 text-xs">
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={item}
+                          onClick={() => setPage(item)}
+                          className={`w-8 h-8 rounded font-bold text-xs transition-colors cursor-pointer ${
+                            page === item
+                              ? 'bg-cyan-500 text-white shadow-2xs'
+                              : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      )
+                    )}
 
                   <button
                     disabled={page === totalPages}

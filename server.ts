@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { createServer as createViteServer } from 'vite';
 import { store, UserAccount } from './server/store';
+import { serverCache } from './server/cache';
 import {
   hashPassword,
   verifyPassword,
@@ -336,13 +337,137 @@ function mapWooCommerceProductToProduct(p: any): Product {
   };
 }
 
-// Live WooCommerce Catalog Importer & Synchronizer (Paginates up to 5,000 products)
+// -------------------------------------------------------------
+// Live WooCommerce & Server-Authoritative Price and Stock Verifier
+// Verifies live product existence, active price, and stock before checkout
+// -------------------------------------------------------------
+async function verifyProductPriceAndStock(
+  productId: number,
+  quantity: number
+): Promise<{
+  valid: boolean;
+  productName: string;
+  unitPrice: number;
+  error?: string;
+  image?: string;
+}> {
+  const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY || store.config.woocommerce.consumer_key;
+  const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET || store.config.woocommerce.consumer_secret;
+
+  let liveProduct: any = null;
+
+  // 1. Check live WooCommerce REST API if configured
+  if (consumerKey && consumerSecret) {
+    try {
+      const wcRes = await fetchWooCommerce(`/products/${productId}`, { method: 'GET' });
+      if (wcRes.ok) {
+        liveProduct = await wcRes.json();
+      }
+    } catch (e: any) {
+      console.warn(`[WooCommerce Live Verification Warning] Product #${productId}:`, e.message);
+    }
+  }
+
+  // 2. If live product found from WooCommerce:
+  if (liveProduct) {
+    const name = liveProduct.name || `Product #${productId}`;
+
+    // Verify stock status
+    if (liveProduct.stock_status === 'outofstock') {
+      return {
+        valid: false,
+        productName: name,
+        unitPrice: 0,
+        error: `"${name}" is currently out of stock on WooCommerce. Please remove it from your cart.`,
+      };
+    }
+
+    if (liveProduct.manage_stock && typeof liveProduct.stock_quantity === 'number') {
+      if (liveProduct.stock_quantity < quantity) {
+        return {
+          valid: false,
+          productName: name,
+          unitPrice: 0,
+          error: `Insufficient stock for "${name}". Only ${liveProduct.stock_quantity} unit(s) available on WooCommerce.`,
+        };
+      }
+    }
+
+    // Verify price from WooCommerce (live sale_price or regular_price)
+    let verifiedPrice = 0;
+    if (liveProduct.sale_price && Number(liveProduct.sale_price) > 0) {
+      verifiedPrice = Number(liveProduct.sale_price);
+    } else if (liveProduct.price && Number(liveProduct.price) > 0) {
+      verifiedPrice = Number(liveProduct.price);
+    } else if (liveProduct.regular_price && Number(liveProduct.regular_price) > 0) {
+      verifiedPrice = Number(liveProduct.regular_price);
+    }
+
+    // Update server store product cache with latest verified data
+    const storeIdx = store.products.findIndex((p) => p.id === productId);
+    if (storeIdx !== -1) {
+      store.products[storeIdx].price = verifiedPrice;
+      if (typeof liveProduct.stock_quantity === 'number') {
+        store.products[storeIdx].stock_quantity = liveProduct.stock_quantity;
+      }
+      if (liveProduct.stock_status) {
+        store.products[storeIdx].stock_status = liveProduct.stock_status;
+      }
+    }
+
+    const image = liveProduct.images && liveProduct.images[0] ? liveProduct.images[0].src : '';
+    return {
+      valid: true,
+      productName: name,
+      unitPrice: verifiedPrice,
+      image,
+    };
+  }
+
+  // 3. Fallback to server local catalog verification
+  const localProd = store.products.find((p) => p.id === productId);
+  if (!localProd) {
+    return {
+      valid: false,
+      productName: `Item #${productId}`,
+      unitPrice: 0,
+      error: `Product item #${productId} does not exist in store catalog.`,
+    };
+  }
+
+  if (localProd.stock_status === 'outofstock') {
+    return {
+      valid: false,
+      productName: localProd.name,
+      unitPrice: 0,
+      error: `"${localProd.name}" is currently out of stock. Please remove it from your cart.`,
+    };
+  }
+
+  if (localProd.manage_stock && localProd.stock_quantity < quantity) {
+    return {
+      valid: false,
+      productName: localProd.name,
+      unitPrice: 0,
+      error: `Insufficient stock for "${localProd.name}". Only ${localProd.stock_quantity} unit(s) available.`,
+    };
+  }
+
+  return {
+    valid: true,
+    productName: localProd.name,
+    unitPrice: Number(localProd.price),
+    image: localProd.images && localProd.images[0] ? localProd.images[0].src : '',
+  };
+}
+
+// Live WooCommerce Catalog Importer & Synchronizer
 async function fetchAllWooCommerceProducts(
-  maxProducts: number = 5000,
+  maxProducts: number = 30,
   overrides?: { store_url?: string; consumer_key?: string; consumer_secret?: string; api_version?: string; append?: boolean }
 ): Promise<{ products: Product[]; categories: Category[]; totalFetched: number; source: string; error?: string }> {
-  const perPage = 100; // Maximum allowed by WooCommerce REST API per page
-  const maxPages = Math.ceil(maxProducts / perPage); // 5000 / 100 = 50 pages maximum
+  const perPage = Math.min(100, maxProducts);
+  const maxPages = Math.max(1, Math.ceil(maxProducts / perPage));
   const fetchedProducts: Product[] = [];
   const fetchedCategoriesMap = new Map<string | number, Category>();
   let source = 'woocommerce_v3';
@@ -1902,9 +2027,20 @@ async function startServer() {
         max_price,
         sort = 'popularity',
         page = '1',
-        limit = '20',
+        limit = '24',
         stock_status,
       } = req.query as Record<string, string>;
+
+      // Check Server-Side Cache
+      const cacheKey = `products_${JSON.stringify(req.query)}`;
+      if (req.query.force_live !== 'true') {
+        const cached = serverCache.get(cacheKey);
+        if (cached) {
+          res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=180');
+          res.setHeader('X-Cache', 'HIT');
+          return res.json(cached);
+        }
+      }
 
       const hasKeys = Boolean(process.env.WOOCOMMERCE_CONSUMER_KEY && process.env.WOOCOMMERCE_CONSUMER_SECRET);
       if (hasKeys && req.query.force_live === 'true') {
@@ -1970,18 +2106,25 @@ async function startServer() {
       }
 
       const pageNum = Math.max(1, parseInt(page, 10) || 1);
-      const limitNum = Math.min(5000, Math.max(1, parseInt(limit, 10) || 5000));
+      const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 24));
       const total = filtered.length;
       const startIndex = (pageNum - 1) * limitNum;
       const paginatedProducts = filtered.slice(startIndex, startIndex + limitNum);
 
-      res.json({
+      const responsePayload = {
         products: paginatedProducts,
         total,
         page: pageNum,
         totalPages: Math.ceil(total / limitNum),
         source: 'woocommerce_catalog',
-      });
+      };
+
+      // Store in memory cache with 120s TTL
+      serverCache.set(cacheKey, responsePayload, 120);
+
+      res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=180');
+      res.setHeader('X-Cache', 'MISS');
+      res.json(responsePayload);
     } catch (error: any) {
       res.status(500).json({ error: 'Failed to retrieve products', message: error.message });
     }
@@ -1997,6 +2140,7 @@ async function startServer() {
       return res.status(404).json({ error: 'Product not found', identifier });
     }
 
+    res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
     res.json(product);
   });
 
@@ -2057,6 +2201,7 @@ async function startServer() {
 
   // Categories
   app.get(['/api/woocommerce/categories', '/api/categories'], (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
     res.json(store.categories);
   });
 
@@ -2138,36 +2283,38 @@ async function startServer() {
 
       for (let idx = 0; idx < line_items.length; idx++) {
         const item = line_items[idx];
-        const prod = store.products.find((p) => p.id === item.productId);
-        if (!prod) {
-          return res.status(400).json({ error: `Product item #${item.productId} does not exist in store catalog.` });
-        }
-
         const qtyCheck = validatePositiveInt(item.quantity, 'Quantity', 50);
         if (!qtyCheck.valid) {
           return res.status(400).json({ error: qtyCheck.error });
         }
-
         const quantity = qtyCheck.value!;
-        // SERVER-AUTHORITATIVE PRICE: Client-sent unitPrice is strictly ignored
-        const verifiedUnitPrice = Number(prod.price);
+
+        // LIVE WOOCOMMERCE & SERVER-AUTHORITATIVE VERIFICATION
+        const verification = await verifyProductPriceAndStock(item.productId, quantity);
+        if (!verification.valid) {
+          return res.status(400).json({ error: verification.error });
+        }
+
+        const verifiedUnitPrice = verification.unitPrice;
         const itemTotal = verifiedUnitPrice * quantity;
         subtotal += itemTotal;
 
-        if (prod.manage_stock && prod.stock_quantity >= quantity) {
-          prod.stock_quantity -= quantity;
-          if (prod.stock_quantity === 0) prod.stock_status = 'outofstock';
+        // Deduct from local stock if managed
+        const localProd = store.products.find((p) => p.id === item.productId);
+        if (localProd && localProd.manage_stock && localProd.stock_quantity >= quantity) {
+          localProd.stock_quantity -= quantity;
+          if (localProd.stock_quantity === 0) localProd.stock_status = 'outofstock';
         }
 
         formattedLineItems.push({
           id: idx + 1,
-          product_id: prod.id,
+          product_id: item.productId,
           variation_id: item.variationId,
-          name: prod.name,
+          name: verification.productName,
           quantity,
           price: verifiedUnitPrice,
           total: itemTotal,
-          image: prod.images[0]?.src || '',
+          image: verification.image || (localProd?.images[0]?.src || ''),
           attributes: item.selectedAttributes || {},
         });
       }
@@ -2323,11 +2470,18 @@ async function startServer() {
 
       store.orders.unshift(newOrder);
 
-      // If Cash on Delivery, sync with WooCommerce immediately
-      if (isCashOnDelivery) {
-        syncOrderToWooCommerce(newOrder).catch((e) => {
-          console.warn('[WooCommerce COD sync warning]', e.message);
-        });
+      // Invalidate product catalog cache so stock updates reflect immediately
+      serverCache.invalidatePattern('products_');
+
+      // Sync order directly with WooCommerce live API to retrieve official WooCommerce order ID
+      try {
+        const syncRes = await syncOrderToWooCommerce(newOrder);
+        if (syncRes.success && syncRes.woocommerce_order_id) {
+          newOrder.woocommerce_order_id = syncRes.woocommerce_order_id;
+          newOrder.woocommerce_synced = true;
+        }
+      } catch (e: any) {
+        console.warn('[WooCommerce order sync warning]', e.message);
       }
 
       logAudit({
@@ -3152,10 +3306,10 @@ async function startServer() {
 
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`[Cyber Dynamic Tech] Enterprise Marketplace Server running on port ${PORT}`);
-    // Auto-fetch all products from WooCommerce live API up to 5,000 products
-    fetchAllWooCommerceProducts(5000)
+    // Lightweight initial sync of top products from WooCommerce live API
+    fetchAllWooCommerceProducts(24)
       .then((res) => {
-        console.log(`[WooCommerce Live API] Initialized with ${res.totalFetched} live products from WooCommerce (max: 5000, source: ${res.source}).`);
+        console.log(`[WooCommerce Live API] Initialized with ${res.totalFetched} live products from WooCommerce (source: ${res.source}).`);
       })
       .catch((err) => {
         console.warn(`[WooCommerce Live API] Startup fetch notice:`, err.message);

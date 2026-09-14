@@ -15,6 +15,7 @@ import {
 import { getStoredReviewsForProduct, saveLocalProductReview } from '../data/initialReviews';
 import { INITIAL_PRODUCTS_LIST } from '../data/initialProducts';
 import { INITIAL_CATEGORIES } from '../data/cyberCatalog';
+import { clientCache } from '../utils/apiCache';
 
 // Support optional custom backend URL (for cPanel static hosting proxying to Node or external API)
 const API_BASE_URL = (
@@ -337,19 +338,28 @@ export const api = {
   // ------------------------------------------
   // WooCommerce & Catalog Services
   // ------------------------------------------
-  async getProducts(params: {
-    search?: string;
-    category?: string;
-    brand?: string;
-    featured?: boolean;
-    flash_sale?: boolean;
-    min_price?: number;
-    max_price?: number;
-    sort?: string;
-    page?: number;
-    limit?: number;
-    stock_status?: string;
-  } = {}): Promise<{ products: Product[]; total: number; totalPages: number }> {
+  async getProducts(
+    params: {
+      search?: string;
+      category?: string;
+      brand?: string;
+      featured?: boolean;
+      flash_sale?: boolean;
+      min_price?: number;
+      max_price?: number;
+      sort?: string;
+      page?: number;
+      limit?: number;
+      stock_status?: string;
+    } = {},
+    options: { forceRefresh?: boolean } = {}
+  ): Promise<{ products: Product[]; total: number; totalPages: number }> {
+    const cacheKey = clientCache.generateKey('wc_products', params);
+    if (!options.forceRefresh) {
+      const cached = clientCache.get<{ products: Product[]; total: number; totalPages: number }>(cacheKey);
+      if (cached) return cached;
+    }
+
     const query = new URLSearchParams();
     if (params.search) query.set('search', params.search);
     if (params.category && params.category !== 'all') query.set('category', params.category);
@@ -360,11 +370,20 @@ export const api = {
     if (params.max_price) query.set('max_price', String(params.max_price));
     if (params.sort) query.set('sort', params.sort);
     if (params.page) query.set('page', String(params.page));
-    query.set('limit', String(params.limit !== undefined ? params.limit : 5000));
+    const effectiveLimit = params.limit !== undefined ? params.limit : 24;
+    query.set('limit', String(effectiveLimit));
     if (params.stock_status) query.set('stock_status', params.stock_status);
 
     try {
-      return await safeFetch(`/api/woocommerce/products?${query.toString()}`, { method: 'GET' }, 'Failed to fetch products');
+      const result = await safeFetch<{ products: Product[]; total: number; totalPages: number }>(
+        `/api/woocommerce/products?${query.toString()}`,
+        { method: 'GET' },
+        'Failed to fetch products'
+      );
+      if (result && Array.isArray(result.products)) {
+        clientCache.set(cacheKey, result, 120);
+      }
+      return result;
     } catch (err) {
       // In static cPanel hosting or when backend is starting, gracefully fallback to bundled catalog
       console.warn('Backend API notice, serving bundled catalog:', err);
@@ -394,20 +413,32 @@ export const api = {
       if (params.max_price) list = list.filter((p) => p.price <= params.max_price!);
 
       const total = list.length;
-      const limit = params.limit || 5000;
+      const limit = effectiveLimit;
       const page = params.page || 1;
       const start = (page - 1) * limit;
-      return {
+      const fallbackResult = {
         products: list.slice(start, start + limit),
         total,
         totalPages: Math.ceil(total / limit) || 1,
       };
+      clientCache.set(cacheKey, fallbackResult, 60);
+      return fallbackResult;
     }
   },
 
-  async getProduct(identifier: string | number): Promise<Product> {
+  async getProduct(identifier: string | number, options: { forceRefresh?: boolean } = {}): Promise<Product> {
+    const cacheKey = `product_${identifier}`;
+    if (!options.forceRefresh) {
+      const cached = clientCache.get<Product>(cacheKey);
+      if (cached) return cached;
+    }
+
     try {
-      return await safeFetch(`/api/woocommerce/products/${identifier}`, { method: 'GET' }, 'Product not found');
+      const prod = await safeFetch<Product>(`/api/woocommerce/products/${identifier}`, { method: 'GET' }, 'Product not found');
+      if (prod && prod.id) {
+        clientCache.set(cacheKey, prod, 180);
+      }
+      return prod;
     } catch (err) {
       const match = INITIAL_PRODUCTS_LIST.find(
         (p) => String(p.id) === String(identifier) || p.slug === String(identifier)
@@ -456,9 +487,18 @@ export const api = {
     });
   },
 
-  async getCategories(): Promise<Category[]> {
+  async getCategories(options: { forceRefresh?: boolean } = {}): Promise<Category[]> {
+    const cacheKey = 'wc_categories';
+    if (!options.forceRefresh) {
+      const cached = clientCache.get<Category[]>(cacheKey);
+      if (cached) return cached;
+    }
     try {
-      return await safeFetch('/api/woocommerce/categories', { method: 'GET' }, 'Failed to fetch categories');
+      const cats = await safeFetch<Category[]>('/api/woocommerce/categories', { method: 'GET' }, 'Failed to fetch categories');
+      if (Array.isArray(cats) && cats.length > 0) {
+        clientCache.set(cacheKey, cats, 300);
+      }
+      return cats;
     } catch {
       return INITIAL_CATEGORIES;
     }
@@ -489,11 +529,16 @@ export const api = {
       }
     }
 
-    return safeFetch('/api/woocommerce/orders', {
+    const result = await safeFetch<{ success: boolean; order: CustomerOrder; message: string }>('/api/woocommerce/orders', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }, 'Failed to create order');
+
+    // Invalidate product and category cache so updated stock levels are fetched
+    clientCache.invalidate('wc_products');
+    clientCache.invalidate('product_');
+    return result;
   },
 
   async getOrders(filter?: { email?: string; phone?: string }): Promise<CustomerOrder[]> {

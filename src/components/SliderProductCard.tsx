@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ShoppingCart, Eye, Check, Star, ShieldCheck, Heart } from 'lucide-react';
 import { Product } from '../types';
 import { useShop } from '../context/ShopContext';
+import { OptimizedImage } from './OptimizedImage';
 
 interface SliderProductCardProps {
   product: Product;
@@ -97,10 +98,11 @@ export const SliderProductCard: React.FC<SliderProductCardProps> = ({
 
       {/* Product Image with Aspect Ratio and Lazy Loading */}
       <div className="relative w-full aspect-[4/3] rounded-md sm:rounded-lg overflow-hidden bg-slate-50 mb-1 sm:mb-1.5 border border-slate-100 flex items-center justify-center">
-        <img
+        <OptimizedImage
           src={primaryImage}
           alt={product.name}
-          loading="lazy"
+          width={400}
+          height={300}
           draggable={false}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
         />
