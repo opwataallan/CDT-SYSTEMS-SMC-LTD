@@ -15,6 +15,7 @@ import { AdminPage } from './pages/AdminPage';
 import { PosPage } from './pages/PosPage';
 import { ContactPage, WarrantyPage } from './pages/StaticInfoPages';
 import { CdtPageLoader } from './components/CdtPageLoader';
+import { TopFlashingAdsBar } from './components/TopFlashingAdsBar';
 import { CheckCircle2 } from 'lucide-react';
 
 const MainLayout: React.FC = () => {
@@ -76,7 +77,7 @@ const MainLayout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F1F5F9] text-slate-800 font-sans selection:bg-cyan-500 selection:text-white">
+    <div className="min-h-screen flex flex-col app-page-bg text-slate-800 font-sans selection:bg-cyan-500 selection:text-white">
       {/* CDT Page Loader */}
       {isPageLoading && <CdtPageLoader message={pageLoadingMessage} />}
 
@@ -87,6 +88,9 @@ const MainLayout: React.FC = () => {
           <span className="flex-1">{toastMessage}</span>
         </div>
       )}
+
+      {/* Top Transitioning Animated GIF Banner with Flashing Ads (Display only in PC, hidden on mobile) */}
+      <TopFlashingAdsBar />
 
       {/* Main Top Header */}
       <Header />

@@ -67,7 +67,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         max_price: priceRange.max,
         sort: sortBy,
         page,
-        limit: 16,
+        limit: 18,
       });
       setProducts(res.products);
       setTotalPages(res.totalPages || 1);
@@ -408,7 +408,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3">
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 md:gap-2.5">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
@@ -416,7 +416,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
               {/* Pagination (High Density Clean Numbers) */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-1.5 mt-8">
+                <div className="flex items-center justify-center gap-1.5 mt-5 sm:mt-6">
                   <button
                     disabled={page === 1}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}

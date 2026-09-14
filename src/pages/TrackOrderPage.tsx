@@ -131,7 +131,7 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
                 type="text"
                 value={verifyContact}
                 onChange={(e) => setVerifyContact(e.target.value)}
-                placeholder="e.g. opwataallan@gmail.com or +256779743101"
+                placeholder="e.g. customer@gmail.com or +256779743101"
                 className="w-full h-8 px-3 text-xs rounded-lg border border-slate-200 focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
               />
             </div>

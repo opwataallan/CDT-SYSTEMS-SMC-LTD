@@ -161,7 +161,7 @@ export const AdminPage: React.FC = () => {
   const handleConfirmOrderPayment = async (ord: CustomerOrder) => {
     setConfirmingOrderId(ord.order_number);
     try {
-      const note = `Payment verified by manager ${user?.first_name || 'Allan'} on ${new Date().toLocaleDateString()}`;
+      const note = `Payment verified by store manager (${user?.first_name || 'Admin'}) on ${new Date().toLocaleDateString()}`;
       const res = await api.confirmOrderPayment(ord.order_number, note);
       if (res.success) {
         showToast(
@@ -587,7 +587,7 @@ export const AdminPage: React.FC = () => {
                   <span>Customer Orders & Payment Verification</span>
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Confirm Mobile Money payments to <strong>0394 760459 (ALLAN)</strong> before processing. Confirmed orders automatically sync to WooCommerce.
+                  Confirm Mobile Money payments to <strong>0394 760459 (CYBER DYNAMIC TECH)</strong> before processing. Confirmed orders automatically sync to WooCommerce.
                 </p>
               </div>
 
@@ -823,7 +823,7 @@ export const AdminPage: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-[11px] text-amber-900">
-                  Customer payment sent to: <strong>0394 760459 (ALLAN)</strong>
+                  Customer payment sent to: <strong>0394 760459 (CYBER DYNAMIC TECH)</strong>
                   {selectedOrder.payment_details?.transaction_ref && (
                     <span> • Ref: {selectedOrder.payment_details.transaction_ref}</span>
                   )}

@@ -18,6 +18,7 @@ import {
 import { useShop } from '../../context/ShopContext';
 import { HomepageSectionConfig, HeroBanner } from '../../types';
 import { INITIAL_HERO_BANNERS } from '../../data/cyberCatalog';
+import { stripHtmlToPlainText } from '../../utils/sanitizeWooCommerceHtml';
 
 export const AdminHomepageBuilder: React.FC = () => {
   const { config, updateCategorySettings, showToast, setCurrentView, products } = useShop();
@@ -69,7 +70,7 @@ export const AdminHomepageBuilder: React.FC = () => {
       ...updated[index],
       productId: selected.id,
       title: selected.name,
-      subtitle: selected.short_description?.slice(0, 90) || 'Genuine official hardware with 1-Year Warranty',
+      subtitle: stripHtmlToPlainText(selected.short_description)?.slice(0, 90) || 'Genuine official hardware with 1-Year Warranty',
       brand: selected.brand || updated[index].brand,
       highlightPrice: `UGX ${selected.price.toLocaleString()}`,
       originalPrice: selected.regular_price ? `UGX ${selected.regular_price.toLocaleString()}` : undefined,

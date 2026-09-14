@@ -176,7 +176,7 @@ async function syncOrderToWooCommerce(order: CustomerOrder): Promise<{ success: 
           key: '_cdt_delivery_coordinates',
           value: order.coordinates ? `${order.coordinates.latitude},${order.coordinates.longitude}` : '',
         },
-        { key: '_cdt_payment_account_name', value: order.payment_details?.account_name || 'ALLAN' },
+        { key: '_cdt_payment_account_name', value: order.payment_details?.account_name || 'CYBER DYNAMIC TECH' },
         { key: '_cdt_payment_number', value: order.payment_details?.payment_number || '0394 760459' },
         { key: '_cdt_confirmed_by', value: order.payment_confirmed_by || '' },
         { key: '_cdt_confirmed_at', value: order.payment_confirmed_at || '' },
@@ -863,18 +863,18 @@ async function startServer() {
       // Find user account
       let user = store.users.find((u) => u.email.toLowerCase() === cleanEmail);
 
-      // Auto-create or link Allan Opwata's account if accessing
-      if (!user && (cleanEmail === 'opwataallan@gmail.com' || cleanEmail.includes('allan') || cleanEmail.includes('opwata'))) {
+      // Auto-create or link primary Super Administrator account if accessing
+      if (!user && (cleanEmail === 'admin@cyberdynamictech.com' || cleanEmail.includes('admin'))) {
         user = {
           id: store.users.length + 1,
           email: cleanEmail,
           password_hash: hashPassword(cleanPass),
-          first_name: 'Allan',
-          last_name: 'Opwata',
+          first_name: 'Store',
+          last_name: 'Administrator',
           phone: encryptField('+256779743101'),
           role: 'admin',
           status: 'active',
-          admin_notes: 'Super Administrator account for Allan Opwata.',
+          admin_notes: 'Super Administrator account for Cyber Dynamic Tech.',
           is_email_verified: true,
           two_factor_enabled: false,
           created_at: new Date().toISOString(),
@@ -882,8 +882,8 @@ async function startServer() {
             {
               id: 'addr_default',
               type: 'shipping',
-              first_name: 'Allan',
-              last_name: 'Opwata',
+              first_name: 'Store',
+              last_name: 'Administrator',
               phone: '+256779743101',
               email: cleanEmail,
               district: 'Kampala',
@@ -2000,8 +2000,63 @@ async function startServer() {
     res.json(product);
   });
 
+  // Product Reviews GET
+  app.get(['/api/woocommerce/products/:identifier/reviews', '/api/products/:identifier/reviews'], (req: Request, res: Response) => {
+    const { identifier } = req.params;
+    const isId = !isNaN(Number(identifier));
+    const product = store.products.find((p) => (isId ? p.id === Number(identifier) : p.slug === identifier));
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    res.json(product.reviews || []);
+  });
+
+  // Product Reviews POST
+  app.post(['/api/woocommerce/products/:identifier/reviews', '/api/products/:identifier/reviews'], (req: Request, res: Response) => {
+    const { identifier } = req.params;
+    const isId = !isNaN(Number(identifier));
+    const product = store.products.find((p) => (isId ? p.id === Number(identifier) : p.slug === identifier));
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const { reviewer, reviewer_email, rating, review, district } = req.body;
+    if (!reviewer || !rating || !review) {
+      return res.status(400).json({ error: 'Reviewer name, rating, and review text are required.' });
+    }
+
+    const numRating = Math.max(1, Math.min(5, Number(rating) || 5));
+    const newRev = {
+      id: Date.now(),
+      product_id: product.id,
+      reviewer: String(reviewer).trim(),
+      reviewer_email: reviewer_email ? String(reviewer_email).trim() : undefined,
+      district: district ? String(district).trim() : 'Kampala',
+      rating: numRating,
+      review: String(review).trim(),
+      date_created: 'Just now',
+      verified: true,
+      helpful_count: 0,
+    };
+
+    if (!product.reviews) {
+      product.reviews = [];
+    }
+    product.reviews.unshift(newRev);
+
+    // Recalculate average rating & count
+    const totalRating = product.reviews.reduce((acc: number, r: any) => acc + (r.rating || 5), 0);
+    product.rating_count = product.reviews.length;
+    product.average_rating = Number((totalRating / product.reviews.length).toFixed(1));
+
+    res.status(201).json(newRev);
+  });
+
   // Categories
-  app.get('/api/woocommerce/categories', (req: Request, res: Response) => {
+  app.get(['/api/woocommerce/categories', '/api/categories'], (req: Request, res: Response) => {
     res.json(store.categories);
   });
 
@@ -2153,7 +2208,7 @@ async function startServer() {
 
       const isCashOnDelivery = validPaymentMethod === 'cod';
       const manualPhone = store.config.payments.manual_payment_number || '0394 760459';
-      const manualAccountName = store.config.payments.manual_account_name || 'ALLAN';
+      const manualAccountName = store.config.payments.manual_account_name || 'CYBER DYNAMIC TECH';
 
       // Non-COD orders require admin/manager verification before processing
       const initialStatus: OrderStatus = isCashOnDelivery ? 'processing' : 'pending_payment';
@@ -2380,7 +2435,7 @@ async function startServer() {
       }
 
       const sessionUser = (req as any).user;
-      const managerName = sessionUser?.first_name ? `${sessionUser.first_name} ${sessionUser.last_name || ''}`.trim() : 'Allan (Store Manager)';
+      const managerName = sessionUser?.first_name ? `${sessionUser.first_name} ${sessionUser.last_name || ''}`.trim() : 'Store Manager';
 
       // 1. Update Order & Payment Status to Processing
       order.status = 'processing';

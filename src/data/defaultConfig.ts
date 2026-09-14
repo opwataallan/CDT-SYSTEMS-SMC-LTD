@@ -165,8 +165,8 @@ export const DEFAULT_MARKETPLACE_CONFIG: MarketplaceConfig = {
     cod_max_limit: 3000000,
     currency: 'UGX',
     manual_payment_number: '0394 760459',
-    manual_account_name: 'ALLAN',
-    manual_payment_instructions: 'Make the payment to 0394 760459 and put accounts names ALLAN, please use order number as id',
+    manual_account_name: 'CYBER DYNAMIC TECH',
+    manual_payment_instructions: 'Make the payment to 0394 760459 and put accounts names CYBER DYNAMIC TECH, please use order number as id',
   },
 
   taxes: {
@@ -344,7 +344,7 @@ export const DEFAULT_MARKETPLACE_CONFIG: MarketplaceConfig = {
   pos: {
     enabled: true,
     allowed_roles: ['admin', 'manager'],
-    allowed_user_emails: ['opwataallan@gmail.com', 'admin@cyberdynamictech.com'],
+    allowed_user_emails: ['admin@cyberdynamictech.com', 'support@cyberdynamictech.com'],
     store_name: 'Cyber Dynamic Tech Kampala Flagship Store',
     store_address: 'Kampala, Uganda',
     store_phone: '+256 779 743 101',

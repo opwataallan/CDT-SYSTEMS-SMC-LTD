@@ -53,7 +53,7 @@ interface ShopContextType {
   isPosAllowed: boolean;
   loginUser: (email: string, name?: string, phone?: string) => void;
   login: (credentialsOrEmail: { email: string; password: string } | string, maybePassword?: string) => Promise<{ success: boolean; user?: CustomerUser; message: string }>;
-  quickLogin: (role?: 'admin' | 'allan' | 'customer') => Promise<{ success: boolean; message: string }>;
+  quickLogin: (role?: 'admin' | 'staff' | 'customer') => Promise<{ success: boolean; message: string }>;
   register: (data: { first_name: string; last_name?: string; email: string; phone?: string; password: string }) => Promise<{ success: boolean; message: string }>;
   logoutUser: () => Promise<void>;
   updateUserProfile: (data: { first_name?: string; last_name?: string; phone?: string; addresses?: any[] }) => Promise<void>;
@@ -81,9 +81,9 @@ interface ShopContextType {
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Global synchronized product catalog & categories
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
+  // Global synchronized product catalog & categories (sourced strictly from API)
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
@@ -91,11 +91,22 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProducts = async () => {
     try {
       const res = await api.getProducts({ limit: 5000 });
-      if (res && Array.isArray(res.products) && res.products.length > 0) {
+      if (res && Array.isArray(res.products)) {
         setProducts(res.products);
       }
     } catch (err) {
-      console.warn('Catalog fetch notice:', err);
+      console.warn('API catalog fetch notice:', err);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const cats = await api.getCategories();
+      if (Array.isArray(cats)) {
+        setCategories(cats);
+      }
+    } catch (err) {
+      console.warn('API categories fetch notice:', err);
     }
   };
 
@@ -137,11 +148,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         await Promise.allSettled([
           fetchProducts(),
-          api.getCategories().then((cats) => {
-            if (Array.isArray(cats) && cats.length > 0) {
-              setCategories(cats);
-            }
-          }),
+          fetchCategories(),
         ]);
       } finally {
         setTimeout(() => {
@@ -546,7 +553,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const quickLogin = async (role: 'admin' | 'allan' | 'customer' = 'allan') => {
+  const quickLogin = async (role: 'admin' | 'staff' | 'customer' = 'admin') => {
     try {
       const res = await api.quickLogin(role);
       if (res.success && res.user) {

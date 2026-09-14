@@ -32,12 +32,15 @@ export interface ProductVariation {
 
 export interface ProductReview {
   id: number;
+  product_id?: number;
   reviewer: string;
   reviewer_email?: string;
+  district?: string;
   rating: number;
   review: string;
   date_created: string;
   verified: boolean;
+  helpful_count?: number;
 }
 
 export interface Product {

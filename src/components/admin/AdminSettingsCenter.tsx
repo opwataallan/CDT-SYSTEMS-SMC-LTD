@@ -926,9 +926,9 @@ export const AdminSettingsCenter: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      value={currentValues['manual_account_name'] ?? 'ALLAN'}
+                      value={currentValues['manual_account_name'] ?? 'CYBER DYNAMIC TECH'}
                       onChange={(e) => handleFieldChange('payments', 'manual_account_name', e.target.value)}
-                      placeholder="e.g. ALLAN"
+                      placeholder="e.g. CYBER DYNAMIC TECH"
                       className="w-full h-8 px-2.5 bg-white border border-slate-300 rounded-lg text-xs font-bold uppercase focus:outline-hidden focus:border-cyan-500"
                     />
                     <p className="text-[10px] text-slate-500 mt-0.5">Name displayed on MTN/Airtel receiver confirmation</p>
@@ -943,10 +943,10 @@ export const AdminSettingsCenter: React.FC = () => {
                     rows={2}
                     value={
                       currentValues['manual_payment_instructions'] ??
-                      `Make the payment to ${currentValues['manual_payment_number'] || '0394 760459'} and put accounts names ${currentValues['manual_account_name'] || 'ALLAN'}, please use order number as id`
+                      `Make the payment to ${currentValues['manual_payment_number'] || '0394 760459'} and put accounts names ${currentValues['manual_account_name'] || 'CYBER DYNAMIC TECH'}, please use order number as id`
                     }
                     onChange={(e) => handleFieldChange('payments', 'manual_payment_instructions', e.target.value)}
-                    placeholder="Make the payment to 0394 760459 and put accounts names ALLAN, please use order number as id"
+                    placeholder="Make the payment to 0394 760459 and put accounts names CYBER DYNAMIC TECH, please use order number as id"
                     className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500"
                   />
                   <p className="text-[10px] text-slate-500 mt-0.5">
@@ -960,7 +960,7 @@ export const AdminSettingsCenter: React.FC = () => {
                     Customer Screen Preview
                   </span>
                   <p className="font-bold text-slate-900 text-xs">
-                    "Make the payment to <span className="font-mono text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded border border-cyan-200">{currentValues['manual_payment_number'] || '0394 760459'}</span> and put accounts names <span className="text-slate-900 underline font-extrabold">{currentValues['manual_account_name'] || 'ALLAN'}</span>, please use order number as id"
+                    "Make the payment to <span className="font-mono text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded border border-cyan-200">{currentValues['manual_payment_number'] || '0394 760459'}</span> and put accounts names <span className="text-slate-900 underline font-extrabold">{currentValues['manual_account_name'] || 'CYBER DYNAMIC TECH'}</span>, please use order number as id"
                   </p>
                 </div>
               </div>

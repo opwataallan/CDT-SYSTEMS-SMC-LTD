@@ -36,10 +36,10 @@ export class MarketplaceStore {
   public users: UserAccount[] = [
     {
       id: 1,
-      email: 'opwataallan@gmail.com',
+      email: 'admin@cyberdynamictech.com',
       password_hash: hashPassword(process.env.ADMIN_INITIAL_PASSWORD || 'Opw_1NDC'),
-      first_name: 'Allan',
-      last_name: 'Opwata',
+      first_name: 'Store',
+      last_name: 'Administrator',
       phone: '+256779743101',
       role: 'admin',
       status: 'active',
@@ -51,10 +51,10 @@ export class MarketplaceStore {
         {
           id: 'addr_superadmin',
           type: 'shipping',
-          first_name: 'Allan',
-          last_name: 'Opwata',
+          first_name: 'Store',
+          last_name: 'Administrator',
           phone: '+256779743101',
-          email: 'opwataallan@gmail.com',
+          email: 'admin@cyberdynamictech.com',
           district: 'Kampala',
           city: 'Kampala Central',
           address_1: 'Kampala',
@@ -66,7 +66,7 @@ export class MarketplaceStore {
     },
     {
       id: 2,
-      email: 'admin@cyberdynamictech.com',
+      email: 'operations@cyberdynamictech.com',
       password_hash: hashPassword('Admin@Cyber2026!'),
       first_name: 'Cyber',
       last_name: 'Administrator',

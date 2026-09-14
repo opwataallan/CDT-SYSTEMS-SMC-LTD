@@ -1,5 +1,6 @@
 import {
   Product,
+  ProductReview,
   Category,
   CustomerOrder,
   StoreSettings,
@@ -11,6 +12,7 @@ import {
   AuditLogEntry,
   UserRole,
 } from '../types';
+import { getStoredReviewsForProduct, saveLocalProductReview } from '../data/initialReviews';
 
 /**
  * Universal safe API requester that guarantees:
@@ -169,7 +171,7 @@ export const api = {
     }, 'Login failed');
   },
 
-  async quickLogin(role: 'admin' | 'allan' | 'customer' = 'allan'): Promise<{
+  async quickLogin(role: 'admin' | 'staff' | 'customer' = 'admin'): Promise<{
     success: boolean;
     user: CustomerUser;
     token: string;
@@ -347,6 +349,45 @@ export const api = {
 
   async getProduct(identifier: string | number): Promise<Product> {
     return safeFetch(`/api/woocommerce/products/${identifier}`, { method: 'GET' }, 'Product not found');
+  },
+
+  async getReviews(productId: number): Promise<ProductReview[]> {
+    try {
+      const res = await safeFetch<ProductReview[]>(`/api/products/${productId}/reviews`, { method: 'GET' });
+      if (Array.isArray(res) && res.length > 0) return res;
+    } catch {
+      // Graceful fallback to client stored reviews
+    }
+    return getStoredReviewsForProduct(productId);
+  },
+
+  async addReview(
+    productId: number,
+    reviewData: {
+      reviewer: string;
+      reviewer_email?: string;
+      district?: string;
+      rating: number;
+      review: string;
+    }
+  ): Promise<ProductReview> {
+    try {
+      const res = await safeFetch<ProductReview>(`/api/products/${productId}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewData),
+      });
+      if (res && res.id) {
+        saveLocalProductReview(productId, res);
+        return res;
+      }
+    } catch {
+      // Graceful fallback to local persistence
+    }
+    return saveLocalProductReview(productId, {
+      ...reviewData,
+      verified: true,
+    });
   },
 
   async getCategories(): Promise<Category[]> {

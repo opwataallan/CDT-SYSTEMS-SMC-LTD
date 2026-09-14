@@ -69,6 +69,7 @@ export const PosPage: React.FC = () => {
     isPosAllowed,
     config,
     login,
+    quickLogin,
     setCurrentView,
     formatPrice,
     showToast,
@@ -588,11 +589,11 @@ export const PosPage: React.FC = () => {
 
           <div className="space-y-3 mb-6">
             <button
-              onClick={() => login('opwataallan@gmail.com', 'Opw_1NDC')}
+              onClick={() => quickLogin('admin')}
               className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-cyan-900/30 flex items-center justify-center gap-2 cursor-pointer"
             >
               <User className="w-4 h-4" />
-              <span>Log in as Super Admin (Allan Opwata)</span>
+              <span>Log in as Super Admin</span>
             </button>
             <button
               onClick={() => setCurrentView('account')}
@@ -661,7 +662,7 @@ export const PosPage: React.FC = () => {
               </button>
             )}
             <button
-              onClick={() => login('opwataallan@gmail.com', 'Opw_1NDC')}
+              onClick={() => quickLogin('admin')}
               className="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
             >
               <User className="w-4 h-4" />

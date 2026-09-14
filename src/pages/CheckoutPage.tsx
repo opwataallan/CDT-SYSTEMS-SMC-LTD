@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   ShieldCheck,
   Truck,
@@ -17,7 +17,8 @@ import {
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
 import { CustomerOrder } from '../types';
-import { UGANDA_DISTRICTS } from '../data/ugandaDistricts';
+import { UGANDA_DISTRICTS, getDistrictDeliveryOptions } from '../data/ugandaDistricts';
+import { DistrictSelector } from '../components/DistrictSelector';
 import { PaymentLandingPage } from '../components/PaymentLandingPage';
 
 export const CheckoutPage: React.FC = () => {
@@ -90,18 +91,29 @@ export const CheckoutPage: React.FC = () => {
     }
   }, [user]);
 
-  // When district changes, recommend matching zone
+  // Delivery options dynamically computed for the chosen district
+  const districtDeliveryOptions = useMemo(() => getDistrictDeliveryOptions(district), [district]);
+  const [selectedShippingOptionId, setSelectedShippingOptionId] = useState<string>(() => {
+    return selectedZone?.id || `doorstep_${district.toLowerCase()}`;
+  });
+
+  // When customer chooses their district individually, calculate accurate localized shipping options
   const handleDistrictChange = (selectedDistrictName: string) => {
     setDistrict(selectedDistrictName);
-    const matched = UGANDA_DISTRICTS.find((d) => d.name === selectedDistrictName || d.id === selectedDistrictName.toLowerCase());
-    if (matched && matched.deliveryZone) {
-      const zoneMatch = deliveryZones.find((z) =>
-        z.name.toLowerCase().includes(matched.deliveryZone.toLowerCase()) ||
-        matched.deliveryZone.toLowerCase().includes(z.name.toLowerCase())
-      );
-      if (zoneMatch) {
-        setSelectedZone(zoneMatch);
-      }
+    const opts = getDistrictDeliveryOptions(selectedDistrictName);
+    const primary = opts[0];
+    if (primary) {
+      setSelectedShippingOptionId(primary.id);
+      const isFree = primary.fee === 0 || cartSubtotal >= primary.free_threshold;
+      setSelectedZone({
+        id: primary.id,
+        name: primary.name,
+        fee: isFree ? 0 : primary.fee,
+        free_threshold: primary.free_threshold,
+        estimated_delivery: primary.estimated_delivery,
+        description: primary.description,
+        districts: [selectedDistrictName],
+      });
     }
   };
 
@@ -379,32 +391,16 @@ export const CheckoutPage: React.FC = () => {
                 />
               </div>
 
-              {/* UGANDA DISTRICT SELECTOR */}
-              <div>
-                <label className="font-bold text-slate-700 block mb-1 flex items-center justify-between">
-                  <span>District of Delivery *</span>
-                  <span className="text-[10px] text-cyan-600 font-bold">146 Uganda Districts</span>
+              {/* UGANDA INDIVIDUAL DISTRICT SELECTOR */}
+              <div className="sm:col-span-2">
+                <label className="font-bold text-slate-700 block mb-1">
+                  District of Delivery & Regional Hub *
                 </label>
-                <select
-                  value={district}
-                  onChange={(e) => handleDistrictChange(e.target.value)}
-                  className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 bg-white cursor-pointer font-bold text-slate-800"
-                >
-                  <optgroup label="Popular Delivery Hubs">
-                    {UGANDA_DISTRICTS.filter((d) => d.popular).map((dist) => (
-                      <option key={dist.id} value={dist.name}>
-                        {dist.name} ({dist.region})
-                      </option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="All Uganda Districts">
-                    {UGANDA_DISTRICTS.filter((d) => !d.popular).map((dist) => (
-                      <option key={dist.id} value={dist.name}>
-                        {dist.name} ({dist.region})
-                      </option>
-                    ))}
-                  </optgroup>
-                </select>
+                <DistrictSelector
+                  selectedDistrict={district}
+                  onSelectDistrict={(name) => handleDistrictChange(name)}
+                  showPickupDetails={true}
+                />
               </div>
 
               <div>
@@ -568,41 +564,65 @@ export const CheckoutPage: React.FC = () => {
             </div>
           </div>
 
-          {/* STEP 2: SHIPPING ZONE SELECTION */}
+          {/* STEP 2: SHIPPING METHOD FOR CHOSEN DISTRICT */}
           <div className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-2xs space-y-3">
-            <h2 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
-              <Truck className="w-3.5 h-3.5 text-cyan-600" />
-              <span>2. Delivery Zone & Shipping Rates</span>
-            </h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-2.5">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5 text-cyan-600" />
+                <span>2. Delivery & Pickup Method for {district}</span>
+              </h2>
+              <span className="text-[11px] font-semibold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-200/60">
+                Customized for your selected district
+              </span>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              {deliveryZones.map((zone) => {
-                const isSelected = selectedZone.id === zone.id;
-                const isFree = cartSubtotal >= (zone.free_threshold || 500000);
-                const fee = isFree ? 0 : zone.fee;
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+              {districtDeliveryOptions.map((opt) => {
+                const isSelected = selectedShippingOptionId === opt.id || selectedZone.name === opt.name;
+                const isFree = opt.fee === 0 || cartSubtotal >= opt.free_threshold;
+                const effectiveFee = isFree ? 0 : opt.fee;
 
                 return (
                   <div
-                    key={zone.id}
-                    onClick={() => setSelectedZone(zone)}
-                    className={`p-2.5 rounded-lg border transition-all cursor-pointer flex flex-col justify-between ${
+                    key={opt.id}
+                    onClick={() => {
+                      setSelectedShippingOptionId(opt.id);
+                      setSelectedZone({
+                        id: opt.id,
+                        name: opt.name,
+                        fee: effectiveFee,
+                        free_threshold: opt.free_threshold,
+                        estimated_delivery: opt.estimated_delivery,
+                        description: opt.description,
+                        districts: [district],
+                      });
+                    }}
+                    className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between ${
                       isSelected
-                        ? 'border-cyan-500 bg-cyan-50/50 shadow-2xs'
+                        ? 'border-cyan-500 bg-cyan-50/70 shadow-2xs ring-1 ring-cyan-500/30'
                         : 'border-slate-200 hover:border-slate-300 bg-white'
                     }`}
                   >
                     <div>
-                      <div className="flex items-center justify-between font-bold text-slate-900 mb-0.5">
-                        <span>{zone.name}</span>
-                        {isSelected && <span className="text-cyan-600 font-black text-[10px]">✓ Selected</span>}
+                      <div className="flex items-start justify-between font-bold text-slate-900 mb-1 gap-1">
+                        <span className="text-xs font-black">{opt.name}</span>
+                        {isSelected && <span className="text-cyan-600 font-black text-[10px] shrink-0">✓ Selected</span>}
                       </div>
-                      <p className="text-[10px] text-slate-500">{zone.estimated_delivery || zone.estimated_days}</p>
+                      <p className="text-[10px] text-slate-500 leading-relaxed">{opt.description}</p>
+                      <div className="mt-1.5 text-[10px] text-cyan-700 font-semibold flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-cyan-600 shrink-0" />
+                        <span>{opt.estimated_delivery}</span>
+                      </div>
                     </div>
 
-                    <div className="mt-1.5 pt-1.5 border-t border-slate-100 flex items-center justify-between">
-                      <span className="text-[10px] text-slate-600">Shipping:</span>
-                      <span className="font-black text-slate-900 text-[11px]">
-                        {fee === 0 ? <span className="text-emerald-600">FREE</span> : `UGX ${fee.toLocaleString()}`}
+                    <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between">
+                      <span className="text-[10px] text-slate-500">Shipping Rate:</span>
+                      <span className="font-black text-slate-900 text-xs">
+                        {effectiveFee === 0 ? (
+                          <span className="text-emerald-600 font-black">FREE (UGX 0)</span>
+                        ) : (
+                          `UGX ${effectiveFee.toLocaleString()}`
+                        )}
                       </span>
                     </div>
                   </div>
@@ -638,7 +658,7 @@ export const CheckoutPage: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  Send to 0394 760459 (ALLAN). Manager confirms before dispatch.
+                  Send to 0394 760459 (CYBER DYNAMIC TECH). Manager confirms before dispatch.
                 </p>
               </div>
 
@@ -661,7 +681,7 @@ export const CheckoutPage: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  Send to 0394 760459 (ALLAN). Manager confirms before dispatch.
+                  Send to 0394 760459 (CYBER DYNAMIC TECH). Manager confirms before dispatch.
                 </p>
               </div>
 
@@ -712,7 +732,7 @@ export const CheckoutPage: React.FC = () => {
                   <span>Payment Landing Page will be presented upon clicking Place Order</span>
                 </p>
                 <p className="text-[11px] text-amber-800">
-                  You will be shown our official payment number with a 1-click copy button. Store manager ALLAN verifies your payment before dispatch.
+                  You will be shown our official payment number with a 1-click copy button. Our store manager verifies your payment before dispatch.
                 </p>
               </div>
             ) : (

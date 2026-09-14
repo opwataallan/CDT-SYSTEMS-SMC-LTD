@@ -3,7 +3,6 @@ import { ChevronLeft, ChevronRight, Pause, Play, ArrowRight, Sparkles } from 'lu
 import { Product } from '../types';
 import { SliderProductCard } from './SliderProductCard';
 import { useShop } from '../context/ShopContext';
-import { INITIAL_PRODUCTS } from '../data/cyberCatalog';
 
 export interface ProductSliderRowProps {
   rowNumber: number;
@@ -50,9 +49,8 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
   // Filter products for this row
   const rowProducts = useMemo(() => {
     const rawList = propProducts && propProducts.length > 0 ? propProducts : storeProducts;
-    const list = Array.isArray(rawList) && rawList.length > 0 ? rawList : INITIAL_PRODUCTS;
+    const safeList = Array.isArray(rawList) ? rawList : [];
     const targetSlugs = filterCategorySlugs || [categorySlug];
-    const safeList = Array.isArray(list) ? list : [];
 
     const filtered = safeList.filter((p) => {
       if (!p) return false;
@@ -77,11 +75,8 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
       );
     });
 
-    // If filter returns few products, fallback to top products to ensure a full slider
-    if (filtered.length < 3) {
-      return safeList.slice(0, 8);
-    }
-    return filtered;
+    if (filtered.length > 0) return filtered;
+    return safeList.slice(0, 10);
   }, [propProducts, storeProducts, categorySlug, filterCategorySlugs]);
 
   // Triple the list to enable seamless infinite wrapping
@@ -128,6 +123,34 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
     return () => observer.disconnect();
   }, []);
 
+  // Temporary interaction pause helper
+  const pauseTemporarily = useCallback((durationMs = 2000) => {
+    setIsInteracting(true);
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+    }
+    resumeTimeoutRef.current = setTimeout(() => {
+      setIsInteracting(false);
+    }, durationMs);
+  }, []);
+
+  // Mouse wheel horizontal scrolling: allow user to scroll with mouse wheel without using arrows
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && !e.shiftKey && !e.ctrlKey) {
+        e.preventDefault();
+        pauseTemporarily(2500);
+        container.scrollLeft += e.deltaY * 0.9;
+      }
+    };
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    return () => container.removeEventListener('wheel', handleWheel);
+  }, [pauseTemporarily]);
+
   // Main animation frame loop
   useEffect(() => {
     const container = containerRef.current;
@@ -172,15 +195,51 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
     };
   }, [isPlaying, isHovered, isInteracting, singleSetWidth, speed, direction]);
 
-  // Temporary interaction pause helper
-  const pauseTemporarily = useCallback((durationMs = 2000) => {
-    setIsInteracting(true);
-    if (resumeTimeoutRef.current) {
-      clearTimeout(resumeTimeoutRef.current);
-    }
-    resumeTimeoutRef.current = setTimeout(() => {
-      setIsInteracting(false);
-    }, durationMs);
+  // Wheel to horizontal scroll conversion
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && !e.shiftKey && !e.ctrlKey) {
+        e.preventDefault();
+        pauseTemporarily(2000);
+        el.scrollLeft += e.deltaY * 0.9;
+      }
+    };
+
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
+  // Global mousemove and mouseup listeners when dragging so drag doesn't get stuck
+  useEffect(() => {
+    const onGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current || !containerRef.current) return;
+      const x = e.pageX - containerRef.current.offsetLeft;
+      const walk = (x - startXRef.current) * 1.5;
+      if (Math.abs(walk) > 4) {
+        hasMovedRef.current = true;
+      }
+      containerRef.current.scrollLeft = scrollLeftStartRef.current - walk;
+    };
+
+    const onGlobalMouseUp = () => {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        pauseTemporarily(1500);
+        setTimeout(() => {
+          hasMovedRef.current = false;
+        }, 100);
+      }
+    };
+
+    window.addEventListener('mousemove', onGlobalMouseMove);
+    window.addEventListener('mouseup', onGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', onGlobalMouseMove);
+      window.removeEventListener('mouseup', onGlobalMouseUp);
+    };
   }, []);
 
   // Manual Arrow Navigation
@@ -253,10 +312,10 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
   return (
     <section
       id={`product-slider-row-${rowNumber}`}
-      className="py-4 border-b border-slate-100 last:border-b-0 overflow-hidden"
+      className="py-2.5 sm:py-3 border-b border-slate-100 last:border-b-0 overflow-hidden"
     >
       {/* Category Header with Row Number, Title, Controls, and View All */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
         <div className="flex items-center gap-2.5">
           <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-900 text-cyan-400 font-mono text-xs font-bold shrink-0">
             {rowNumber}
@@ -346,6 +405,7 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onTouchStart={handleTouchStart}
+        onTouchMove={() => pauseTemporarily(1500)}
         onTouchEnd={handleTouchEnd}
         className="w-full overflow-x-auto no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing select-none"
         style={{
@@ -355,7 +415,7 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
       >
         <div
           ref={trackRef}
-          className="flex items-stretch gap-3 sm:gap-4 py-2 w-max"
+          className="flex items-stretch gap-1.5 sm:gap-2 md:gap-2.5 py-1 sm:py-1.5 w-max"
         >
           {repeatedProducts.map((product, index) => (
             <SliderProductCard

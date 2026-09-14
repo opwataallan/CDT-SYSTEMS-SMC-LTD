@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Sparkles,
   ArrowRight,
@@ -25,16 +25,19 @@ import {
 } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { FiveRowProductSlider } from '../components/FiveRowProductSlider';
+import { TopDealsSlider } from '../components/TopDealsSlider';
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
 import { Product, Category, HeroBanner } from '../types';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_HERO_BANNERS } from '../data/cyberCatalog';
+import { stripHtmlToPlainText } from '../utils/sanitizeWooCommerceHtml';
 
 export const HomePage: React.FC = () => {
   const { setCurrentView, products: shopProducts, categories: shopCategories, addToCart, formatPrice } = useShop();
 
-  const [products, setProducts] = useState<Product[]>(() => (shopProducts && shopProducts.length > 0 ? shopProducts : INITIAL_PRODUCTS));
-  const [categories, setCategories] = useState<Category[]>(() => (shopCategories && shopCategories.length > 0 ? shopCategories : INITIAL_CATEGORIES));
+  // Products and categories loaded exclusively from API
+  const [products, setProducts] = useState<Product[]>(() => (shopProducts && shopProducts.length > 0 ? shopProducts : []));
+  const [categories, setCategories] = useState<Category[]>(() => (shopCategories && shopCategories.length > 0 ? shopCategories : []));
   const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(() => INITIAL_HERO_BANNERS);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'all' | 'laptops' | 'printers' | 'networking'>('all');
@@ -43,21 +46,10 @@ export const HomePage: React.FC = () => {
   const categoryScrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-
-  // Flash Sale Countdown (hours, minutes, seconds)
-  const [timeLeft, setTimeLeft] = useState({ hours: 7, minutes: 34, seconds: 22 });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, minutes: 59, seconds: 59 };
-        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        return { hours: 12, minutes: 0, seconds: 0 };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const [isDraggingCategories, setIsDraggingCategories] = useState(false);
+  const catStartXRef = useRef(0);
+  const catScrollLeftRef = useRef(0);
+  const catHasMovedRef = useRef(false);
 
   // Fetch initial catalog data from live API (up to 5,000 products)
   useEffect(() => {
@@ -89,15 +81,6 @@ export const HomePage: React.FC = () => {
     }
   }, [shopCategories]);
 
-  // Hero banner auto-rotate
-  useEffect(() => {
-    if (heroBanners.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentBannerIndex((prev) => (prev + 1) % heroBanners.length);
-    }, 6000);
-    return () => clearInterval(interval);
-  }, [heroBanners.length]);
-
   // Category Manual Slider functions
   const checkCategoryScroll = () => {
     if (!categoryScrollRef.current) return;
@@ -115,14 +98,53 @@ export const HomePage: React.FC = () => {
     });
   };
 
+  // Category mouse drag handlers (allow users to scroll without arrows)
+  const handleCatMouseDown = (e: React.MouseEvent) => {
+    if (!categoryScrollRef.current) return;
+    setIsDraggingCategories(true);
+    catHasMovedRef.current = false;
+    catStartXRef.current = e.pageX - categoryScrollRef.current.offsetLeft;
+    catScrollLeftRef.current = categoryScrollRef.current.scrollLeft;
+  };
+
+  const handleCatMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingCategories || !categoryScrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - categoryScrollRef.current.offsetLeft;
+    const walk = (x - catStartXRef.current) * 1.4;
+    if (Math.abs(walk) > 4) {
+      catHasMovedRef.current = true;
+    }
+    categoryScrollRef.current.scrollLeft = catScrollLeftRef.current - walk;
+  };
+
+  const handleCatMouseUp = () => {
+    if (isDraggingCategories) {
+      setIsDraggingCategories(false);
+      setTimeout(() => {
+        catHasMovedRef.current = false;
+      }, 100);
+    }
+  };
+
   useEffect(() => {
     checkCategoryScroll();
     const el = categoryScrollRef.current;
     if (el) {
+      const handleWheel = (e: WheelEvent) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && !e.shiftKey && !e.ctrlKey) {
+          e.preventDefault();
+          el.scrollLeft += e.deltaY * 0.9;
+          checkCategoryScroll();
+        }
+      };
+
       el.addEventListener('scroll', checkCategoryScroll);
+      el.addEventListener('wheel', handleWheel, { passive: false });
       window.addEventListener('resize', checkCategoryScroll);
       return () => {
         el.removeEventListener('scroll', checkCategoryScroll);
+        el.removeEventListener('wheel', handleWheel);
         window.removeEventListener('resize', checkCategoryScroll);
       };
     }
@@ -144,35 +166,44 @@ export const HomePage: React.FC = () => {
       ? networking
       : safeProducts;
 
-  // Map hero banners to actual products in catalog
-  const heroItems = (heroBanners.length > 0 ? heroBanners : INITIAL_HERO_BANNERS).map((banner) => {
-    let matchedProduct: Product | undefined;
-    if (banner.productId) {
-      matchedProduct = safeProducts.find((p) => p.id === banner.productId);
-    }
-    if (!matchedProduct && banner.title) {
-      const lower = banner.title.toLowerCase();
-      matchedProduct = safeProducts.find((p) =>
-        lower.includes(p.name.toLowerCase().slice(0, 10)) ||
-        (banner.brand && p.brand && p.brand.toLowerCase() === banner.brand.toLowerCase())
-      );
-    }
-    return {
-      banner,
-      product: matchedProduct || safeProducts[0],
-    };
-  });
+  // Curated catalog limit: 12 products (2 rows of 6 on desktop, 4 rows of 3 on mobile)
+  const [catalogLimit, setCatalogLimit] = useState(12);
 
-  const currentHero = heroItems[currentBannerIndex] || heroItems[0] || {
-    banner: INITIAL_HERO_BANNERS[0],
-    product: safeProducts[0],
-  };
+  useEffect(() => {
+    setCatalogLimit(12);
+  }, [activeTab]);
 
-  const currentBanner = currentHero.banner;
-  const currentProduct = currentHero.product;
+  const visibleCatalogProducts = useMemo(() => {
+    return displayedProducts.slice(0, catalogLimit);
+  }, [displayedProducts, catalogLimit]);
+
+  // Build hero product lineup directly from catalog products from API
+  const heroProducts = useMemo(() => {
+    if (safeProducts.length === 0) return [];
+    const withImages = safeProducts.filter((p) => p && p.images && p.images.length > 0);
+    const pool = withImages.length > 0 ? withImages : safeProducts;
+    const featured = pool.filter((p) => p.featured || p.flash_sale);
+    if (featured.length >= 6) return featured.slice(0, 6);
+    const remainder = pool.filter((p) => !featured.some((f) => f.id === p.id));
+    return [...featured, ...remainder].slice(0, 6);
+  }, [safeProducts]);
+
+  const activeHeroProducts = heroProducts.length > 0 ? heroProducts : safeProducts.slice(0, 6);
+
+  // Auto-rotate hero products
+  useEffect(() => {
+    if (activeHeroProducts.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % activeHeroProducts.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, [activeHeroProducts.length]);
+
+  const currentProduct = activeHeroProducts[currentBannerIndex % Math.max(1, activeHeroProducts.length)] || safeProducts[0];
+  const currentBanner = heroBanners[currentBannerIndex] || INITIAL_HERO_BANNERS[0];
 
   return (
-    <div className="space-y-8 pb-16 bg-[#F1F5F9]">
+    <div className="space-y-4 sm:space-y-5 pb-10">
       {/* 1. HERO SECTION WITH HIGH-DENSITY CATEGORY SIDEBAR + PRODUCT HERO */}
       <section className="max-w-7xl mx-auto px-4 pt-4 sm:pt-6">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
@@ -183,7 +214,7 @@ export const HomePage: React.FC = () => {
               <span className="text-[10px] text-cyan-600 font-bold">Uganda Hub</span>
             </div>
             <div className="flex-1 py-1 space-y-0.5">
-              {categories.map((cat) => (
+              {categories.slice(0, 12).map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setCurrentView('category', { slug: cat.slug, name: cat.name })}
@@ -243,7 +274,7 @@ export const HomePage: React.FC = () => {
 
                 {/* Subtitle / Key Specs */}
                 <p className="text-xs sm:text-sm text-slate-300 line-clamp-2 leading-relaxed font-medium">
-                  {currentBanner.subtitle || currentProduct?.short_description || currentBanner.tagline}
+                  {currentBanner.subtitle || stripHtmlToPlainText(currentProduct?.short_description) || currentBanner.tagline}
                 </p>
 
                 {/* Spec Highlights */}
@@ -424,14 +455,14 @@ export const HomePage: React.FC = () => {
                     <div className="mt-3 pt-2.5 border-t border-slate-100">
                       <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
                         <span>Featured Hardware Lineup</span>
-                        <span className="text-cyan-600">{currentBannerIndex + 1}/{heroItems.length}</span>
+                        <span className="text-cyan-600">{currentBannerIndex + 1}/{activeHeroProducts.length}</span>
                       </p>
                       <div className="flex items-center gap-1.5">
-                        {heroItems.map((item, idx) => (
+                        {activeHeroProducts.map((prod, idx) => (
                           <button
-                            key={idx}
+                            key={prod.id || idx}
                             onClick={() => setCurrentBannerIndex(idx)}
-                            title={item.product?.name || item.banner.title}
+                            title={prod.name}
                             className={`relative w-8 h-8 rounded-lg bg-slate-50 border p-0.5 overflow-hidden cursor-pointer transition-all ${
                               currentBannerIndex === idx
                                 ? 'border-cyan-500 ring-2 ring-cyan-400/40 scale-105'
@@ -439,8 +470,8 @@ export const HomePage: React.FC = () => {
                             }`}
                           >
                             <img
-                              src={item.product?.images?.[0]?.src || item.banner.imageUrl}
-                              alt={item.banner.title}
+                              src={prod.images?.[0]?.src || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&auto=format&fit=crop&q=80'}
+                              alt={prod.name}
                               className="w-full h-full object-contain"
                               referrerPolicy="no-referrer"
                             />
@@ -453,17 +484,17 @@ export const HomePage: React.FC = () => {
               )}
 
               {/* Prev / Next Banner Slide Arrows */}
-              {heroItems.length > 1 && (
+              {activeHeroProducts.length > 1 && (
                 <>
                   <button
-                    onClick={() => setCurrentBannerIndex((prev) => (prev - 1 + heroItems.length) % heroItems.length)}
+                    onClick={() => setCurrentBannerIndex((prev) => (prev - 1 + activeHeroProducts.length) % activeHeroProducts.length)}
                     aria-label="Previous Product Banner"
                     className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white border border-slate-700 flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs opacity-0 group-hover:opacity-100"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => setCurrentBannerIndex((prev) => (prev + 1) % heroItems.length)}
+                    onClick={() => setCurrentBannerIndex((prev) => (prev + 1) % activeHeroProducts.length)}
                     aria-label="Next Product Banner"
                     className="absolute right-2 md:right-auto md:left-[calc(100%-320px-1.5rem)] top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white border border-slate-700 flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs opacity-0 group-hover:opacity-100"
                   >
@@ -473,9 +504,9 @@ export const HomePage: React.FC = () => {
               )}
 
               {/* Banner Carousel Controls */}
-              {heroItems.length > 1 && (
+              {activeHeroProducts.length > 1 && (
                 <div className="absolute bottom-3 left-5 sm:left-8 z-20 flex items-center gap-2">
-                  {heroItems.map((_, idx) => (
+                  {activeHeroProducts.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentBannerIndex(idx)}
@@ -490,20 +521,20 @@ export const HomePage: React.FC = () => {
             </div>
 
             {/* Quick Benefits Strip (High Density Clean Badges) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
-              <div className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5">
+              <div className="p-2 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
                 <Truck className="w-4 h-4 text-cyan-600 flex-shrink-0" />
                 <span className="text-[11px]">Nationwide Delivery</span>
               </div>
-              <div className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
+              <div className="p-2 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
                 <ShieldCheck className="w-4 h-4 text-cyan-600 flex-shrink-0" />
                 <span className="text-[11px]">1 Year Tech Warranty</span>
               </div>
-              <div className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
+              <div className="p-2 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
                 <Zap className="w-4 h-4 text-orange-500 flex-shrink-0" />
                 <span className="text-[11px]">MTN / Airtel MoMo</span>
               </div>
-              <div className="p-2.5 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
+              <div className="p-2 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
                 <RotateCcw className="w-4 h-4 text-cyan-600 flex-shrink-0" />
                 <span className="text-[11px]">Kampala Showroom</span>
               </div>
@@ -512,72 +543,17 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. FLASH DEALS SECTION (HIGH DENSITY DARK SLATE & ORANGE ACCENTS) */}
-      <section className="max-w-7xl mx-auto px-4">
-        <div className="bg-[#0F172A] rounded-xl p-4 sm:p-5 text-white border border-slate-800 shadow-xs">
-          {/* Header row */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
-                <Flame className="w-5 h-5 fill-orange-500 text-orange-500" />
-              </div>
-              <div>
-                <h2 className="text-base sm:text-lg font-black uppercase tracking-tight flex items-center gap-2">
-                  <span>Top Deals in Uganda</span>
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-500 text-white uppercase">
-                    Save up to 25%
-                  </span>
-                </h2>
-                <p className="text-[11px] text-slate-400">Strictly authentic hardware tested & warrantied</p>
-              </div>
-            </div>
-
-            {/* Countdown timer */}
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 hidden sm:inline">
-                Time Remaining:
-              </span>
-              <div className="flex items-center gap-1 font-mono text-xs font-bold">
-                <div className="bg-slate-800 px-2 py-1 rounded border border-slate-700 text-cyan-400">
-                  {String(timeLeft.hours).padStart(2, '0')}h
-                </div>
-                <span>:</span>
-                <div className="bg-slate-800 px-2 py-1 rounded border border-slate-700 text-cyan-400">
-                  {String(timeLeft.minutes).padStart(2, '0')}m
-                </div>
-                <span>:</span>
-                <div className="bg-slate-800 px-2 py-1 rounded border border-slate-700 text-orange-400">
-                  {String(timeLeft.seconds).padStart(2, '0')}s
-                </div>
-              </div>
-
-              <button
-                onClick={() => setCurrentView('shop', { flash_sale: true })}
-                className="ml-2 py-1 px-3 rounded bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <span>View All</span>
-                <ArrowRight className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
-
-          {/* Flash Deal Product Cards Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3 mt-4">
-            {flashSaleProducts.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* 2. FLASH DEALS SLIDER (RESPONSIVE 3 ON MOBILE, 6 ON PC WITH BRIGHT TIMER & DRAG SCROLL) */}
+      <TopDealsSlider products={products} />
 
       {/* 3. CATEGORIES MANUAL SLIDER */}
       <section className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <div>
             <h2 className="text-base font-black uppercase tracking-tight text-slate-900">
-              Shop by Tech Category
+              Top 12 Tech Categories
             </h2>
-            <p className="text-xs text-slate-500">Manual slider — slide left or right to explore hardware</p>
+            <p className="text-xs text-slate-500">Explore 12 primary technology departments in Uganda • Slide or drag</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -586,7 +562,7 @@ export const HomePage: React.FC = () => {
               onClick={() => handleScrollCategories('left')}
               disabled={!canScrollLeft}
               aria-label="Scroll Categories Left"
-              className={`p-2 rounded-lg border transition-all cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-lg border transition-all cursor-pointer ${
                 canScrollLeft
                   ? 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800 shadow-2xs'
                   : 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
@@ -600,7 +576,7 @@ export const HomePage: React.FC = () => {
               onClick={() => handleScrollCategories('right')}
               disabled={!canScrollRight}
               aria-label="Scroll Categories Right"
-              className={`p-2 rounded-lg border transition-all cursor-pointer ${
+              className={`p-1.5 sm:p-2 rounded-lg border transition-all cursor-pointer ${
                 canScrollRight
                   ? 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800 shadow-2xs'
                   : 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
@@ -620,31 +596,41 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Horizontal Scrollable Manual Slider */}
+        {/* Horizontal Scrollable Manual Slider (Supports Drag, Touch Swipe, and Wheel Scroll) */}
         <div
           ref={categoryScrollRef}
-          className="flex gap-3 overflow-x-auto scroll-smooth py-2 px-1 no-scrollbar select-none cursor-grab active:cursor-grabbing"
-          style={{ scrollSnapType: 'x mandatory' }}
+          onMouseDown={handleCatMouseDown}
+          onMouseMove={handleCatMouseMove}
+          onMouseUp={handleCatMouseUp}
+          onMouseLeave={handleCatMouseUp}
+          className="flex gap-2 sm:gap-2.5 overflow-x-auto scroll-smooth py-1.5 px-0.5 no-scrollbar select-none cursor-grab active:cursor-grabbing"
+          style={{
+            touchAction: 'pan-y',
+            WebkitOverflowScrolling: 'touch',
+          }}
         >
-          {categories.map((cat) => (
+          {categories.slice(0, 12).map((cat) => (
             <button
               key={cat.id}
-              onClick={() => setCurrentView('category', { slug: cat.slug, name: cat.name })}
+              onClick={() => {
+                if (catHasMovedRef.current) return;
+                setCurrentView('category', { slug: cat.slug, name: cat.name });
+              }}
               style={{ scrollSnapAlign: 'start' }}
-              className="flex-shrink-0 w-36 sm:w-44 md:w-48 flex flex-col items-center text-center p-3 sm:p-3.5 rounded-xl bg-white border border-slate-200 hover:border-cyan-500 hover:shadow-md transition-all group cursor-pointer"
+              className="flex-shrink-0 w-32 sm:w-40 md:w-44 flex flex-col items-center text-center p-2 sm:p-2.5 rounded-xl bg-white border border-slate-200 hover:border-cyan-500 hover:shadow-md transition-all group cursor-pointer"
             >
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-slate-100 mb-2 border border-slate-100 flex items-center justify-center">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-slate-100 mb-1.5 border border-slate-100 flex items-center justify-center">
                 <img
                   src={cat.image}
                   alt={cat.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
-              <span className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1 group-hover:text-cyan-600 transition-colors">
+              <span className="text-xs sm:text-[13px] font-bold text-slate-800 line-clamp-1 group-hover:text-cyan-600 transition-colors">
                 {cat.name}
               </span>
-              <span className="text-[10px] sm:text-xs text-slate-400 mt-0.5">{cat.count} items</span>
-              <span className="text-[10px] font-bold text-cyan-600 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-[10px] text-slate-400 mt-0.5">{cat.count} items</span>
+              <span className="text-[10px] font-bold text-cyan-600 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                 Browse &rarr;
               </span>
             </button>
@@ -658,7 +644,7 @@ export const HomePage: React.FC = () => {
       {/* 4. MAIN FEATURED PRODUCTS WITH TAB FILTER */}
       <section className="max-w-7xl mx-auto px-4">
         {/* Section Header & Tabs */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-2.5 sm:mb-3">
           <div>
             <h2 className="text-lg font-black uppercase tracking-tight text-slate-900">
               Hardware Catalog in <span className="text-cyan-600">Uganda</span>
@@ -702,27 +688,35 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Products Grid (High Density 2-col on mobile, 4-col on desktop) */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
-          {displayedProducts.map((product) => (
+        {/* Products Grid: 3-col on mobile, 6-col on computer screens */}
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 md:gap-2.5">
+          {visibleCatalogProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
 
-        {/* View All Button */}
-        <div className="text-center mt-6">
+        {/* View Controls: Show More / Explore Full Catalog */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 mt-4">
+          {displayedProducts.length > visibleCatalogProducts.length && (
+            <button
+              onClick={() => setCatalogLimit((prev) => prev + 12)}
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-white border border-slate-300 hover:border-cyan-500 hover:text-cyan-600 text-slate-800 font-bold text-xs tracking-wide uppercase transition-all shadow-2xs cursor-pointer"
+            >
+              Load More Hardware ({visibleCatalogProducts.length} of {displayedProducts.length})
+            </button>
+          )}
           <button
             onClick={() => setCurrentView('shop')}
-            className="px-6 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-wider uppercase transition-colors shadow-xs cursor-pointer"
+            className="w-full sm:w-auto px-5 py-2 sm:px-6 sm:py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs tracking-wider uppercase transition-colors shadow-xs cursor-pointer"
           >
-            Explore Complete Cyber Dynamic Tech Catalog ({products.length}+ Items)
+            Explore Complete Catalog ({products.length}+ Items)
           </button>
         </div>
       </section>
 
       {/* 5. PHYSICAL SHOWROOM & ENTERPRISE CONTRACTS BANNER */}
       <section className="max-w-7xl mx-auto px-4">
-        <div className="rounded-xl bg-[#0F172A] text-white p-6 sm:p-8 relative overflow-hidden border border-slate-800 shadow-xs">
+        <div className="rounded-xl bg-[#0F172A] text-white p-5 sm:p-6 relative overflow-hidden border border-slate-800 shadow-xs">
           <div className="max-w-2xl relative z-10 space-y-3">
             <span className="inline-flex items-center gap-1.5 text-cyan-400 text-xs font-bold uppercase tracking-wider">
               <CheckCircle2 className="w-3.5 h-3.5" />
