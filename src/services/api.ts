@@ -13,6 +13,24 @@ import {
   UserRole,
 } from '../types';
 import { getStoredReviewsForProduct, saveLocalProductReview } from '../data/initialReviews';
+import { INITIAL_PRODUCTS_LIST } from '../data/initialProducts';
+import { INITIAL_CATEGORIES } from '../data/cyberCatalog';
+
+// Support optional custom backend URL (for cPanel static hosting proxying to Node or external API)
+const API_BASE_URL = (
+  (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_API_BASE_URL) ||
+  ''
+).replace(/\/+$/, '');
+
+function getFullUrl(input: string): string {
+  if (input.startsWith('http://') || input.startsWith('https://')) {
+    return input;
+  }
+  if (API_BASE_URL && input.startsWith('/')) {
+    return `${API_BASE_URL}${input}`;
+  }
+  return input;
+}
 
 /**
  * Universal safe API requester that guarantees:
@@ -26,6 +44,7 @@ async function safeFetch<T = any>(
   init?: RequestInit,
   fallbackError = 'Request failed'
 ): Promise<T> {
+  const targetUrl = getFullUrl(input);
   const mergedInit: RequestInit = {
     credentials: 'include',
     ...init,
@@ -37,7 +56,7 @@ async function safeFetch<T = any>(
 
   let res: Response;
   try {
-    res = await fetch(input, mergedInit);
+    res = await fetch(targetUrl, mergedInit);
   } catch (netErr: any) {
     throw new Error(
       netErr?.message || 'Network connection failed. Please verify your connection to the server.'
@@ -344,11 +363,58 @@ export const api = {
     query.set('limit', String(params.limit !== undefined ? params.limit : 5000));
     if (params.stock_status) query.set('stock_status', params.stock_status);
 
-    return safeFetch(`/api/woocommerce/products?${query.toString()}`, { method: 'GET' }, 'Failed to fetch products');
+    try {
+      return await safeFetch(`/api/woocommerce/products?${query.toString()}`, { method: 'GET' }, 'Failed to fetch products');
+    } catch (err) {
+      // In static cPanel hosting or when backend is starting, gracefully fallback to bundled catalog
+      console.warn('Backend API notice, serving bundled catalog:', err);
+      let list = [...INITIAL_PRODUCTS_LIST];
+      if (params.category && params.category !== 'all') {
+        const catLower = params.category.toLowerCase();
+        list = list.filter((p) =>
+          p.categories?.some((c) => c.slug.toLowerCase() === catLower || String(c.id) === params.category)
+        );
+      }
+      if (params.search) {
+        const q = params.search.toLowerCase();
+        list = list.filter((p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.brand.toLowerCase().includes(q) ||
+          p.short_description?.toLowerCase().includes(q)
+        );
+      }
+      if (params.brand) {
+        const brands = params.brand.split(',').map((b) => b.trim().toLowerCase());
+        list = list.filter((p) => brands.includes(p.brand.toLowerCase()));
+      }
+      if (params.featured) list = list.filter((p) => p.featured);
+      if (params.flash_sale) list = list.filter((p) => p.flash_sale);
+      if (params.stock_status === 'instock') list = list.filter((p) => p.stock_status === 'instock');
+      if (params.min_price) list = list.filter((p) => p.price >= params.min_price!);
+      if (params.max_price) list = list.filter((p) => p.price <= params.max_price!);
+
+      const total = list.length;
+      const limit = params.limit || 5000;
+      const page = params.page || 1;
+      const start = (page - 1) * limit;
+      return {
+        products: list.slice(start, start + limit),
+        total,
+        totalPages: Math.ceil(total / limit) || 1,
+      };
+    }
   },
 
   async getProduct(identifier: string | number): Promise<Product> {
-    return safeFetch(`/api/woocommerce/products/${identifier}`, { method: 'GET' }, 'Product not found');
+    try {
+      return await safeFetch(`/api/woocommerce/products/${identifier}`, { method: 'GET' }, 'Product not found');
+    } catch (err) {
+      const match = INITIAL_PRODUCTS_LIST.find(
+        (p) => String(p.id) === String(identifier) || p.slug === String(identifier)
+      );
+      if (match) return match;
+      throw err;
+    }
   },
 
   async getReviews(productId: number): Promise<ProductReview[]> {
@@ -391,7 +457,11 @@ export const api = {
   },
 
   async getCategories(): Promise<Category[]> {
-    return safeFetch('/api/woocommerce/categories', { method: 'GET' }, 'Failed to fetch categories');
+    try {
+      return await safeFetch('/api/woocommerce/categories', { method: 'GET' }, 'Failed to fetch categories');
+    } catch {
+      return INITIAL_CATEGORIES;
+    }
   },
 
   async validateCoupon(code: string, cartSubtotal: number): Promise<{

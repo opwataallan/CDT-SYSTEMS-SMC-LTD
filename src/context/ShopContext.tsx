@@ -272,11 +272,68 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Toast notifications
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Router-free view controller
-  const [currentView, setInternalCurrentView] = useState<string>('home');
-  const [viewData, setViewData] = useState<any>(null);
+  // Helper to parse initial URL hash for direct links and browser navigation in cPanel
+  const parseHash = (): { view: string; data?: any } | null => {
+    if (typeof window === 'undefined') return null;
+    const raw = window.location.hash.replace(/^#\/?/, '').trim();
+    if (!raw) return null;
+
+    if (raw.startsWith('product/')) {
+      const slugOrId = decodeURIComponent(raw.replace('product/', ''));
+      return { view: 'product', data: { slug: slugOrId, id: Number(slugOrId) || undefined } };
+    }
+    if (raw.startsWith('category/')) {
+      const cat = decodeURIComponent(raw.replace('category/', ''));
+      return { view: 'shop', data: { category: cat } };
+    }
+    if (['home', 'shop', 'checkout', 'track-order', 'account', 'login', 'register', 'admin', 'pos', 'contact', 'warranty', 'delivery-info'].includes(raw)) {
+      return { view: raw };
+    }
+    return null;
+  };
+
+  const initialHashNav = typeof window !== 'undefined' ? parseHash() : null;
+
+  // Router-free view controller with hash sync
+  const [currentView, setInternalCurrentView] = useState<string>(initialHashNav?.view || 'home');
+  const [viewData, setViewData] = useState<any>(initialHashNav?.data || null);
+
+  const updateBrowserHash = (view: string, data?: any) => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (view === 'home') {
+        if (window.location.hash) {
+          window.history.pushState(null, '', window.location.pathname + window.location.search);
+        }
+      } else if (view === 'product' && (data?.slug || data?.id)) {
+        window.location.hash = `#product/${encodeURIComponent(data.slug || data.id)}`;
+      } else if (view === 'shop' && data?.category) {
+        window.location.hash = `#category/${encodeURIComponent(data.category)}`;
+      } else {
+        window.location.hash = `#${view}`;
+      }
+    } catch {}
+  };
+
+  // Listen for browser Back/Forward navigation
+  useEffect(() => {
+    const handleHashChange = () => {
+      const parsed = parseHash();
+      if (parsed) {
+        setInternalCurrentView(parsed.view);
+        setViewData(parsed.data || null);
+      } else {
+        setInternalCurrentView('home');
+        setViewData(null);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const setCurrentView = (view: string, data?: any) => {
+    updateBrowserHash(view, data);
     if (view !== currentView) {
       setIsPageLoadingState(true);
       setPageLoadingMessage(
