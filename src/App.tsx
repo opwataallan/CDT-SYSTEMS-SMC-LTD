@@ -14,6 +14,8 @@ import { AccountPage } from './pages/AccountPage';
 import { AdminPage } from './pages/AdminPage';
 import { PosPage } from './pages/PosPage';
 import { ContactPage, WarrantyPage } from './pages/StaticInfoPages';
+import { StorePoliciesPage } from './pages/StorePoliciesPage';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { CdtPageLoader } from './components/CdtPageLoader';
 import { TopFlashingAdsBar } from './components/TopFlashingAdsBar';
 import { CheckCircle2 } from 'lucide-react';
@@ -51,6 +53,8 @@ const MainLayout: React.FC = () => {
         return <PosPage />;
       case 'contact':
         return <ContactPage />;
+      case 'store-policies':
+        return <StorePoliciesPage initialPolicy={viewData?.policy} />;
       case 'warranty':
       case 'delivery-info':
         return <WarrantyPage />;
@@ -111,6 +115,9 @@ const MainLayout: React.FC = () => {
 
       {/* Mobile Sticky Bottom Navigation Bar */}
       <BottomNav />
+
+      {/* Cookie & Privacy Transparency Consent Banner */}
+      <CookieConsentBanner />
     </div>
   );
 };

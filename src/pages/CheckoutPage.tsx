@@ -805,6 +805,27 @@ export const CheckoutPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Legal / Policy agreement notice */}
+            <p className="text-[11px] text-slate-500 text-center leading-snug">
+              By placing this order, you agree to Cyber Dynamic Tech's{' '}
+              <button
+                type="button"
+                onClick={() => setCurrentView('store-policies', { policy: 'terms' })}
+                className="text-cyan-600 hover:underline font-semibold cursor-pointer"
+              >
+                Terms of Sale
+              </button>{' '}
+              &amp;{' '}
+              <button
+                type="button"
+                onClick={() => setCurrentView('store-policies', { policy: 'refund' })}
+                className="text-cyan-600 hover:underline font-semibold cursor-pointer"
+              >
+                14-Day Warranty Policy
+              </button>
+              .
+            </p>
+
             {/* Complete Purchase Button */}
             <button
               id="checkout-confirm-button"

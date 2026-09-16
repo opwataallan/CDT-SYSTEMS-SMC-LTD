@@ -11,6 +11,7 @@ import {
   MarketplaceConfig,
   AuditLogEntry,
   UserRole,
+  SmsLogEntry,
 } from '../types';
 import { getStoredReviewsForProduct, saveLocalProductReview } from '../data/initialReviews';
 import { INITIAL_PRODUCTS_LIST } from '../data/initialProducts';
@@ -784,5 +785,59 @@ export const api = {
       },
       'Failed to complete POS order'
     );
+  },
+
+  async getSmsLogs(): Promise<{
+    logs: SmsLogEntry[];
+    count: number;
+    provider?: string;
+    enabled?: boolean;
+  }> {
+    return safeFetch('/api/admin/sms/logs', { method: 'GET' }, 'Failed to retrieve SMS logs');
+  },
+
+  async sendTestSms(phone: string, message?: string): Promise<{
+    success: boolean;
+    status: 'sent' | 'simulated' | 'failed';
+    message: string;
+    log?: SmsLogEntry;
+  }> {
+    return safeFetch('/api/admin/sms/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, message }),
+    }, 'Failed to send test SMS');
+  },
+
+  async getAnnouncements(): Promise<{
+    announcements: Array<{
+      id: string;
+      type: string;
+      title: string;
+      message: string;
+      timestamp: string;
+      priority: 'normal' | 'high';
+      link?: { view: string; params?: any };
+    }>;
+  }> {
+    return safeFetch('/api/notifications/announcements', { method: 'GET' }, 'Failed to fetch announcements');
+  },
+
+  async broadcastAnnouncement(data: {
+    title: string;
+    message: string;
+    type?: string;
+    priority?: 'normal' | 'high';
+    view?: string;
+  }): Promise<{
+    success: boolean;
+    announcement: any;
+    announcements: any[];
+  }> {
+    return safeFetch('/api/admin/notifications/broadcast', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }, 'Failed to broadcast announcement');
   },
 };

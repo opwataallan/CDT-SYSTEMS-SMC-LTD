@@ -1,4 +1,4 @@
-import { MarketplaceConfig, CustomerOrder, Product, Category, DeliveryZone, Coupon } from '../src/types';
+import { MarketplaceConfig, CustomerOrder, Product, Category, DeliveryZone, Coupon, SmsLogEntry } from '../src/types';
 import { DEFAULT_MARKETPLACE_CONFIG } from '../src/data/defaultConfig';
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_DELIVERY_ZONES, INITIAL_COUPONS } from '../src/data/cyberCatalog';
 import { hashPassword, encryptField, decryptField } from './security';
@@ -115,6 +115,7 @@ export class MarketplaceStore {
   ];
 
   public webhookLogs: Array<{ event: string; payload: any; timestamp: string }> = [];
+  public smsLogs: SmsLogEntry[] = [];
 
   constructor() {
     // Check if env credentials exist to update WooCommerce settings
@@ -132,6 +133,29 @@ export class MarketplaceStore {
     if (process.env.WOOCOMMERCE_WEBHOOK_SECRET) {
       this.config.woocommerce.webhook_secret = process.env.WOOCOMMERCE_WEBHOOK_SECRET;
       this.config.woocommerce.webhook_secret_configured = true;
+    }
+
+    // Check if SMS env credentials exist
+    if (process.env.SMS_SENDER_ID) {
+      this.config.sms.sender_id = process.env.SMS_SENDER_ID;
+    }
+    if (process.env.AFRICASTALKING_USERNAME) {
+      this.config.sms.username = process.env.AFRICASTALKING_USERNAME;
+    }
+    const smsKey = process.env.SMS_API_KEY || process.env.AFRICASTALKING_API_KEY;
+    if (smsKey) {
+      this.config.sms.api_key = smsKey;
+      this.config.sms.api_key_configured = true;
+    }
+    if (process.env.TWILIO_ACCOUNT_SID) {
+      this.config.sms.account_sid = process.env.TWILIO_ACCOUNT_SID;
+    }
+    if (process.env.TWILIO_AUTH_TOKEN) {
+      this.config.sms.api_secret = process.env.TWILIO_AUTH_TOKEN;
+      this.config.sms.api_secret_configured = true;
+    }
+    if (process.env.SMS_ENDPOINT_URL) {
+      this.config.sms.custom_endpoint_url = process.env.SMS_ENDPOINT_URL;
     }
   }
 

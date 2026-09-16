@@ -22,8 +22,11 @@ import {
   SlidersHorizontal,
   ShoppingCart,
   PackageCheck,
+  LayoutGrid,
+  Columns2,
 } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
+import { ProductCardSkeleton } from '../components/ProductCardSkeleton';
 import { FiveRowProductSlider } from '../components/FiveRowProductSlider';
 import { TopDealsSlider } from '../components/TopDealsSlider';
 import { useShop } from '../context/ShopContext';
@@ -41,6 +44,8 @@ export const HomePage: React.FC = () => {
   const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(() => INITIAL_HERO_BANNERS);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'all' | 'laptops' | 'printers' | 'networking'>('all');
+  const [catalogMobileFlow, setCatalogMobileFlow] = useState<'2row' | 'grid'>('2row');
+  const [isLoadingCatalog, setIsLoadingCatalog] = useState(false);
 
   // Category Manual Slider ref & scroll tracking
   const categoryScrollRef = useRef<HTMLDivElement>(null);
@@ -53,11 +58,14 @@ export const HomePage: React.FC = () => {
 
   // Fetch initial catalog data from live API (up to 5,000 products)
   useEffect(() => {
+    setIsLoadingCatalog(true);
     api.getProducts({ limit: 5000 }).then((res) => {
       if (res && Array.isArray(res.products) && res.products.length > 0) {
         setProducts(res.products);
       }
-    }).catch(console.error);
+    }).catch(console.error).finally(() => {
+      setIsLoadingCatalog(false);
+    });
     api.getCategories().then((cats) => {
       if (Array.isArray(cats) && cats.length > 0) {
         setCategories(cats);
@@ -652,48 +660,88 @@ export const HomePage: React.FC = () => {
             <p className="text-xs text-slate-500">Tested, certified and stocked in Kampala & ready for same-day dispatch</p>
           </div>
 
-          <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 overflow-x-auto text-xs font-bold shadow-2xs">
-            <button
-              onClick={() => setActiveTab('all')}
-              className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
-                activeTab === 'all' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              All Items
-            </button>
-            <button
-              onClick={() => setActiveTab('laptops')}
-              className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
-                activeTab === 'laptops' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Laptops & PCs
-            </button>
-            <button
-              onClick={() => setActiveTab('printers')}
-              className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
-                activeTab === 'printers' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Printers
-            </button>
-            <button
-              onClick={() => setActiveTab('networking')}
-              className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
-                activeTab === 'networking' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              4G MiFi & Routers
-            </button>
+          <div className="flex items-center gap-2">
+            {/* Mobile Layout Switcher (2-Row Swipe vs 2-Col Grid) */}
+            <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200 sm:hidden shadow-2xs">
+              <button
+                type="button"
+                onClick={() => setCatalogMobileFlow('2row')}
+                title="2-Row Horizontal Swipe (2 Cards)"
+                className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  catalogMobileFlow === '2row' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Columns2 className="w-3 h-3" />
+                <span className="text-[10px]">2-Row</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCatalogMobileFlow('grid')}
+                title="2-Column Grid"
+                className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                  catalogMobileFlow === 'grid' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <LayoutGrid className="w-3 h-3" />
+                <span className="text-[10px]">2-Col</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 overflow-x-auto text-xs font-bold shadow-2xs">
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
+                  activeTab === 'all' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                All Items
+              </button>
+              <button
+                onClick={() => setActiveTab('laptops')}
+                className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
+                  activeTab === 'laptops' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Laptops & PCs
+              </button>
+              <button
+                onClick={() => setActiveTab('printers')}
+                className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
+                  activeTab === 'printers' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Printers
+              </button>
+              <button
+                onClick={() => setActiveTab('networking')}
+                className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
+                  activeTab === 'networking' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                4G MiFi & Routers
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Products Grid: 3-col on mobile, 6-col on computer screens */}
-        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 md:gap-2.5">
-          {visibleCatalogProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        {/* Products Display: Loading Skeletons OR 2-Row Horizontal Flow / Grid (2 Cards on Mobile) */}
+        {isLoadingCatalog && visibleCatalogProducts.length === 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
+            <ProductCardSkeleton count={12} />
+          </div>
+        ) : catalogMobileFlow === '2row' ? (
+          <div className="grid grid-rows-2 grid-flow-col auto-cols-[calc((100vw-36px)/2)] sm:auto-cols-[175px] overflow-x-auto gap-2 sm:gap-2.5 pb-2.5 scrollbar-thin md:grid-cols-4 lg:grid-cols-6 md:grid-rows-none md:auto-cols-auto md:overflow-visible">
+            {visibleCatalogProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
+            {visibleCatalogProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
 
         {/* View Controls: Show More / Explore Full Catalog */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 mt-4">

@@ -94,7 +94,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
 
         {/* Product Name Card Container - Distinctive matching color & gradient */}
         <div className="product-name-box rounded px-1.5 py-1 mb-1 transition-all">
-          <h3 className="text-[10px] xs:text-[11px] sm:text-xs font-bold leading-snug text-slate-900 group-hover:text-cyan-900 transition-colors line-clamp-2 min-h-[1.6rem] sm:min-h-[1.9rem]">
+          <h3 className="text-[11px] sm:text-xs font-bold leading-snug text-slate-900 group-hover:text-cyan-900 transition-colors line-clamp-2 min-h-[1.7rem] sm:min-h-[1.9rem]">
             {product.name}
           </h3>
         </div>
@@ -105,40 +105,40 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 ${
+                className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${
                   i < Math.floor(product.average_rating) ? 'fill-orange-400 text-orange-400' : 'text-slate-200'
                 }`}
               />
             ))}
           </div>
-          <span className="text-[9px] sm:text-[10px] font-bold text-slate-700">{product.average_rating}</span>
-          <span className="text-[8.5px] sm:text-[9.5px] text-slate-400 hidden xs:inline">({product.rating_count})</span>
+          <span className="text-[9.5px] sm:text-[10px] font-bold text-slate-700">{product.average_rating}</span>
+          <span className="text-[9px] sm:text-[9.5px] text-slate-400 hidden xs:inline">({product.rating_count})</span>
         </div>
 
         {/* Price Row (Cyan Accent Price) */}
         <div className="mt-auto pt-0.5 min-w-0">
           <div className="flex flex-col leading-tight">
-            <span className="text-[10px] xs:text-[11px] sm:text-xs md:text-sm font-black text-cyan-600 tracking-tight whitespace-nowrap">
+            <span className="text-xs sm:text-sm font-black text-cyan-600 tracking-tight whitespace-nowrap">
               UGX {product.price.toLocaleString()}
             </span>
             {product.regular_price > product.price && (
-              <span className="text-[8.5px] sm:text-[9.5px] text-slate-400 line-through whitespace-nowrap hidden xs:inline">
+              <span className="text-[9px] sm:text-[10px] text-slate-400 line-through whitespace-nowrap">
                 UGX {product.regular_price.toLocaleString()}
               </span>
             )}
           </div>
 
-          {/* Quick Action Buttons (High Density Compact Sizing) */}
-          <div className="grid grid-cols-2 gap-1 mt-1 pt-1 border-t border-slate-100">
+          {/* Quick Action Buttons (2-Card Mobile Optimized Sizing) */}
+          <div className="grid grid-cols-2 gap-1 mt-1.5 pt-1.5 border-t border-slate-100">
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 addToCart(product);
               }}
-              className="py-1 px-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 text-[9px] sm:text-[10px] font-bold flex items-center justify-center gap-0.5 transition-colors cursor-pointer whitespace-nowrap"
+              className="py-1.5 px-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
             >
-              <ShoppingCart className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
+              <ShoppingCart className="w-3 h-3 shrink-0" />
               <span className="truncate">Add</span>
             </button>
 
@@ -148,9 +148,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
                 e.stopPropagation();
                 buyNow(product);
               }}
-              className="py-1 px-1 rounded bg-cyan-500 hover:bg-cyan-600 text-white text-[9px] sm:text-[10px] font-bold flex items-center justify-center gap-0.5 transition-colors cursor-pointer shadow-2xs whitespace-nowrap"
+              className="py-1.5 px-1 rounded bg-cyan-500 hover:bg-cyan-600 text-white text-[10px] sm:text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-2xs whitespace-nowrap"
             >
-              <Zap className="w-2.5 h-2.5 fill-white shrink-0" />
+              <Zap className="w-3 h-3 fill-white shrink-0" />
               <span className="truncate">Buy</span>
             </button>
           </div>

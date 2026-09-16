@@ -27,7 +27,7 @@ import {
   validatePhone,
   validatePositiveInt,
 } from './server/security';
-import { CustomerOrder, Product, Category, MarketplaceConfig, PaymentMethodType, OrderStatus } from './src/types';
+import { CustomerOrder, Product, Category, MarketplaceConfig, PaymentMethodType, OrderStatus, SmsLogEntry } from './src/types';
 import { DEFAULT_MARKETPLACE_CONFIG } from './src/data/defaultConfig';
 
 dotenv.config();
@@ -218,6 +218,141 @@ async function syncOrderToWooCommerce(order: CustomerOrder): Promise<{ success: 
     console.error(`[WooCommerce Auto-Sync Exception] Order ${order.order_number}:`, err.message);
     return { success: false, error: err.message };
   }
+}
+
+// Helper: Dispatches SMS notification using configured gateway (Africa's Talking, Twilio, Custom HTTP)
+async function sendSmsNotification(options: {
+  toPhone: string;
+  message: string;
+  triggerEvent: string;
+  orderNumber?: string;
+}): Promise<{ success: boolean; status: 'sent' | 'simulated' | 'failed'; error?: string; log: SmsLogEntry }> {
+  const smsConfig = store.config.sms;
+  const to = options.toPhone ? options.toPhone.trim() : '';
+  const msg = options.message ? options.message.trim() : '';
+
+  const logEntry: SmsLogEntry = {
+    id: `sms_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    timestamp: new Date().toISOString(),
+    to,
+    message: msg,
+    provider: smsConfig?.provider || 'africastalking',
+    status: 'simulated',
+    order_number: options.orderNumber,
+  };
+
+  if (!smsConfig?.enabled) {
+    logEntry.status = 'failed';
+    logEntry.error = 'SMS gateway disabled in store configuration';
+    store.smsLogs.unshift(logEntry);
+    if (store.smsLogs.length > 200) store.smsLogs.pop();
+    return { success: false, status: 'failed', error: logEntry.error, log: logEntry };
+  }
+
+  if (!to || !msg) {
+    logEntry.status = 'failed';
+    logEntry.error = 'Missing recipient phone or message content';
+    store.smsLogs.unshift(logEntry);
+    if (store.smsLogs.length > 200) store.smsLogs.pop();
+    return { success: false, status: 'failed', error: logEntry.error, log: logEntry };
+  }
+
+  const apiKey = smsConfig.api_key || process.env.SMS_API_KEY || process.env.AFRICASTALKING_API_KEY;
+  const username = smsConfig.username || process.env.AFRICASTALKING_USERNAME || 'sandbox';
+  const senderId = smsConfig.sender_id || process.env.SMS_SENDER_ID || 'CYBERTECH';
+  const accountSid = smsConfig.account_sid || process.env.TWILIO_ACCOUNT_SID;
+  const apiSecret = smsConfig.api_secret || process.env.TWILIO_AUTH_TOKEN;
+
+  try {
+    if (smsConfig.provider === 'africastalking' && apiKey) {
+      const baseUrl = username === 'sandbox'
+        ? 'https://api.sandbox.africastalking.com/version1/messaging'
+        : 'https://api.africastalking.com/version1/messaging';
+
+      const bodyParams = new URLSearchParams();
+      bodyParams.append('username', username);
+      bodyParams.append('to', to);
+      bodyParams.append('message', msg);
+      if (senderId && senderId !== 'sandbox' && senderId !== 'CYBERTECH') {
+        bodyParams.append('from', senderId);
+      }
+
+      const response = await fetch(baseUrl, {
+        method: 'POST',
+        headers: {
+          'apiKey': apiKey,
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: bodyParams.toString(),
+      });
+
+      if (response.ok) {
+        logEntry.status = 'sent';
+      } else {
+        const errorText = await response.text();
+        logEntry.status = 'failed';
+        logEntry.error = `Africa's Talking returned HTTP ${response.status}: ${errorText.substring(0, 120)}`;
+      }
+    } else if (smsConfig.provider === 'twilio' && accountSid && apiSecret) {
+      const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`;
+      const bodyParams = new URLSearchParams();
+      bodyParams.append('To', to);
+      bodyParams.append('From', senderId || 'CyberTech');
+      bodyParams.append('Body', msg);
+
+      const authHeader = 'Basic ' + Buffer.from(`${accountSid}:${apiSecret}`).toString('base64');
+      const response = await fetch(twilioUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: bodyParams.toString(),
+      });
+
+      if (response.ok) {
+        logEntry.status = 'sent';
+      } else {
+        const errText = await response.text();
+        logEntry.status = 'failed';
+        logEntry.error = `Twilio returned HTTP ${response.status}: ${errText.substring(0, 120)}`;
+      }
+    } else if (smsConfig.provider === 'custom_http' && smsConfig.custom_endpoint_url) {
+      const response = await fetch(smsConfig.custom_endpoint_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to,
+          message: msg,
+          sender_id: senderId,
+          order_number: options.orderNumber,
+        }),
+      });
+      if (response.ok) {
+        logEntry.status = 'sent';
+      } else {
+        logEntry.status = 'failed';
+        logEntry.error = `Custom SMS gateway returned HTTP ${response.status}`;
+      }
+    } else {
+      // Validated simulation mode for testing when live SMS API credentials are being prepared
+      logEntry.status = 'simulated';
+    }
+  } catch (err: any) {
+    logEntry.status = 'failed';
+    logEntry.error = err.message || 'Network exception during SMS dispatch';
+  }
+
+  store.smsLogs.unshift(logEntry);
+  if (store.smsLogs.length > 200) store.smsLogs.pop();
+
+  return {
+    success: logEntry.status !== 'failed',
+    status: logEntry.status,
+    error: logEntry.error,
+    log: logEntry,
+  };
 }
 
 // Mapper: Convert raw WooCommerce REST API or Store API product into Marketplace Product
@@ -1312,6 +1447,22 @@ async function startServer() {
       sanitized.api.webhook_secret = '';
     }
 
+    if (sanitized.sms) {
+      const hasSmsKey = Boolean(
+        process.env.SMS_API_KEY ||
+        process.env.AFRICASTALKING_API_KEY ||
+        store.config.sms?.api_key
+      );
+      const hasSmsSecret = Boolean(
+        process.env.TWILIO_AUTH_TOKEN ||
+        store.config.sms?.api_secret
+      );
+      sanitized.sms.api_key_configured = hasSmsKey;
+      sanitized.sms.api_secret_configured = hasSmsSecret;
+      sanitized.sms.api_key = '';
+      sanitized.sms.api_secret = '';
+    }
+
     return sanitized;
   }
 
@@ -1388,6 +1539,28 @@ async function startServer() {
           }
         }
 
+        if (category === 'sms') {
+          if (settings.api_key && !settings.api_key.includes('•') && !settings.api_key.includes('*') && settings.api_key.trim()) {
+            store.config.sms.api_key = settings.api_key.trim();
+            store.config.sms.api_key_configured = true;
+          }
+          if (settings.api_secret && !settings.api_secret.includes('•') && !settings.api_secret.includes('*') && settings.api_secret.trim()) {
+            store.config.sms.api_secret = settings.api_secret.trim();
+            store.config.sms.api_secret_configured = true;
+          }
+          if (settings.sender_id) store.config.sms.sender_id = settings.sender_id.trim();
+          if (settings.username) store.config.sms.username = settings.username.trim();
+          if (settings.provider) store.config.sms.provider = settings.provider;
+          if (settings.custom_endpoint_url !== undefined) store.config.sms.custom_endpoint_url = settings.custom_endpoint_url;
+        }
+
+        if (category === 'notifications') {
+          store.config.notifications = {
+            ...store.config.notifications,
+            ...settings,
+          };
+        }
+
         logAudit({
           user_email: userEmail,
           action: 'CATEGORY_SETTINGS_UPDATE',
@@ -1429,6 +1602,108 @@ async function startServer() {
     }
 
     res.status(400).json({ error: 'Category not specified or invalid' });
+  });
+
+  // In-memory announcements for Customer Notification Center
+  const storeAnnouncements: Array<{
+    id: string;
+    type: string;
+    title: string;
+    message: string;
+    timestamp: string;
+    priority: 'normal' | 'high';
+    link?: { view: string; params?: any };
+  }> = [
+    {
+      id: 'ann_welcome',
+      type: 'store_announcement',
+      title: 'Welcome to Cyber Dynamic Tech Uganda!',
+      message: 'Kampala\'s premier authorized technology marketplace. Enjoy same-day metropolitan delivery, genuine manufacturer warranties & verified mobile money checkout.',
+      timestamp: new Date().toISOString(),
+      priority: 'normal',
+      link: { view: 'shop' },
+    },
+    {
+      id: 'ann_flash_deals',
+      type: 'flash_sale',
+      title: '⚡ Weekend Tech Flash Deals Active',
+      message: 'Special prices on HP Victus Core i7 Gaming Laptops, Epson EcoTank L3250 Wi-Fi Printers & APC Backup UPS systems.',
+      timestamp: new Date(Date.now() - 3600000).toISOString(),
+      priority: 'high',
+      link: { view: 'shop' },
+    },
+  ];
+
+  // Send Test SMS (Admin Only)
+  app.post('/api/admin/sms/test', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { phone, message } = req.body;
+      const testPhone = phone || store.config.general.phone || '+256779743101';
+      const testMsg = message || 'Test dispatch from Cyber Dynamic Tech Uganda SMS API. Gateway connection verified successfully!';
+
+      const result = await sendSmsNotification({
+        toPhone: testPhone,
+        message: testMsg,
+        triggerEvent: 'manual_test',
+      });
+
+      res.json({
+        success: result.success,
+        status: result.status,
+        message: result.status === 'sent'
+          ? `Test SMS sent to ${testPhone} via ${store.config.sms?.provider || 'SMS gateway'}.`
+          : result.status === 'simulated'
+          ? `SMS gateway is active in simulation mode. Test message recorded for ${testPhone}.`
+          : `SMS dispatch failed: ${result.error}`,
+        log: result.log,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to dispatch test SMS', message: err.message });
+    }
+  });
+
+  // Get SMS Delivery Logs (Admin Only)
+  app.get('/api/admin/sms/logs', requireAdmin, (req: Request, res: Response) => {
+    res.json({
+      logs: store.smsLogs,
+      count: store.smsLogs.length,
+      provider: store.config.sms?.provider,
+      enabled: store.config.sms?.enabled,
+    });
+  });
+
+  // Public Announcements for Customer In-App Notifications
+  app.get('/api/notifications/announcements', (req: Request, res: Response) => {
+    res.json({ announcements: storeAnnouncements });
+  });
+
+  // Create Broadcast Announcement (Admin Only)
+  app.post('/api/admin/notifications/broadcast', requireAdmin, (req: Request, res: Response) => {
+    const { title, message, type = 'store_announcement', priority = 'normal', view = 'shop' } = req.body;
+    if (!title || !message) {
+      return res.status(400).json({ error: 'Title and message are required for announcement' });
+    }
+    const newAnnouncement = {
+      id: `ann_${Date.now()}`,
+      type,
+      title: sanitizeString(title),
+      message: sanitizeString(message),
+      timestamp: new Date().toISOString(),
+      priority: priority as 'normal' | 'high',
+      link: { view },
+    };
+    storeAnnouncements.unshift(newAnnouncement);
+    if (storeAnnouncements.length > 50) storeAnnouncements.pop();
+
+    logAudit({
+      user_email: (req as any).user?.email || 'admin',
+      action: 'BROADCAST_NOTIFICATION',
+      category: 'Notifications',
+      details: `Broadcasted announcement: "${title}"`,
+      status: 'success',
+    });
+
+    res.json({ success: true, announcement: newAnnouncement, announcements: storeAnnouncements });
   });
 
   // Admin Audit Logs
@@ -2484,6 +2759,26 @@ async function startServer() {
         console.warn('[WooCommerce order sync warning]', e.message);
       }
 
+      // Dispatch Customer SMS Notification if enabled
+      if (store.config.sms?.enabled && store.config.sms?.notify_on_order_placed) {
+        const customerName = (billing.first_name || 'Customer').trim();
+        const rawPhone = phoneCheck.value!;
+        let smsText = store.config.sms.template_order_placed ||
+          'Dear {name}, your Cyber Dynamic Tech order {order_id} has been received! Total: {currency} {total}. We are preparing it for delivery in Kampala.';
+        smsText = smsText
+          .replace(/{name}/g, customerName)
+          .replace(/{order_id}/g, orderNumber)
+          .replace(/{currency}/g, store.config.general.currency || 'UGX')
+          .replace(/{total}/g, finalTotal.toLocaleString());
+
+        sendSmsNotification({
+          toPhone: rawPhone,
+          message: smsText,
+          triggerEvent: 'order_placed',
+          orderNumber,
+        }).catch((err) => console.warn('[Order SMS dispatch error]', err.message));
+      }
+
       logAudit({
         user_email: billing.email || sessionUser?.email || 'customer',
         action: 'ORDER_CREATED',
@@ -2814,6 +3109,38 @@ async function startServer() {
       details: `Order ${order.order_number} status changed to ${status}`,
       status: 'success',
     });
+
+    // SMS notification for dispatch or delivery status
+    if (store.config.sms?.enabled) {
+      const rawPhone = decryptField(order.billing.phone);
+      const customerName = (order.billing.first_name || 'Customer').trim();
+      let smsText = '';
+
+      if (status === 'shipped' && store.config.sms.notify_on_dispatch) {
+        smsText = store.config.sms.template_dispatch ||
+          'Dear {name}, your CDT order {order_id} is dispatched with our courier for delivery. Inquiries: +256 779 743 101.';
+      } else if ((status === 'completed' || status === 'delivered') && store.config.sms.notify_on_delivery) {
+        smsText = store.config.sms.template_delivered ||
+          'Dear {name}, your Cyber Dynamic Tech order {order_id} has been safely delivered! Thank you for choosing CDT.';
+      } else if (store.config.sms.notify_on_status_change) {
+        smsText = `Dear ${customerName}, your Cyber Dynamic Tech order ${order.order_number} status is now updated to: ${status.toUpperCase()}.`;
+      }
+
+      if (smsText && rawPhone) {
+        smsText = smsText
+          .replace(/{name}/g, customerName)
+          .replace(/{order_id}/g, order.order_number)
+          .replace(/{currency}/g, store.config.general.currency || 'UGX')
+          .replace(/{total}/g, order.total.toLocaleString());
+
+        sendSmsNotification({
+          toPhone: rawPhone,
+          message: smsText,
+          triggerEvent: `order_status_${status}`,
+          orderNumber: order.order_number,
+        }).catch((err) => console.warn('[Status SMS error]', err.message));
+      }
+    }
 
     res.json({ success: true, order });
   });

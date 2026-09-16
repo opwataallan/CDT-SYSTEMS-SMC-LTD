@@ -417,6 +417,52 @@ export interface NotificationSettings {
   admin_new_order_alert: boolean;
   admin_alert_email: string;
   admin_alert_phone: string;
+  enable_in_app_notifications?: boolean;
+  enable_browser_push?: boolean;
+  notify_new_products?: boolean;
+  notify_new_arrivals?: boolean;
+  notify_flash_sales?: boolean;
+  notify_discounts_promotions?: boolean;
+  notify_payment_confirmation?: boolean;
+  notify_delivery_shipping_updates?: boolean;
+  notify_store_announcements?: boolean;
+}
+
+export type NotificationType =
+  | 'order_confirmation'
+  | 'order_status'
+  | 'payment_confirmation'
+  | 'delivery_update'
+  | 'new_arrival'
+  | 'new_product'
+  | 'flash_sale'
+  | 'promotion'
+  | 'store_announcement';
+
+export interface AppNotification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  link?: {
+    view: string;
+    params?: any;
+  };
+  icon?: string;
+  badge?: string;
+  priority?: 'normal' | 'high';
+}
+
+export interface NotificationPreferences {
+  browserPushEnabled: boolean;
+  inAppEnabled: boolean;
+  orderUpdates: boolean;
+  promotions: boolean;
+  newArrivals: boolean;
+  storeAnnouncements: boolean;
+  pushPermissionStatus: 'default' | 'granted' | 'denied' | 'unsupported';
 }
 
 export interface EmailSettings {
@@ -434,10 +480,33 @@ export interface EmailSettings {
 
 export interface SmsSettings {
   enabled: boolean;
-  provider: 'africastalking' | 'twilio' | 'uganda_sms';
+  provider: 'africastalking' | 'twilio' | 'custom_http' | 'uganda_sms';
   sender_id: string;
+  username?: string;
+  api_key?: string;
+  api_key_configured?: boolean;
+  account_sid?: string;
+  api_secret?: string;
+  api_secret_configured?: boolean;
+  custom_endpoint_url?: string;
+  notify_on_order_placed?: boolean;
   notify_on_dispatch: boolean;
   notify_on_delivery: boolean;
+  notify_on_status_change?: boolean;
+  template_order_placed?: string;
+  template_dispatch?: string;
+  template_delivered?: string;
+}
+
+export interface SmsLogEntry {
+  id: string;
+  timestamp: string;
+  to: string;
+  message: string;
+  provider: string;
+  status: 'sent' | 'delivered' | 'failed' | 'simulated';
+  order_number?: string;
+  error?: string;
 }
 
 export interface WhatsAppSettings {
@@ -532,7 +601,24 @@ export interface LegalSettings {
   terms_of_service: string;
   privacy_policy: string;
   refund_return_policy: string;
+  shipping_delivery_policy: string;
+  payment_policy: string;
   warranty_policy: string;
+  cancellation_policy: string;
+  cookie_policy: string;
+  contact_support_policy: string;
+  cookie_consent_enabled?: boolean;
+  require_explicit_consent?: boolean;
+  cookie_banner_text?: string;
+  policy_terms?: string;
+  policy_privacy?: string;
+  policy_refund?: string;
+  policy_shipping?: string;
+  policy_payment?: string;
+  policy_warranty?: string;
+  policy_cancellation?: string;
+  policy_cookie?: string;
+  policy_contact?: string;
 }
 
 export interface CategoriesSettings {

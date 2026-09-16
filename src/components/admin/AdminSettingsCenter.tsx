@@ -50,9 +50,13 @@ import {
   Lock,
   Unlock,
   Monitor,
+  Send,
+  Smartphone,
+  Sparkles,
+  MessageCircle,
 } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
-import { MarketplaceConfig } from '../../types';
+import { MarketplaceConfig, SmsLogEntry } from '../../types';
 import { DEFAULT_MARKETPLACE_CONFIG } from '../../data/defaultConfig';
 import { api } from '../../services/api';
 import { ThemeColorSetting } from '../ThemeColorSetting';
@@ -124,6 +128,101 @@ export const AdminSettingsCenter: React.FC = () => {
   const [isClearing, setIsClearing] = useState(false);
   const [wcStatus, setWcStatus] = useState<any>(null);
 
+  // SMS Settings & Live Testing State
+  const [showSmsApiKey, setShowSmsApiKey] = useState(false);
+  const [showSmsSecret, setShowSmsSecret] = useState(false);
+  const [smsTestPhone, setSmsTestPhone] = useState('+256779743101');
+  const [smsTestMsg, setSmsTestMsg] = useState('Cyber Dynamic Tech Uganda: This is a test dispatch from the SMS Gateway settings console.');
+  const [isTestingSms, setIsTestingSms] = useState(false);
+  const [smsTestFeedback, setSmsTestFeedback] = useState<{ success: boolean; message: string; status?: string } | null>(null);
+  const [smsLogs, setSmsLogs] = useState<SmsLogEntry[]>([]);
+  const [isLoadingSmsLogs, setIsLoadingSmsLogs] = useState(false);
+
+  // Customer Broadcast Notification State
+  const [broadcastTitle, setBroadcastTitle] = useState('');
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastPriority, setBroadcastPriority] = useState<'normal' | 'high'>('normal');
+  const [broadcastView, setBroadcastView] = useState('shop');
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [broadcastFeedback, setBroadcastFeedback] = useState<{ success: boolean; message: string } | null>(null);
+
+  const loadSmsLogs = async () => {
+    setIsLoadingSmsLogs(true);
+    try {
+      const res = await api.getSmsLogs();
+      if (res.logs) {
+        setSmsLogs(res.logs);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setIsLoadingSmsLogs(false);
+    }
+  };
+
+  const handleSendTestSms = async () => {
+    if (!smsTestPhone.trim()) {
+      showToast('Please enter a recipient phone number');
+      return;
+    }
+    setIsTestingSms(true);
+    setSmsTestFeedback(null);
+    try {
+      const res = await api.sendTestSms(smsTestPhone, smsTestMsg);
+      setSmsTestFeedback({
+        success: res.success,
+        message: res.message,
+        status: res.status,
+      });
+      loadSmsLogs();
+      showToast(res.message);
+    } catch (err: any) {
+      setSmsTestFeedback({
+        success: false,
+        message: err.message || 'SMS test failed',
+        status: 'failed',
+      });
+      showToast('Failed to send test SMS');
+    } finally {
+      setIsTestingSms(false);
+    }
+  };
+
+  const handleBroadcastAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!broadcastTitle.trim() || !broadcastMessage.trim()) {
+      showToast('Title and message are required to broadcast an announcement');
+      return;
+    }
+    setIsBroadcasting(true);
+    setBroadcastFeedback(null);
+    try {
+      const res = await api.broadcastAnnouncement({
+        title: broadcastTitle,
+        message: broadcastMessage,
+        priority: broadcastPriority,
+        view: broadcastView,
+      });
+      if (res.success) {
+        setBroadcastFeedback({
+          success: true,
+          message: `Broadcasted "${broadcastTitle}" to customer in-app notification center.`,
+        });
+        showToast('Announcement broadcasted successfully!');
+        setBroadcastTitle('');
+        setBroadcastMessage('');
+      }
+    } catch (err: any) {
+      setBroadcastFeedback({
+        success: false,
+        message: err.message || 'Broadcast failed',
+      });
+      showToast('Failed to broadcast announcement');
+    } finally {
+      setIsBroadcasting(false);
+    }
+  };
+
   const loadWcStatus = async () => {
     try {
       const status = await api.getWooCommerceStatus();
@@ -136,6 +235,9 @@ export const AdminSettingsCenter: React.FC = () => {
   React.useEffect(() => {
     if (activeCategory === 'woocommerce' || activeCategory === 'api') {
       loadWcStatus();
+    }
+    if (activeCategory === 'sms') {
+      loadSmsLogs();
     }
   }, [activeCategory]);
 
@@ -1945,6 +2047,760 @@ export const AdminSettingsCenter: React.FC = () => {
             </div>
           )}
 
+          {/* NOTIFICATIONS SETTINGS & BROADCAST CENTER */}
+          {activeCategory === 'notifications' && (
+            <div className="space-y-6 text-xs">
+              {/* Notifications Overview Banner */}
+              <div className="p-4 bg-gradient-to-r from-slate-900 to-indigo-950 border border-indigo-800/60 rounded-xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 flex items-center justify-center shrink-0">
+                    <Bell className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-extrabold text-sm text-white">In-App & Push Notification System</h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        {currentValues.in_app_enabled !== false ? 'Active' : 'Disabled'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 mt-0.5">
+                      Real-time alerts for customer order milestones, new tech inventory, flash deals & official store announcements.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <label className="flex items-center gap-2 cursor-pointer bg-indigo-900/60 px-3 py-1.5 rounded-lg border border-indigo-700/50">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.in_app_enabled !== false}
+                      onChange={(e) => handleFieldChange('notifications', 'in_app_enabled', e.target.checked)}
+                      className="rounded text-indigo-500"
+                    />
+                    <span className="font-bold text-white text-xs">Enable In-App Bell</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Notification Channels & Triggers */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-indigo-600" />
+                    <span>Notification Channels & Event Triggers</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Select which events dispatch visual alerts to shoppers and team members.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className="p-3 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl flex items-start gap-3 cursor-pointer transition-colors shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.order_updates_enabled !== false}
+                      onChange={(e) => handleFieldChange('notifications', 'order_updates_enabled', e.target.checked)}
+                      className="mt-0.5 rounded text-indigo-600"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">Order Tracking Updates</span>
+                      <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                        Alert customer when order is confirmed, payment verified, dispatched in Kampala, or delivered.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="p-3 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl flex items-start gap-3 cursor-pointer transition-colors shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.new_products_enabled !== false}
+                      onChange={(e) => handleFieldChange('notifications', 'new_products_enabled', e.target.checked)}
+                      className="mt-0.5 rounded text-indigo-600"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">New Product Arrivals</span>
+                      <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                        Notify shoppers when new laptops, printers, routers, or phones are added to the catalog.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="p-3 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl flex items-start gap-3 cursor-pointer transition-colors shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.flash_sales_enabled !== false}
+                      onChange={(e) => handleFieldChange('notifications', 'flash_sales_enabled', e.target.checked)}
+                      className="mt-0.5 rounded text-indigo-600"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">Flash Deals & Weekend Discounts</span>
+                      <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                        Notify users of time-limited price cuts, holiday coupons, and bundle promotions.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="p-3 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl flex items-start gap-3 cursor-pointer transition-colors shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.store_announcements_enabled !== false}
+                      onChange={(e) => handleFieldChange('notifications', 'store_announcements_enabled', e.target.checked)}
+                      className="mt-0.5 rounded text-indigo-600"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">Official Store Announcements</span>
+                      <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                        Display important notices such as holiday delivery schedules, maintenance, and Kampala hub updates.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="p-3 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl flex items-start gap-3 cursor-pointer transition-colors shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.sound_enabled !== false}
+                      onChange={(e) => handleFieldChange('notifications', 'sound_enabled', e.target.checked)}
+                      className="mt-0.5 rounded text-indigo-600"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">Subtle Audio Chime</span>
+                      <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                        Play gentle synthesizer chime via Web Audio API on new notification arrivals.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="p-3 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl flex items-start gap-3 cursor-pointer transition-colors shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.low_stock_alerts_enabled !== false}
+                      onChange={(e) => handleFieldChange('notifications', 'low_stock_alerts_enabled', e.target.checked)}
+                      className="mt-0.5 rounded text-indigo-600"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">Low Inventory Alerts (Staff)</span>
+                      <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
+                        Alert managers when warehouse inventory drops below 3 units.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Broadcast Announcement Console */}
+              <div className="p-4 bg-white border border-indigo-200 rounded-xl shadow-xs space-y-4">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Send className="w-4 h-4 text-indigo-600" />
+                    <span>Broadcast Instant Store Announcement</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Send an immediate bulletin to all customers currently browsing or opening CDT Market in Kampala.
+                  </p>
+                </div>
+
+                <form onSubmit={handleBroadcastAnnouncement} className="space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div className="sm:col-span-2">
+                      <label className="font-bold text-slate-800 block mb-1">Announcement Title</label>
+                      <input
+                        type="text"
+                        value={broadcastTitle}
+                        onChange={(e) => setBroadcastTitle(e.target.value)}
+                        placeholder="e.g. ⚡ Flash Weekend Sale: 15% off HP Gaming Laptops"
+                        className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-800 block mb-1">Priority Level</label>
+                      <select
+                        value={broadcastPriority}
+                        onChange={(e) => setBroadcastPriority(e.target.value as 'normal' | 'high')}
+                        className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs bg-white"
+                      >
+                        <option value="normal">Normal Bulletin</option>
+                        <option value="high">High Priority (Urgent)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Announcement Message</label>
+                    <textarea
+                      rows={2}
+                      value={broadcastMessage}
+                      onChange={(e) => setBroadcastMessage(e.target.value)}
+                      placeholder="Special promo pricing available today only. Free doorstep delivery across Kampala central."
+                      className="w-full p-2.5 border border-slate-200 rounded-lg text-xs"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4 pt-1">
+                    <div className="flex items-center gap-2">
+                      <label className="text-slate-600 text-[11px] font-semibold">Destination link:</label>
+                      <select
+                        value={broadcastView}
+                        onChange={(e) => setBroadcastView(e.target.value)}
+                        className="h-7 px-2 border border-slate-200 rounded text-xs bg-white"
+                      >
+                        <option value="shop">Product Catalog (Shop)</option>
+                        <option value="track-order">Order Tracking</option>
+                        <option value="home">Homepage</option>
+                      </select>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isBroadcasting}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{isBroadcasting ? 'Broadcasting...' : 'Broadcast to All Shoppers'}</span>
+                    </button>
+                  </div>
+
+                  {broadcastFeedback && (
+                    <div className={`p-2.5 rounded-lg text-xs flex items-center gap-2 ${
+                      broadcastFeedback.success ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-rose-50 text-rose-800 border border-rose-200'
+                    }`}>
+                      {broadcastFeedback.success ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertCircle className="w-4 h-4 text-rose-600" />}
+                      <span>{broadcastFeedback.message}</span>
+                    </div>
+                  )}
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* SMS API SETTINGS & GATEWAY DISPATCH CONSOLE */}
+          {activeCategory === 'sms' && (
+            <div className="space-y-6 text-xs">
+              {/* SMS Gateway Overview Banner */}
+              <div className="p-4 bg-gradient-to-r from-slate-900 to-emerald-950 border border-emerald-800/60 rounded-xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0">
+                    <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-extrabold text-sm text-white">Uganda & Global SMS Gateway (Africa's Talking / Twilio)</h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        {currentValues.enabled ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 mt-0.5">
+                      Sends immediate telephone SMS messages to customers upon order placement, courier dispatch & doorstep delivery.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <label className="flex items-center gap-2 cursor-pointer bg-emerald-900/60 px-3 py-1.5 rounded-lg border border-emerald-700/50">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(currentValues.enabled)}
+                      onChange={(e) => handleFieldChange('sms', 'enabled', e.target.checked)}
+                      className="rounded text-emerald-500"
+                    />
+                    <span className="font-bold text-white text-xs">Enable SMS Dispatch</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Provider & Credentials Configuration */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                      <Key className="w-4 h-4 text-emerald-600" />
+                      <span>Gateway Provider & Authentication</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Select your preferred SMS telecom gateway and specify authorized credentials.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                      currentValues.api_key_configured
+                        ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                        : 'bg-amber-100 text-amber-800 border border-amber-300'
+                    }`}>
+                      {currentValues.api_key_configured ? '✓ API Key Configured' : '⚠ Simulation Mode Active'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">SMS Telecom Provider</label>
+                    <select
+                      value={currentValues.provider || 'africastalking'}
+                      onChange={(e) => handleFieldChange('sms', 'provider', e.target.value)}
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs bg-white font-medium"
+                    >
+                      <option value="africastalking">Africa's Talking (Uganda / MTN / Airtel)</option>
+                      <option value="twilio">Twilio SMS Gateway</option>
+                      <option value="custom_http">Custom HTTP Gateway / Uganda Local SMS</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Sender ID (Branded Header)</label>
+                    <input
+                      type="text"
+                      maxLength={11}
+                      value={currentValues.sender_id || ''}
+                      onChange={(e) => handleFieldChange('sms', 'sender_id', e.target.value)}
+                      placeholder="CYBERTECH (up to 11 characters)"
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono uppercase"
+                    />
+                  </div>
+
+                  {currentValues.provider === 'africastalking' && (
+                    <>
+                      <div>
+                        <label className="font-bold text-slate-800 block mb-1">Africa's Talking Username</label>
+                        <input
+                          type="text"
+                          value={currentValues.username || ''}
+                          onChange={(e) => handleFieldChange('sms', 'username', e.target.value)}
+                          placeholder="sandbox or production username"
+                          className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-bold text-slate-800 block mb-1 flex items-center justify-between">
+                          <span>Africa's Talking API Key</span>
+                          <button
+                            type="button"
+                            onClick={() => setShowSmsApiKey(!showSmsApiKey)}
+                            className="text-[10px] text-cyan-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            {showSmsApiKey ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                            <span>{showSmsApiKey ? 'Hide' : 'Reveal'}</span>
+                          </button>
+                        </label>
+                        <input
+                          type={showSmsApiKey ? 'text' : 'password'}
+                          value={currentValues.api_key || ''}
+                          onChange={(e) => handleFieldChange('sms', 'api_key', e.target.value)}
+                          placeholder={currentValues.api_key_configured ? '•••••••••••••••• (Securely Configured)' : 'Enter Africa\'s Talking API Key'}
+                          className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {currentValues.provider === 'twilio' && (
+                    <>
+                      <div>
+                        <label className="font-bold text-slate-800 block mb-1">Twilio Account SID</label>
+                        <input
+                          type="text"
+                          value={currentValues.account_sid || ''}
+                          onChange={(e) => handleFieldChange('sms', 'account_sid', e.target.value)}
+                          placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                          className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="font-bold text-slate-800 block mb-1 flex items-center justify-between">
+                          <span>Twilio Auth Token</span>
+                          <button
+                            type="button"
+                            onClick={() => setShowSmsSecret(!showSmsSecret)}
+                            className="text-[10px] text-cyan-600 font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            {showSmsSecret ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                            <span>{showSmsSecret ? 'Hide' : 'Reveal'}</span>
+                          </button>
+                        </label>
+                        <input
+                          type={showSmsSecret ? 'text' : 'password'}
+                          value={currentValues.api_secret || ''}
+                          onChange={(e) => handleFieldChange('sms', 'api_secret', e.target.value)}
+                          placeholder={currentValues.api_secret_configured ? '•••••••••••••••• (Configured)' : 'Enter Twilio Auth Token'}
+                          className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {currentValues.provider === 'custom_http' && (
+                    <div className="sm:col-span-2">
+                      <label className="font-bold text-slate-800 block mb-1">Custom HTTP Gateway Endpoint URL</label>
+                      <input
+                        type="url"
+                        value={currentValues.custom_endpoint_url || ''}
+                        onChange={(e) => handleFieldChange('sms', 'custom_endpoint_url', e.target.value)}
+                        placeholder="https://api.ugandasms.com/v1/messages/send"
+                        className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Automated Event Dispatch Toggles */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-emerald-600" />
+                    <span>Automated Customer Dispatch Milestones</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Determine which order milestones automatically send an SMS to the customer's phone number.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <label className="p-3 bg-white border border-slate-200 hover:border-emerald-300 rounded-xl flex items-start gap-2.5 cursor-pointer shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.notify_on_order_placed !== false}
+                      onChange={(e) => handleFieldChange('sms', 'notify_on_order_placed', e.target.checked)}
+                      className="mt-0.5 rounded text-emerald-600"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">Order Placed</span>
+                      <span className="text-[11px] text-slate-500 block mt-0.5">
+                        Immediately confirms receipt of order and lists the order ID.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="p-3 bg-white border border-slate-200 hover:border-emerald-300 rounded-xl flex items-start gap-2.5 cursor-pointer shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.notify_on_dispatch !== false}
+                      onChange={(e) => handleFieldChange('sms', 'notify_on_dispatch', e.target.checked)}
+                      className="mt-0.5 rounded text-emerald-600"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">Courier Dispatched</span>
+                      <span className="text-[11px] text-slate-500 block mt-0.5">
+                        Alerts customer when courier rider picks up package for delivery.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="p-3 bg-white border border-slate-200 hover:border-emerald-300 rounded-xl flex items-start gap-2.5 cursor-pointer shadow-2xs">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.notify_on_delivery !== false}
+                      onChange={(e) => handleFieldChange('sms', 'notify_on_delivery', e.target.checked)}
+                      className="mt-0.5 rounded text-emerald-600"
+                    />
+                    <div>
+                      <span className="font-bold text-slate-900 block text-xs">Order Delivered</span>
+                      <span className="text-[11px] text-slate-500 block mt-0.5">
+                        Thank you notice and official warranty reminder upon delivery.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* SMS Message Templates */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-emerald-600" />
+                    <span>Customizable SMS Message Templates</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Dynamic placeholders: <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[10px]">&#123;name&#125;</code>, <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[10px]">&#123;order_id&#125;</code>, <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[10px]">&#123;currency&#125;</code>, <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[10px]">&#123;total&#125;</code>.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Order Placed Message Template</label>
+                    <textarea
+                      rows={2}
+                      value={currentValues.template_order_placed || ''}
+                      onChange={(e) => handleFieldChange('sms', 'template_order_placed', e.target.value)}
+                      placeholder="Dear {name}, your Cyber Dynamic Tech order {order_id} has been received! Total: {currency} {total}. We are preparing it for delivery in Kampala."
+                      className="w-full p-2.5 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Courier Dispatched Message Template</label>
+                    <textarea
+                      rows={2}
+                      value={currentValues.template_dispatch || ''}
+                      onChange={(e) => handleFieldChange('sms', 'template_dispatch', e.target.value)}
+                      placeholder="Dear {name}, your CDT order {order_id} is dispatched with our courier for delivery. Inquiries: +256 779 743 101."
+                      className="w-full p-2.5 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Delivered & Warranty Message Template</label>
+                    <textarea
+                      rows={2}
+                      value={currentValues.template_delivered || ''}
+                      onChange={(e) => handleFieldChange('sms', 'template_delivered', e.target.value)}
+                      placeholder="Dear {name}, your Cyber Dynamic Tech order {order_id} has been safely delivered! Thank you for choosing CDT."
+                      className="w-full p-2.5 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Interactive Live SMS Test Console */}
+              <div className="p-4 bg-white border border-emerald-200 rounded-xl shadow-xs space-y-4">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                    <Send className="w-4 h-4 text-emerald-600" />
+                    <span>Live SMS Test & Diagnostic Console</span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Test live gateway connectivity by sending an immediate test SMS to any Ugandan phone number.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Recipient Phone (+256...)</label>
+                    <input
+                      type="text"
+                      value={smsTestPhone}
+                      onChange={(e) => setSmsTestPhone(e.target.value)}
+                      placeholder="+256779743101"
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="font-bold text-slate-800 block mb-1">Test Message Body</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={smsTestMsg}
+                        onChange={(e) => setSmsTestMsg(e.target.value)}
+                        className="flex-1 h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleSendTestSms}
+                        disabled={isTestingSms}
+                        className="px-4 h-8.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>{isTestingSms ? 'Sending...' : 'Send Test SMS'}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {smsTestFeedback && (
+                  <div className={`p-3 rounded-lg text-xs flex items-start gap-2.5 ${
+                    smsTestFeedback.success
+                      ? 'bg-emerald-50 text-emerald-900 border border-emerald-200'
+                      : 'bg-rose-50 text-rose-900 border border-rose-200'
+                  }`}>
+                    {smsTestFeedback.success ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                      <span className="font-bold block">
+                        {smsTestFeedback.status === 'sent'
+                          ? 'Live Dispatch Succeeded'
+                          : smsTestFeedback.status === 'simulated'
+                          ? 'Simulation Dispatch Logged'
+                          : 'SMS Dispatch Error'}
+                      </span>
+                      <span className="text-[11px]">{smsTestFeedback.message}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Recent SMS Gateway Logs Table */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4 text-slate-700" />
+                      <span>Recent SMS Dispatch Audit Logs ({smsLogs.length})</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      Audit trail of outbound SMS transmissions.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={loadSmsLogs}
+                    disabled={isLoadingSmsLogs}
+                    className="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 rounded text-xs text-slate-700 font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSmsLogs ? 'animate-spin' : ''}`} />
+                    <span>Refresh Logs</span>
+                  </button>
+                </div>
+
+                <div className="overflow-x-auto border border-slate-200 rounded-lg bg-white">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-slate-100 text-slate-600 font-bold border-b border-slate-200">
+                        <th className="py-2 px-3">Time</th>
+                        <th className="py-2 px-3">Recipient</th>
+                        <th className="py-2 px-3">Message Preview</th>
+                        <th className="py-2 px-3">Provider</th>
+                        <th className="py-2 px-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
+                      {smsLogs.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-4 text-center text-slate-400 font-sans">
+                            No SMS messages dispatched yet. Use the Test Console above to trigger one.
+                          </td>
+                        </tr>
+                      ) : (
+                        smsLogs.slice(0, 15).map((log) => (
+                          <tr key={log.id} className="hover:bg-slate-50">
+                            <td className="py-2 px-3 text-slate-500 whitespace-nowrap">
+                              {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </td>
+                            <td className="py-2 px-3 font-semibold text-slate-800">{log.to}</td>
+                            <td className="py-2 px-3 text-slate-600 font-sans truncate max-w-[280px]" title={log.message}>
+                              {log.message}
+                            </td>
+                            <td className="py-2 px-3 uppercase text-[10px] text-slate-500 font-semibold">{log.provider}</td>
+                            <td className="py-2 px-3">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                log.status === 'sent'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : log.status === 'simulated'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-rose-100 text-rose-800'
+                              }`}>
+                                {log.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* LEGAL, POLICIES & COOKIE CONSENT CENTER */}
+          {activeCategory === 'legal' && (
+            <div className="space-y-6 text-xs">
+              {/* Legal Overview Banner */}
+              <div className="p-4 bg-gradient-to-r from-slate-900 to-slate-800 border border-slate-700 rounded-xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-700 text-slate-300 border border-slate-600 flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-extrabold text-sm text-white">Store Policies & Cookie Compliance</h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                        9 Policies Active
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 mt-0.5">
+                      Compliant with Uganda Electronic Transactions Act, Consumer Protection laws & GDPR international standards.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setCurrentView('store-policies')}
+                  className="px-3.5 py-1.5 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Preview Customer Policies Page</span>
+                </button>
+              </div>
+
+              {/* Cookie Consent Settings */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-cyan-600" />
+                  <span>Cookie Consent Banner Settings</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className="flex items-center gap-2 p-3 bg-white border border-slate-200 rounded-lg cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.cookie_consent_enabled !== false}
+                      onChange={(e) => handleFieldChange('legal', 'cookie_consent_enabled', e.target.checked)}
+                      className="rounded text-cyan-600"
+                    />
+                    <span className="font-bold text-slate-800">Show Cookie Consent Banner</span>
+                  </label>
+
+                  <label className="flex items-center gap-2 p-3 bg-white border border-slate-200 rounded-lg cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(currentValues.require_explicit_consent)}
+                      onChange={(e) => handleFieldChange('legal', 'require_explicit_consent', e.target.checked)}
+                      className="rounded text-cyan-600"
+                    />
+                    <span className="font-bold text-slate-800">Require Explicit Accept / Reject</span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-800 block mb-1">Cookie Banner Notice Text</label>
+                  <input
+                    type="text"
+                    value={currentValues.cookie_banner_text || ''}
+                    onChange={(e) => handleFieldChange('legal', 'cookie_banner_text', e.target.value)}
+                    placeholder="We use cookies to secure checkout, store shopping cart items, and provide fast delivery in Uganda."
+                    className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
+                  />
+                </div>
+              </div>
+
+              {/* 9 Policy Documents Editor */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
+                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-slate-700" />
+                  <span>Policy Document Content (Displayed on /store-policies)</span>
+                </h4>
+
+                <div className="space-y-4">
+                  {[
+                    { key: 'policy_terms', title: '1. Terms & Conditions of Service' },
+                    { key: 'policy_privacy', title: '2. Privacy & Customer Data Protection' },
+                    { key: 'policy_refund', title: '3. Return & Refund Policy (14-Day Warranty)' },
+                    { key: 'policy_shipping', title: '4. Shipping & Delivery Policy (Kampala & Upcountry)' },
+                    { key: 'policy_payment', title: '5. Payment Policy (MTN MoMo, Airtel, COD)' },
+                    { key: 'policy_warranty', title: '6. Hardware Warranty & Physical Inspection Policy' },
+                    { key: 'policy_cancellation', title: '7. Order Cancellation Policy' },
+                    { key: 'policy_cookie', title: '8. Cookie Policy' },
+                    { key: 'policy_contact', title: '9. Contact & Customer Support Policy' },
+                  ].map((p) => (
+                    <div key={p.key} className="bg-white p-3 border border-slate-200 rounded-lg space-y-1.5">
+                      <label className="font-bold text-slate-900 block text-xs">{p.title}</label>
+                      <textarea
+                        rows={3}
+                        value={(currentValues as any)[p.key] || ''}
+                        onChange={(e) => handleFieldChange('legal', p.key as any, e.target.value)}
+                        className="w-full p-2 border border-slate-200 rounded-md text-xs leading-relaxed"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* FALLBACK / GENERIC RENDERER FOR OTHER CATEGORIES */}
           {![
             'general',
@@ -1959,6 +2815,9 @@ export const AdminSettingsCenter: React.FC = () => {
             'api',
             'maintenance',
             'pos',
+            'notifications',
+            'sms',
+            'legal',
           ].includes(activeCategory) && (
             <div className="space-y-4 text-xs">
               <p className="text-slate-500 text-xs">

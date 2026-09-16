@@ -208,6 +208,14 @@ export const Footer: React.FC = () => {
             </li>
             <li>
               <button
+                onClick={() => setCurrentView('store-policies')}
+                className="hover:text-cyan-400 transition-colors cursor-pointer text-cyan-300 font-medium"
+              >
+                Store Policies (9 Guarantees)
+              </button>
+            </li>
+            <li>
+              <button
                 onClick={() => setCurrentView('account', { tab: 'orders' })}
                 className="hover:text-cyan-400 transition-colors cursor-pointer"
               >
@@ -289,9 +297,40 @@ export const Footer: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. Bottom Copyright */}
-      <div className="max-w-7xl mx-auto px-4 mt-4 pt-3 border-t border-slate-800/60 text-center text-[10px] text-slate-500">
-        © {new Date().getFullYear()} Cyber Dynamic Tech. All rights reserved. Kampala, Uganda.
+      {/* 4. Bottom Copyright & Legal Links */}
+      <div className="max-w-7xl mx-auto px-4 mt-4 pt-3 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-slate-500">
+        <div>
+          © {new Date().getFullYear()} Cyber Dynamic Tech. All rights reserved. Kampala, Uganda.
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setCurrentView('store-policies', { policy: 'terms' })}
+            className="hover:text-slate-300 transition-colors cursor-pointer"
+          >
+            Terms of Sale
+          </button>
+          <span>•</span>
+          <button
+            onClick={() => setCurrentView('store-policies', { policy: 'privacy' })}
+            className="hover:text-slate-300 transition-colors cursor-pointer"
+          >
+            Privacy Policy
+          </button>
+          <span>•</span>
+          <button
+            onClick={() => setCurrentView('store-policies', { policy: 'refund' })}
+            className="hover:text-slate-300 transition-colors cursor-pointer"
+          >
+            Return Policy
+          </button>
+          <span>•</span>
+          <button
+            onClick={() => setCurrentView('store-policies', { policy: 'cookie' })}
+            className="hover:text-slate-300 transition-colors cursor-pointer"
+          >
+            Cookie Preferences
+          </button>
+        </div>
       </div>
     </footer>
   );

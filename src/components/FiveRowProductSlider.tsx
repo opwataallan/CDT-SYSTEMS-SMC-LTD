@@ -36,14 +36,14 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
                 Explore Our 5 Hardware Categories
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 mt-0.5 max-w-2xl">
-                Continuous auto-scrolling catalog with genuine stock from HP, Dell, Lenovo, Apple, Samsung, Epson, Cisco, TP-Link, and Logitech. Drag, swipe or pause anytime.
+                Genuine stock from HP, Dell, Lenovo, Apple, Samsung, Epson, Cisco, TP-Link, and Logitech. Rows 1, 3, & 5 auto-scroll continuously, while Rows 2 & 4 spotlight 3 devices for manual touch & swipe.
               </p>
             </div>
           </div>
         )}
 
         {/* =========================================================================
-            ROW 1: LAPTOPS & COMPUTERS
+            ROW 1: LAPTOPS & COMPUTERS (Auto-Scrolling)
             Display: HP laptops, Dell laptops, Lenovo laptops, Desktop computers,
                      Refurbished laptops, All-in-one computers
            ========================================================================= */}
@@ -53,6 +53,7 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           categorySlug="laptops-computers"
           subCategoriesText="HP Laptops • Dell Laptops • Lenovo Laptops • Desktop PCs • Certified Refurbished • All-in-One"
           badgeText="High Performance Workstations"
+          autoScroll={true}
           speed={0.52}
           direction="left-to-right"
           filterCategorySlugs={[
@@ -73,8 +74,8 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
         />
 
         {/* =========================================================================
-            ROW 2: SMARTPHONES & TABLETS
-            Display: Samsung phones, iPhones, Android smartphones, Tablets, Phone accessories
+            ROW 2: SMARTPHONES & TABLETS (Strictly Manual Swipe & Drag • 3 Products)
+            Display: Top 3 spotlight smartphones / tablets
            ========================================================================= */}
         <ProductSliderRow
           rowNumber={2}
@@ -82,8 +83,8 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           categorySlug="smartphones-tablets"
           subCategoriesText="Samsung Galaxy • iPhones • Google Pixel • Tablets & iPads • Fast GaN Chargers"
           badgeText="Official Warranties"
-          speed={0.42}
-          direction="left-to-right"
+          autoScroll={false}
+          maxProducts={3}
           filterCategorySlugs={[
             'smartphones-tablets',
             'samsung-phones',
@@ -103,7 +104,7 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
         />
 
         {/* =========================================================================
-            ROW 3: PRINTERS & OFFICE EQUIPMENT
+            ROW 3: PRINTERS & OFFICE EQUIPMENT (Auto-Scrolling)
             Display: HP printers, Laser printers, Photocopiers, Multifunction printers,
                      Toner/cartridges, Office equipment
            ========================================================================= */}
@@ -113,7 +114,8 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           categorySlug="printers-office-equipment"
           subCategoriesText="HP LaserJet • Epson EcoTank • Canon Copiers • Kyocera A3 • Genuine HP Toners • Shredders"
           badgeText="Lowest Cost Per Page"
-          speed={0.60}
+          autoScroll={true}
+          speed={0.58}
           direction="left-to-right"
           filterCategorySlugs={[
             'printers-office-equipment',
@@ -135,9 +137,8 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
         />
 
         {/* =========================================================================
-            ROW 4: NETWORKING & SECURITY
-            Display: Wi-Fi routers, 4G/5G routers, Network switches, CCTV cameras,
-                     Solar security cameras, Networking accessories
+            ROW 4: NETWORKING & SECURITY (Strictly Manual Swipe & Drag • 3 Products)
+            Display: Top 3 spotlight networking & security devices
            ========================================================================= */}
         <ProductSliderRow
           rowNumber={4}
@@ -145,8 +146,8 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           categorySlug="networking-security"
           subCategoriesText="Wi-Fi 6 Routers • 4G/5G SIM Gateways • Cisco Managed Switches • ColorVu CCTV • Solar 4G Cameras"
           badgeText="Seamless Enterprise Connectivity"
-          speed={0.46}
-          direction="left-to-right"
+          autoScroll={false}
+          maxProducts={3}
           filterCategorySlugs={[
             'networking-security',
             'networking-mifi',
@@ -167,7 +168,7 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
         />
 
         {/* =========================================================================
-            ROW 5: ACCESSORIES & ELECTRONICS
+            ROW 5: ACCESSORIES & ELECTRONICS (Auto-Scrolling)
             Display: Keyboards, Computer mice, Headphones, Monitors, Gaming accessories,
                      Smartwatches, Other IT electronics
            ========================================================================= */}
@@ -177,7 +178,8 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           categorySlug="accessories-electronics"
           subCategoriesText="Logitech MX Keyboards & Mice • Sony ANC Headphones • Dell 4K Monitors • Redragon Gaming • APC UPS"
           badgeText="Ergonomic & Power Protection"
-          speed={0.66}
+          autoScroll={true}
+          speed={0.64}
           direction="left-to-right"
           filterCategorySlugs={[
             'accessories-electronics',

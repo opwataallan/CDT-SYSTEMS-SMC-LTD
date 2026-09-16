@@ -29,6 +29,7 @@ import { BrandLogo } from './BrandLogo';
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
 import { Category, Product } from '../types';
+import { NotificationCenter } from './NotificationCenter';
 
 export const Header: React.FC = () => {
   const {
@@ -458,6 +459,9 @@ export const Header: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* In-App Notifications & Store Alerts Center */}
+            <NotificationCenter />
 
             {/* Wishlist Button (With Orange High-Density Counter) - Hidden on mobile */}
             <div

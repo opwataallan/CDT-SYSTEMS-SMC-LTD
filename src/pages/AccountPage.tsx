@@ -765,7 +765,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 md:gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
               {wishlistProducts.map((prod) => (
                 <ProductCard key={prod.id} product={prod} />
               ))}
