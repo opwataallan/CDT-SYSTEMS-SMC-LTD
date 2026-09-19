@@ -32,11 +32,11 @@ import { TopDealsSlider } from '../components/TopDealsSlider';
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
 import { Product, Category, HeroBanner } from '../types';
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_HERO_BANNERS } from '../data/cyberCatalog';
+import { INITIAL_HERO_BANNERS } from '../data/cyberCatalog';
 import { stripHtmlToPlainText } from '../utils/sanitizeWooCommerceHtml';
 
 export const HomePage: React.FC = () => {
-  const { setCurrentView, products: shopProducts, categories: shopCategories, addToCart, formatPrice } = useShop();
+  const { setCurrentView, products: shopProducts, categories: shopCategories, addToCart, formatPrice, config } = useShop();
 
   // Products and categories loaded exclusively from API
   const [products, setProducts] = useState<Product[]>(() => (shopProducts && shopProducts.length > 0 ? shopProducts : []));
@@ -244,23 +244,23 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Center/Right Hero Banner (High Density Product Showcase) */}
+          {/* Center/Right Hero Banner (High Density Product Picture & Promotional Flyer Showcase) */}
           <div className="lg:col-span-3 flex flex-col">
-            <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white min-h-[380px] sm:min-h-[420px] flex items-center shadow-lg group border border-slate-700/80">
-              {/* Background Image with Overlay */}
+            <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white min-h-[380px] sm:min-h-[420px] flex flex-col lg:flex-row items-center shadow-lg group border border-slate-700/80">
+              {/* Subtle Ambient Background with Overlay */}
               <img
                 src={currentBanner.imageUrl || currentProduct?.images?.[0]?.src}
                 alt={currentBanner.title || currentProduct?.name || 'Product Banner'}
-                className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-1000 ease-out"
+                className="absolute inset-0 w-full h-full object-cover opacity-15 group-hover:scale-105 transition-transform duration-1000 ease-out"
                 referrerPolicy="no-referrer"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/95 to-slate-900/70" />
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/95 to-slate-900/80" />
 
-              {/* Banner Left/Center Content */}
-              <div className="relative z-10 p-5 sm:p-8 max-w-xl flex-1 space-y-3.5">
+              {/* Banner Left: Copy, Specs & Quick CTAs */}
+              <div className="relative z-10 p-4 sm:p-6 lg:p-7 max-w-xl flex-1 space-y-3">
                 {/* Badge & Brand Tag */}
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold uppercase tracking-wider text-[11px]">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold uppercase tracking-wider text-[10px] sm:text-[11px]">
                     <Sparkles className="w-3 h-3 text-cyan-400" />
                     <span>{currentBanner.badge || 'VERIFIED HARDWARE'}</span>
                   </span>
@@ -269,14 +269,14 @@ export const HomePage: React.FC = () => {
                       {currentProduct.brand}
                     </span>
                   )}
-                  <span className="hidden sm:inline-flex items-center gap-1 text-[11px] text-emerald-400 font-semibold">
+                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-emerald-400 font-semibold">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     Kampala Dispatch Ready
                   </span>
                 </div>
 
                 {/* Product Title */}
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight tracking-tight">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white leading-tight tracking-tight">
                   {currentBanner.title || currentProduct?.name}
                 </h1>
 
@@ -291,12 +291,12 @@ export const HomePage: React.FC = () => {
                     {currentProduct.attributes.slice(0, 3).map((attr, idx) => (
                       <span
                         key={idx}
-                        className="px-2 py-1 rounded-md bg-slate-800/90 border border-slate-700 text-cyan-300 text-[11px] font-semibold"
+                        className="px-2 py-0.5 rounded-md bg-slate-800/90 border border-slate-700 text-cyan-300 text-[10px] sm:text-[11px] font-semibold"
                       >
                         {attr.options[0] || attr.name}
                       </span>
                     ))}
-                    <span className="px-2 py-1 rounded-md bg-slate-800/90 border border-slate-700 text-slate-300 text-[11px]">
+                    <span className="px-2 py-0.5 rounded-md bg-slate-800/90 border border-slate-700 text-slate-300 text-[10px] sm:text-[11px]">
                       1-Yr Warranty
                     </span>
                   </div>
@@ -304,7 +304,7 @@ export const HomePage: React.FC = () => {
 
                 {/* Price Display */}
                 {currentProduct && (
-                  <div className="flex flex-wrap items-baseline gap-2.5 pt-1">
+                  <div className="flex flex-wrap items-baseline gap-2.5 pt-0.5">
                     <span className="text-xl sm:text-2xl font-black text-white tracking-tight">
                       {formatPrice(currentProduct.price)}
                     </span>
@@ -322,13 +322,13 @@ export const HomePage: React.FC = () => {
                 )}
 
                 {/* CTA Buttons */}
-                <div className="flex flex-wrap items-center gap-3 pt-1.5">
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
                   {currentProduct && (
                     <button
                       onClick={() => setCurrentView('product', currentProduct)}
-                      className="py-2.5 px-5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-md hover:shadow-cyan-500/20 active:scale-95"
+                      className="py-2 px-4 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md hover:shadow-cyan-500/20 active:scale-95"
                     >
-                      <span>View Specifications</span>
+                      <span>View Specs</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   )}
@@ -336,7 +336,7 @@ export const HomePage: React.FC = () => {
                   {currentProduct && (
                     <button
                       onClick={() => addToCart(currentProduct, 1)}
-                      className="py-2.5 px-4 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95"
+                      className="py-2 px-3.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95"
                     >
                       <ShoppingCart className="w-3.5 h-3.5" />
                       <span>Add to Cart</span>
@@ -345,20 +345,21 @@ export const HomePage: React.FC = () => {
 
                   <button
                     onClick={() => setCurrentView('shop')}
-                    className="py-2.5 px-3.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer"
+                    className="py-2 px-3 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer"
                   >
                     All Products
                   </button>
                 </div>
 
-                {/* Mobile Spotlight Card */}
+                {/* Mobile Product Picture & Flier Dual Spotlight (Displays visual picture and flyer, not only words) */}
                 {currentProduct && (
-                  <div className="sm:hidden pt-2">
+                  <div className="lg:hidden pt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {/* Mobile Product Picture Card */}
                     <div
                       onClick={() => setCurrentView('product', currentProduct)}
-                      className="p-2.5 rounded-xl bg-slate-800/90 border border-slate-700 flex items-center gap-3 cursor-pointer"
+                      className="p-2.5 rounded-xl bg-white text-slate-900 border border-slate-200 flex items-center gap-3 cursor-pointer shadow-sm hover:border-cyan-400 transition-colors"
                     >
-                      <div className="w-12 h-12 rounded-lg bg-white p-1 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                      <div className="w-16 h-16 rounded-lg bg-slate-50 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-100">
                         <img
                           src={currentProduct.images?.[0]?.src}
                           alt={currentProduct.name}
@@ -367,11 +368,49 @@ export const HomePage: React.FC = () => {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-white truncate">{currentProduct.name}</p>
-                        <p className="text-[11px] font-extrabold text-cyan-400">{formatPrice(currentProduct.price)}</p>
+                        <div className="flex items-center gap-1 mb-0.5">
+                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-800">
+                            PRODUCT PICTURE
+                          </span>
+                        </div>
+                        <p className="text-xs font-bold text-slate-900 truncate">{currentProduct.name}</p>
+                        <p className="text-xs font-black text-cyan-600">{formatPrice(currentProduct.price)}</p>
                       </div>
-                      <span className="text-[10px] font-bold text-cyan-400 px-2 py-1 bg-cyan-950/60 rounded border border-cyan-800 flex items-center gap-1">
+                      <span className="text-[10px] font-bold text-cyan-600 px-2 py-1 bg-cyan-50 rounded border border-cyan-200 flex items-center gap-0.5">
                         View
+                        <ChevronRight className="w-3 h-3" />
+                      </span>
+                    </div>
+
+                    {/* Mobile Promotional Flier Card */}
+                    <div
+                      onClick={() => setCurrentView('shop', { flash_sale: true })}
+                      className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 via-orange-600 to-red-600 text-white flex items-center gap-3 cursor-pointer shadow-sm hover:opacity-95 transition-opacity"
+                    >
+                      <div className="w-16 h-16 rounded-lg bg-black/20 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/20">
+                        {config?.homepage?.advert_fliers_row2?.[0]?.image ? (
+                          <img
+                            src={config.homepage.advert_fliers_row2[0].image}
+                            alt="Advert Flier"
+                            className="w-full h-full object-cover rounded"
+                          />
+                        ) : (
+                          <Flame className="w-7 h-7 text-amber-300 animate-pulse" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-yellow-400 text-slate-950 inline-block mb-0.5">
+                          SPECIAL PROMO FLIER
+                        </span>
+                        <p className="text-xs font-bold text-white truncate">
+                          {config?.homepage?.advert_fliers_row2?.[0]?.title || 'Kampala Tech Special Offer'}
+                        </p>
+                        <p className="text-[10px] text-amber-100 truncate">
+                          {config?.homepage?.advert_fliers_row2?.[0]?.subtitle || 'Save up to 30% + Free Delivery'}
+                        </p>
+                      </div>
+                      <span className="text-[10px] font-black text-slate-950 px-2 py-1 bg-white rounded flex items-center gap-0.5 shrink-0">
+                        Claim
                         <ChevronRight className="w-3 h-3" />
                       </span>
                     </div>
@@ -379,113 +418,153 @@ export const HomePage: React.FC = () => {
                 )}
               </div>
 
-              {/* Right: Featured Product Spotlight Card (Tablet & Desktop) */}
+              {/* Right: Dual Visual Stage (Tablet & Desktop): Product Picture + Advert Flier */}
               {currentProduct && (
-                <div className="hidden md:flex flex-col items-center justify-center pr-6 lg:pr-8 py-6 z-10">
-                  <div className="relative w-72 lg:w-76 rounded-2xl bg-white text-slate-900 shadow-2xl border border-slate-200/80 overflow-hidden flex flex-col p-4 group/card hover:shadow-cyan-500/10 transition-all duration-300">
-                    {/* Top Bar inside Card */}
-                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-100 mb-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                        {currentProduct.brand || 'Hardware'}
-                      </span>
-                      <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                        <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                        In Stock • Kampala
-                      </span>
-                    </div>
-
-                    {/* Product Image Stage */}
-                    <div
-                      onClick={() => setCurrentView('product', currentProduct)}
-                      className="w-full h-36 rounded-xl bg-slate-50 flex items-center justify-center p-3 relative overflow-hidden cursor-pointer group-hover/card:bg-slate-100/70 transition-colors"
-                    >
-                      <img
-                        src={currentProduct.images?.[0]?.src}
-                        alt={currentProduct.name}
-                        className="w-full h-full object-contain transform group-hover/card:scale-108 transition-transform duration-500"
-                        referrerPolicy="no-referrer"
-                      />
-                      {currentProduct.on_sale && (
-                        <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-rose-600 text-white font-black text-[9px] uppercase tracking-wider rounded">
-                          SALE
+                <div className="hidden lg:flex flex-col items-center justify-center pr-6 py-6 z-10 space-y-3">
+                  <div className="flex items-stretch gap-3">
+                    {/* 1. PRODUCT PICTURE CARD */}
+                    <div className="w-64 rounded-2xl bg-white text-slate-900 shadow-xl border border-slate-200/90 overflow-hidden flex flex-col p-3.5 group/card hover:shadow-cyan-500/15 transition-all duration-300">
+                      <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-100 mb-2">
+                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-100 text-cyan-800">
+                          PRODUCT PICTURE
                         </span>
-                      )}
-                    </div>
-
-                    {/* Product Info */}
-                    <div className="pt-3 space-y-1.5">
-                      <h3
-                        onClick={() => setCurrentView('product', currentProduct)}
-                        className="text-xs font-bold text-slate-900 line-clamp-2 hover:text-cyan-600 cursor-pointer transition-colors leading-tight"
-                      >
-                        {currentProduct.name}
-                      </h3>
-
-                      {/* Star Rating */}
-                      <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                        <span>{currentProduct.average_rating || 4.9}</span>
-                        <span className="text-slate-400 text-[10px]">({currentProduct.rating_count || 18} reviews)</span>
+                        <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-600">
+                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                          In Stock
+                        </span>
                       </div>
 
-                      {/* Pricing */}
-                      <div className="flex items-baseline gap-2 pt-0.5">
-                        <span className="text-sm font-black text-slate-900">
-                          {formatPrice(currentProduct.price)}
-                        </span>
-                        {currentProduct.regular_price && currentProduct.regular_price > currentProduct.price && (
-                          <span className="text-[11px] text-slate-400 line-through">
-                            {formatPrice(currentProduct.regular_price)}
+                      {/* Product Image Stage */}
+                      <div
+                        onClick={() => setCurrentView('product', currentProduct)}
+                        className="w-full h-32 rounded-xl bg-slate-50 flex items-center justify-center p-2.5 relative overflow-hidden cursor-pointer group-hover/card:bg-slate-100/80 transition-colors"
+                      >
+                        <img
+                          src={currentProduct.images?.[0]?.src}
+                          alt={currentProduct.name}
+                          className="w-full h-full object-contain transform group-hover/card:scale-108 transition-transform duration-500"
+                          referrerPolicy="no-referrer"
+                        />
+                        {currentProduct.on_sale && (
+                          <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-rose-600 text-white font-black text-[9px] uppercase tracking-wider rounded">
+                            SALE
                           </span>
                         )}
                       </div>
 
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-2 gap-2 pt-2">
-                        <button
-                          onClick={() => addToCart(currentProduct, 1)}
-                          className="py-1.5 px-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors active:scale-95 shadow-xs"
-                        >
-                          <ShoppingCart className="w-3 h-3" />
-                          <span>Add to Cart</span>
-                        </button>
-                        <button
+                      {/* Product Info */}
+                      <div className="pt-2.5 space-y-1">
+                        <h3
                           onClick={() => setCurrentView('product', currentProduct)}
-                          className="py-1.5 px-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors active:scale-95"
+                          className="text-xs font-bold text-slate-900 line-clamp-1 hover:text-cyan-600 cursor-pointer transition-colors leading-tight"
                         >
-                          <span>Details</span>
-                          <ChevronRight className="w-3 h-3" />
-                        </button>
+                          {currentProduct.name}
+                        </h3>
+
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-xs font-black text-slate-900">
+                            {formatPrice(currentProduct.price)}
+                          </span>
+                          {currentProduct.regular_price && currentProduct.regular_price > currentProduct.price && (
+                            <span className="text-[10px] text-slate-400 line-through">
+                              {formatPrice(currentProduct.regular_price)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1.5 pt-1.5">
+                          <button
+                            onClick={() => addToCart(currentProduct, 1)}
+                            className="py-1 px-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors active:scale-95 shadow-xs"
+                          >
+                            <ShoppingCart className="w-3 h-3" />
+                            <span>Add</span>
+                          </button>
+                          <button
+                            onClick={() => setCurrentView('product', currentProduct)}
+                            className="py-1 px-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-bold flex items-center justify-center gap-0.5 cursor-pointer transition-colors active:scale-95"
+                          >
+                            <span>Specs</span>
+                            <ChevronRight className="w-3 h-3" />
+                          </button>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Quick Product Switcher Thumbnails */}
-                    <div className="mt-3 pt-2.5 border-t border-slate-100">
-                      <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-1.5 flex items-center justify-between">
-                        <span>Featured Hardware Lineup</span>
-                        <span className="text-cyan-600">{currentBannerIndex + 1}/{activeHeroProducts.length}</span>
-                      </p>
-                      <div className="flex items-center gap-1.5">
-                        {activeHeroProducts.map((prod, idx) => (
-                          <button
-                            key={prod.id || idx}
-                            onClick={() => setCurrentBannerIndex(idx)}
-                            title={prod.name}
-                            className={`relative w-8 h-8 rounded-lg bg-slate-50 border p-0.5 overflow-hidden cursor-pointer transition-all ${
-                              currentBannerIndex === idx
-                                ? 'border-cyan-500 ring-2 ring-cyan-400/40 scale-105'
-                                : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-300'
-                            }`}
-                          >
-                            <img
-                              src={prod.images?.[0]?.src || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&auto=format&fit=crop&q=80'}
-                              alt={prod.name}
-                              className="w-full h-full object-contain"
-                              referrerPolicy="no-referrer"
-                            />
-                          </button>
-                        ))}
+                    {/* 2. ADVERT PROMO FLIER CARD */}
+                    <div
+                      onClick={() => setCurrentView('shop', { flash_sale: true })}
+                      className="w-56 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-600 to-rose-700 text-white shadow-xl border border-amber-400/40 overflow-hidden flex flex-col p-3.5 group/flier cursor-pointer hover:shadow-orange-500/20 transition-all duration-300 relative"
+                    >
+                      <div className="flex items-center justify-between gap-1 pb-1.5 border-b border-white/20 mb-2">
+                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-yellow-400 text-slate-950 shadow-xs">
+                          PROMO FLIER
+                        </span>
+                        <span className="text-[9px] font-bold text-amber-100 flex items-center gap-1">
+                          <Flame className="w-3 h-3 fill-amber-300 text-amber-300" />
+                          Uganda
+                        </span>
                       </div>
+
+                      {/* Flier Image Stage */}
+                      <div className="w-full h-32 rounded-xl bg-black/20 flex items-center justify-center p-1.5 relative overflow-hidden border border-white/20">
+                        {config?.homepage?.advert_fliers_row2?.[0]?.image ? (
+                          <img
+                            src={config.homepage.advert_fliers_row2[0].image}
+                            alt="Advert Flier"
+                            className="w-full h-full object-cover rounded-lg transform group-hover/flier:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-center p-2">
+                            <Flame className="w-8 h-8 text-yellow-300 animate-bounce mb-1" />
+                            <span className="text-[10px] font-black uppercase text-yellow-200">MEGA FLASH OFFER</span>
+                            <span className="text-[9px] text-white/90">Save Up to 300,000 UGX</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Flier Info */}
+                      <div className="pt-2 space-y-1">
+                        <h4 className="text-xs font-black text-white line-clamp-1">
+                          {config?.homepage?.advert_fliers_row2?.[0]?.title || 'Kampala Hardware Flash Sale'}
+                        </h4>
+                        <p className="text-[10px] text-amber-100 line-clamp-1">
+                          {config?.homepage?.advert_fliers_row2?.[0]?.subtitle || 'Official warranty & same-day delivery'}
+                        </p>
+                        <button className="w-full mt-1 py-1 px-2 rounded-lg bg-white text-slate-950 font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 group-hover/flier:bg-yellow-300 transition-colors">
+                          <span>View Flyer Deals</span>
+                          <ArrowRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Product Switcher Thumbnails */}
+                  <div className="w-full pt-1.5 border-t border-slate-700/60">
+                    <div className="flex items-center justify-between mb-1 text-[9px] font-black uppercase tracking-wider text-slate-400">
+                      <span>Featured Hardware Lineup</span>
+                      <span className="text-cyan-400">{currentBannerIndex + 1}/{activeHeroProducts.length}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      {activeHeroProducts.map((prod, idx) => (
+                        <button
+                          key={prod.id || idx}
+                          onClick={() => setCurrentBannerIndex(idx)}
+                          title={prod.name}
+                          className={`relative w-8 h-8 rounded-lg bg-slate-800 border p-0.5 overflow-hidden cursor-pointer transition-all ${
+                            currentBannerIndex === idx
+                              ? 'border-cyan-500 ring-2 ring-cyan-400/50 scale-105'
+                              : 'border-slate-700 opacity-60 hover:opacity-100 hover:border-slate-500'
+                          }`}
+                        >
+                          <img
+                            src={prod.images?.[0]?.src || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&auto=format&fit=crop&q=80'}
+                            alt={prod.name}
+                            className="w-full h-full object-contain"
+                            referrerPolicy="no-referrer"
+                          />
+                        </button>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -726,7 +805,7 @@ export const HomePage: React.FC = () => {
 
         {/* Products Display: Loading Skeletons OR 2-Row Horizontal Flow / Grid (2 Cards on Mobile) */}
         {isLoadingCatalog && visibleCatalogProducts.length === 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
             <ProductCardSkeleton count={12} />
           </div>
         ) : catalogMobileFlow === '2row' ? (
@@ -736,7 +815,7 @@ export const HomePage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
             {visibleCatalogProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}

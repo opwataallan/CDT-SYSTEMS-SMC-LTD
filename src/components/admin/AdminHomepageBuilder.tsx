@@ -30,7 +30,7 @@ export const AdminHomepageBuilder: React.FC = () => {
       ? homepageSettings.banners
       : INITIAL_HERO_BANNERS
   );
-  const [heroTitle, setHeroTitle] = useState(homepageSettings.hero_title || 'Welcome to Cyber Dynamic Tech');
+  const [heroTitle, setHeroTitle] = useState(homepageSettings.hero_title || 'Welcome to Cyber Dynamic Technologies');
   const [heroSubtitle, setHeroSubtitle] = useState(homepageSettings.hero_subtitle || 'Genuine Laptops, Printers & Networking in Uganda');
   const [heroImage, setHeroImage] = useState(homepageSettings.hero_image || '');
   const [isSaving, setIsSaving] = useState(false);

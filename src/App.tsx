@@ -19,9 +19,15 @@ import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { CdtPageLoader } from './components/CdtPageLoader';
 import { TopFlashingAdsBar } from './components/TopFlashingAdsBar';
 import { CheckCircle2 } from 'lucide-react';
+import { api } from './services/api';
 
 const MainLayout: React.FC = () => {
   const { currentView, viewData, toastMessage, isPageLoading, pageLoadingMessage } = useShop();
+
+  // Background pre-fetching of the first page of products immediately after app mounts
+  React.useEffect(() => {
+    api.getProducts({ page: 1, limit: 18 }).catch(() => {});
+  }, []);
 
   const renderCurrentView = () => {
     switch (currentView) {

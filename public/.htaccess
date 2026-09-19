@@ -6,6 +6,11 @@
   RewriteEngine On
   RewriteBase /
 
+  # Proxy /api requests to Node.js backend if mod_proxy is active on cPanel
+  <IfModule mod_proxy.c>
+    RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/$1 [P,L]
+  </IfModule>
+
   # Security: Block access to hidden files and directories (e.g. .git, .env)
   RewriteRule "(^|/)\.(?!well-known)" - [F]
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Flame, Clock, ArrowRight, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Flame, Clock, ArrowRight, Sparkles, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { Product } from '../types';
 import { SliderProductCard } from './SliderProductCard';
 import { useShop } from '../context/ShopContext';
@@ -10,7 +10,23 @@ interface TopDealsSliderProps {
 }
 
 export const TopDealsSlider: React.FC<TopDealsSliderProps> = ({ products }) => {
-  const { setCurrentView } = useShop();
+  const { setCurrentView, config } = useShop();
+
+  const topDealsConfig = config?.homepage?.top_deals;
+
+  // Active campaign title and status state
+  const [activeCampaignTitle, setActiveCampaignTitle] = useState(
+    topDealsConfig?.campaign_title || 'Top Deals in Uganda'
+  );
+  const [isPromotionClosed, setIsPromotionClosed] = useState(false);
+
+  // Sync title when settings change
+  useEffect(() => {
+    if (topDealsConfig?.campaign_title) {
+      setActiveCampaignTitle(topDealsConfig.campaign_title);
+      setIsPromotionClosed(false);
+    }
+  }, [topDealsConfig?.campaign_title, topDealsConfig?.end_time]);
 
   // Countdown timer state
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({
@@ -19,32 +35,116 @@ export const TopDealsSlider: React.FC<TopDealsSliderProps> = ({ products }) => {
     seconds: 15,
   });
 
+  // Calculate countdown based on settings or running timer
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
-        if (prev.minutes > 0) return { ...prev, minutes: 59, seconds: 59 };
-        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
-        return { hours: 12, minutes: 0, seconds: 0 };
-      });
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    if (topDealsConfig?.enabled === false) {
+      return;
+    }
 
-  // Filter top deals: items with discount or marked as flash sale / top pick
+    const calculateTimeRemaining = () => {
+      if (topDealsConfig?.end_time) {
+        const target = new Date(topDealsConfig.end_time).getTime();
+        const now = Date.now();
+        const diff = target - now;
+
+        if (diff <= 0) {
+          // Time expired! Handle auto_action
+          const action = topDealsConfig.auto_action || 'switch_next';
+          if (action === 'close') {
+            setIsPromotionClosed(true);
+            return { hours: 0, minutes: 0, seconds: 0 };
+          } else if (action === 'switch_next') {
+            setActiveCampaignTitle(topDealsConfig.next_campaign_title || 'Upcoming Flash Tech Sale');
+            // Provide a new 12 hour cycle for the switched campaign
+            return { hours: 11, minutes: 59, seconds: 59 };
+          } else {
+            // repeat
+            return { hours: topDealsConfig.duration_hours || 12, minutes: 0, seconds: 0 };
+          }
+        }
+
+        const totalSecs = Math.floor(diff / 1000);
+        const hours = Math.floor(totalSecs / 3600);
+        const minutes = Math.floor((totalSecs % 3600) / 60);
+        const seconds = totalSecs % 60;
+        return { hours, minutes, seconds };
+      }
+
+      return null;
+    };
+
+    const initial = calculateTimeRemaining();
+    if (initial) {
+      setTimeLeft(initial);
+    }
+
+    const timer = setInterval(() => {
+      const remaining = calculateTimeRemaining();
+      if (remaining) {
+        setTimeLeft(remaining);
+      } else {
+        setTimeLeft((prev) => {
+          if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+          if (prev.minutes > 0) return { ...prev, minutes: 59, seconds: 59 };
+          if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 };
+
+          // Time hit 0 in fallback mode
+          const action = topDealsConfig?.auto_action || 'switch_next';
+          if (action === 'close') {
+            setIsPromotionClosed(true);
+            return { hours: 0, minutes: 0, seconds: 0 };
+          } else if (action === 'switch_next') {
+            setActiveCampaignTitle(topDealsConfig?.next_campaign_title || 'Midnight Tech Flash Sale');
+            return { hours: 12, minutes: 0, seconds: 0 };
+          } else {
+            return { hours: 8, minutes: 30, seconds: 0 };
+          }
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [
+    topDealsConfig?.end_time,
+    topDealsConfig?.auto_action,
+    topDealsConfig?.next_campaign_title,
+    topDealsConfig?.duration_hours,
+    topDealsConfig?.enabled,
+  ]);
+
+  // If disabled in settings, return null
+  if (topDealsConfig?.enabled === false) {
+    return null;
+  }
+
+  // Filter top deals: match with the products selected in settings, or discount items
   const dealProducts = useMemo(() => {
     const safe = Array.isArray(products) ? products : [];
+
+    // 1. If admin settings configured specific products for this promotion
+    if (
+      topDealsConfig?.selected_product_ids &&
+      Array.isArray(topDealsConfig.selected_product_ids) &&
+      topDealsConfig.selected_product_ids.length > 0
+    ) {
+      const matched = safe.filter((p) =>
+        topDealsConfig.selected_product_ids?.includes(p.id)
+      );
+      if (matched.length > 0) return matched;
+    }
+
+    // 2. Otherwise default to items with discount or flash_sale
     const withDiscount = safe.filter(
       (p) => p && (p.flash_sale || (p.regular_price && p.regular_price > p.price))
     );
 
-    // If fewer than 6, supplement with featured or highly rated products
+    // If fewer than 6, supplement with featured products
     if (withDiscount.length < 6) {
       const rest = safe.filter((p) => !withDiscount.some((d) => d.id === p.id));
       return [...withDiscount, ...rest].slice(0, 12);
     }
     return withDiscount;
-  }, [products]);
+  }, [products, topDealsConfig?.selected_product_ids]);
 
   // Hook for user scrolling via mouse drag, touch swipe, trackpad, and mouse wheel
   const {
@@ -58,6 +158,31 @@ export const TopDealsSlider: React.FC<TopDealsSliderProps> = ({ products }) => {
     handleMouseUpOrLeave,
     scrollByAmount,
   } = useDraggableSlider({ enableWheelScroll: true });
+
+  // If promotion closed automatically
+  if (isPromotionClosed) {
+    return (
+      <section id="top-deals-section-closed" className="max-w-7xl mx-auto px-4">
+        <div className="bg-slate-900 rounded-xl p-4 text-center border border-slate-800 text-slate-300 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="text-left">
+              <h3 className="text-sm font-bold text-white">Promotion Concluded</h3>
+              <p className="text-xs text-slate-400">
+                The {activeCampaignTitle} counter has reached 0 and is now closed. Check back soon for our next special deals!
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setCurrentView('shop')}
+            className="px-3.5 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs transition-colors shrink-0 cursor-pointer"
+          >
+            Explore Full Catalog
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="top-deals-section" className="max-w-7xl mx-auto px-4">
@@ -74,16 +199,21 @@ export const TopDealsSlider: React.FC<TopDealsSliderProps> = ({ products }) => {
               <Flame className="w-5 h-5 sm:w-6 sm:h-6 fill-slate-950 text-slate-950 animate-bounce" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-sm sm:text-base md:text-lg font-black uppercase tracking-tight text-white flex items-center gap-1.5">
-                  <span>Top Deals in Uganda</span>
+                  <span>{activeCampaignTitle}</span>
                 </h2>
                 <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow-sm">
                   Save up to 30%
                 </span>
+                {topDealsConfig?.selected_product_ids && topDealsConfig.selected_product_ids.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-cyan-900/60 text-cyan-300 text-[10px] font-bold border border-cyan-700/50">
+                    {dealProducts.length} Items Selected
+                  </span>
+                )}
               </div>
               <p className="text-[10px] sm:text-xs text-slate-400">
-                Genuine tested hardware in Kampala • Scroll or drag to explore
+                {topDealsConfig?.subtitle || 'Genuine tested hardware in Kampala • Scroll or drag to explore'}
               </p>
             </div>
           </div>
@@ -134,7 +264,7 @@ export const TopDealsSlider: React.FC<TopDealsSliderProps> = ({ products }) => {
               </div>
             </div>
 
-            {/* Optional helper navigation arrows + View All */}
+            {/* Helper navigation arrows + View All */}
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
@@ -177,7 +307,7 @@ export const TopDealsSlider: React.FC<TopDealsSliderProps> = ({ products }) => {
           </div>
         </div>
 
-        {/* Scrollable Track - Displays 3 Products in Mobile and 6 in PC */}
+        {/* Scrollable Track */}
         <div
           ref={containerRef}
           onMouseDown={handleMouseDown}
@@ -201,11 +331,11 @@ export const TopDealsSlider: React.FC<TopDealsSliderProps> = ({ products }) => {
           </div>
         </div>
 
-        {/* Mobile Swipe Hint and User-Friendly Scroll Bar Indicator */}
+        {/* Mobile Swipe Hint and Indicator */}
         <div className="flex items-center justify-between pt-1 text-[10px] text-slate-400">
           <span className="flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-amber-400" />
-            <span className="hidden xs:inline">Showing 3 deals on mobile, 6 on desktop •</span> Drag, swipe or wheel to scroll freely
+            <span>Drag, swipe or wheel to scroll freely</span>
           </span>
           <span className="text-slate-500 font-mono text-[9px]">
             {dealProducts.length} Flash Offers

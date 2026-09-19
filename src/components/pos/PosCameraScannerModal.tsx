@@ -573,7 +573,7 @@ export const PosCameraScannerModal: React.FC<PosCameraScannerModalProps> = ({
         <div className="px-4 py-2.5 bg-slate-950 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center gap-1.5 text-[11px]">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>Cyber Dynamic Tech POS Camera Engine</span>
+            <span>Cyber Dynamic Technologies POS Camera Engine</span>
           </div>
 
           <button

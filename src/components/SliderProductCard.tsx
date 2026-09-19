@@ -51,9 +51,12 @@ export const SliderProductCard: React.FC<SliderProductCardProps> = ({
     setCurrentView('product', { slug: product.slug, id: product.id });
   };
 
+  const rawImg = product.images?.[0]?.src || (product as any).image;
   const primaryImage =
-    product.images && product.images.length > 0
-      ? product.images[0].src
+    rawImg
+      ? (rawImg.startsWith('http://') && rawImg.includes('cyberdynamictech.com')
+          ? rawImg.replace('http://', 'https://')
+          : rawImg)
       : 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=600&auto=format&fit=crop&q=80';
 
   return (
@@ -97,14 +100,15 @@ export const SliderProductCard: React.FC<SliderProductCardProps> = ({
       </div>
 
       {/* Product Image with Aspect Ratio and Lazy Loading */}
-      <div className="relative w-full aspect-[4/3] rounded-md sm:rounded-lg overflow-hidden bg-slate-50 mb-1 sm:mb-1.5 border border-slate-100 flex items-center justify-center">
+      <div className="relative w-full aspect-[4/3] rounded-md sm:rounded-lg overflow-hidden bg-white mb-1 sm:mb-1.5 border border-slate-100 flex items-center justify-center">
         <OptimizedImage
           src={primaryImage}
           alt={product.name}
           width={400}
           height={300}
           draggable={false}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+          containerClassName="w-full h-full"
+          className="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-500 ease-out"
         />
         {/* Quick View Overlay Button on Desktop Hover */}
         <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hidden sm:flex items-center justify-center pointer-events-none">

@@ -7,7 +7,7 @@ export const WhatsAppButton: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const phoneFormatted = storeSettings.whatsapp_number.replace(/[^0-9]/g, '');
-  const chatUrl = `https://wa.me/${phoneFormatted}?text=Hello%20Cyber%20Dynamic%20Tech,%20I%20am%20inquiring%20about%20products%20on%20your%20marketplace.`;
+  const chatUrl = `https://wa.me/${phoneFormatted}?text=Hello%20Cyber%20Dynamic%20Technologies,%20I%20am%20inquiring%20about%20products%20on%20your%20marketplace.`;
 
   return (
     <div className="fixed bottom-16 md:bottom-4 right-3 sm:right-4 z-40 flex flex-col items-end">
@@ -20,7 +20,7 @@ export const WhatsAppButton: React.FC = () => {
                 <MessageCircle className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h4 className="text-xs font-bold leading-tight text-white">Cyber Dynamic Tech</h4>
+                <h4 className="text-xs font-bold leading-tight text-white">Cyber Dynamic Technologies</h4>
                 <p className="text-[10px] text-cyan-400 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   Online | Kampala Sales Desk
@@ -56,7 +56,7 @@ export const WhatsAppButton: React.FC = () => {
         onClick={() => setIsOpen(!isOpen)}
         className="relative w-11 h-11 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center shadow-lg hover:scale-105 transition-all duration-200 cursor-pointer"
         aria-label="Chat with us on WhatsApp"
-        title="Chat with Cyber Dynamic Tech on WhatsApp"
+        title="Chat with Cyber Dynamic Technologies on WhatsApp"
       >
         <MessageCircle className="w-5 h-5" />
         <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white">

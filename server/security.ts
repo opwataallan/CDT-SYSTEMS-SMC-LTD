@@ -382,7 +382,7 @@ export const auditLogs: AuditLogEntry[] = [
     user_email: 'system@cyberdynamictech.com',
     action: 'SYSTEM_BOOT',
     category: 'System',
-    details: 'Cyber Dynamic Tech Marketplace Engine started with security middleware active',
+    details: 'Cyber Dynamic Technologies Marketplace Engine started with security middleware active',
     status: 'success',
   },
 ];

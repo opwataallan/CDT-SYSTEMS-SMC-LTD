@@ -587,7 +587,7 @@ export const AdminPage: React.FC = () => {
                   <span>Customer Orders & Payment Verification</span>
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Confirm Mobile Money payments to <strong>0394 760459 (CYBER DYNAMIC TECH)</strong> before processing. Confirmed orders automatically sync to WooCommerce.
+                  Confirm Mobile Money payments to <strong>0394760459 (OPWATA ALLAN SAMUEL)</strong> before processing. Confirmed orders automatically sync to WooCommerce.
                 </p>
               </div>
 
@@ -823,7 +823,7 @@ export const AdminPage: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-[11px] text-amber-900">
-                  Customer payment sent to: <strong>0394 760459 (CYBER DYNAMIC TECH)</strong>
+                  Customer payment sent to: <strong>0394760459 (OPWATA ALLAN SAMUEL)</strong>
                   {selectedOrder.payment_details?.transaction_ref && (
                     <span> • Ref: {selectedOrder.payment_details.transaction_ref}</span>
                   )}

@@ -99,7 +99,7 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
             Track Your Tech Order
           </h1>
           <p className="text-xs text-slate-500 mt-0.5 max-w-md mx-auto">
-            Enter your Cyber Dynamic Tech Order Number (e.g. <strong>CDT-10491</strong>) to view real-time testing, packaging, and regional dispatch updates.
+            Enter your Cyber Dynamic Technologies Order Number (e.g. <strong>CDT-10491</strong>) to view real-time testing, packaging, and regional dispatch updates.
           </p>
         </div>
 
@@ -146,7 +146,7 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
           <div>
             <strong>Unable to locate order:</strong> {error}
             <div className="mt-0.5 text-slate-500 text-[11px]">
-              Need assistance? Call Cyber Dynamic Tech Support on <strong>+256 779 743 101</strong>
+              Need assistance? Call Cyber Dynamic Technologies Support on <strong>+256 779 743 101</strong>
             </div>
           </div>
         </div>
@@ -291,11 +291,11 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
               <Phone className="w-4 h-4 text-cyan-700 flex-shrink-0" />
               <div>
                 <strong className="text-slate-900">Need express courier coordinate updates?</strong>
-                <p className="text-cyan-800 text-[11px]">Call Cyber Dynamic Tech central dispatch in Kampala: +256 779 743 101</p>
+                <p className="text-cyan-800 text-[11px]">Call Cyber Dynamic Technologies central dispatch in Kampala: +256 779 743 101</p>
               </div>
             </div>
             <a
-              href={`https://wa.me/256779743101?text=Hello%20Cyber%20Dynamic%20Tech,%20inquiring%20about%20Order%20${order.order_number}`}
+              href={`https://wa.me/256779743101?text=Hello%20Cyber%20Dynamic%20Technologies,%20inquiring%20about%20Order%20${order.order_number}`}
               target="_blank"
               rel="noreferrer"
               className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs whitespace-nowrap cursor-pointer shadow-2xs"

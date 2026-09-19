@@ -14,7 +14,6 @@ import {
   SmsLogEntry,
 } from '../types';
 import { getStoredReviewsForProduct, saveLocalProductReview } from '../data/initialReviews';
-import { INITIAL_PRODUCTS_LIST } from '../data/initialProducts';
 import { INITIAL_CATEGORIES } from '../data/cyberCatalog';
 import { clientCache } from '../utils/apiCache';
 
@@ -386,44 +385,92 @@ export const api = {
       }
       return result;
     } catch (err) {
-      // In static cPanel hosting or when backend is starting, gracefully fallback to bundled catalog
-      console.warn('Backend API notice, serving bundled catalog:', err);
-      let list = [...INITIAL_PRODUCTS_LIST];
-      if (params.category && params.category !== 'all') {
-        const catLower = params.category.toLowerCase();
-        list = list.filter((p) =>
-          p.categories?.some((c) => c.slug.toLowerCase() === catLower || String(c.id) === params.category)
-        );
-      }
-      if (params.search) {
-        const q = params.search.toLowerCase();
-        list = list.filter((p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.brand.toLowerCase().includes(q) ||
-          p.short_description?.toLowerCase().includes(q)
-        );
-      }
-      if (params.brand) {
-        const brands = params.brand.split(',').map((b) => b.trim().toLowerCase());
-        list = list.filter((p) => brands.includes(p.brand.toLowerCase()));
-      }
-      if (params.featured) list = list.filter((p) => p.featured);
-      if (params.flash_sale) list = list.filter((p) => p.flash_sale);
-      if (params.stock_status === 'instock') list = list.filter((p) => p.stock_status === 'instock');
-      if (params.min_price) list = list.filter((p) => p.price >= params.min_price!);
-      if (params.max_price) list = list.filter((p) => p.price <= params.max_price!);
+      // If the backend /api endpoint is momentarily starting, fetch directly from live WooCommerce Store API
+      console.warn('Backend /api notice, querying live WooCommerce Store API directly:', err);
+      try {
+        const perPage = Math.min(effectiveLimit, 100);
+        const p = params.page || 1;
+        const storeApiUrl = `https://www.cyberdynamictech.com/wp-json/wc/store/v1/products?per_page=${perPage}&page=${p}${
+          params.search ? `&search=${encodeURIComponent(params.search)}` : ''
+        }`;
+        const resp = await fetch(storeApiUrl, {
+          headers: { Accept: 'application/json' },
+        });
+        if (resp.ok) {
+          const rawItems = await resp.json();
+          if (Array.isArray(rawItems)) {
+            const mapped = rawItems.map((raw: any) => {
+              const minorUnit = typeof raw.prices?.currency_minor_unit === 'number' ? raw.prices.currency_minor_unit : 0;
+              const divisor = Math.pow(10, minorUnit);
+              const currentPrice = raw.prices?.price ? Number(raw.prices.price) / divisor : Number(raw.price || 0);
+              const regularPrice = raw.prices?.regular_price ? Number(raw.prices.regular_price) / divisor : currentPrice;
+              const salePrice = raw.prices?.sale_price && Number(raw.prices.sale_price) < Number(raw.prices.regular_price)
+                ? Number(raw.prices.sale_price) / divisor
+                : undefined;
 
-      const total = list.length;
-      const limit = effectiveLimit;
-      const page = params.page || 1;
-      const start = (page - 1) * limit;
-      const fallbackResult = {
-        products: list.slice(start, start + limit),
-        total,
-        totalPages: Math.ceil(total / limit) || 1,
+              const rawImages = Array.isArray(raw.images) && raw.images.length > 0 ? raw.images : raw.image ? [raw.image] : [];
+              const images = rawImages.map((img: any, idx: number) => ({
+                id: img.id || idx + 1,
+                src: img.src || img.thumbnail || img.url || '',
+                name: img.name || raw.name || 'Product Image',
+                alt: img.alt || raw.name || 'Product Image',
+              }));
+
+              const cleanDesc = (raw.short_description || '')
+                .replace(/<[^>]*>?/gm, ' ')
+                .replace(/\s+/g, ' ')
+                .trim() || raw.name;
+
+              return {
+                id: raw.id,
+                name: raw.name,
+                slug: raw.slug || `product-${raw.id}`,
+                permalink: raw.permalink || '',
+                featured: Boolean(raw.featured),
+                description: raw.description || cleanDesc,
+                short_description: cleanDesc,
+                sku: raw.sku || `CDT-${raw.id}`,
+                price: currentPrice,
+                regular_price: regularPrice,
+                sale_price: salePrice,
+                price_html: raw.price_html || `${currentPrice.toLocaleString()} UGX`,
+                on_sale: Boolean(salePrice && salePrice < regularPrice),
+                stock_status: raw.is_in_stock === false ? 'outofstock' : 'instock',
+                stock_quantity: typeof raw.stock_quantity === 'number' ? raw.stock_quantity : 15,
+                manage_stock: true,
+                categories: Array.isArray(raw.categories)
+                  ? raw.categories.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug }))
+                  : [],
+                tags: Array.isArray(raw.tags) ? raw.tags.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) : [],
+                images: images.length > 0 ? images : [{ id: 1, src: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&auto=format&fit=crop&q=80', name: raw.name, alt: raw.name }],
+                attributes: Array.isArray(raw.attributes) ? raw.attributes : [],
+                rating_count: typeof raw.review_count === 'number' ? raw.review_count : 4,
+                average_rating: Number(raw.average_rating || 4.8),
+                brand: raw.attributes?.[0]?.terms?.[0]?.name || 'Cyber Dynamic Technologies',
+                weight: '1.5 kg',
+                warranty: '1 Year Warranty Included',
+              } as Product;
+            });
+
+            const liveResult = {
+              products: mapped,
+              total: mapped.length,
+              totalPages: 1,
+            };
+            clientCache.set(cacheKey, liveResult, 60);
+            return liveResult;
+          }
+        }
+      } catch (storeErr) {
+        console.warn('Live Store API direct query also failed:', storeErr);
+      }
+
+      // If both backend and live store API are unreachable, return empty array with 0 items (never dummy products)
+      return {
+        products: [],
+        total: 0,
+        totalPages: 1,
       };
-      clientCache.set(cacheKey, fallbackResult, 60);
-      return fallbackResult;
     }
   },
 
@@ -441,10 +488,57 @@ export const api = {
       }
       return prod;
     } catch (err) {
-      const match = INITIAL_PRODUCTS_LIST.find(
-        (p) => String(p.id) === String(identifier) || p.slug === String(identifier)
-      );
-      if (match) return match;
+      // Try direct live WooCommerce Store API
+      try {
+        const resp = await fetch(`https://www.cyberdynamictech.com/wp-json/wc/store/v1/products/${identifier}`, {
+          headers: { Accept: 'application/json' },
+        });
+        if (resp.ok) {
+          const raw = await resp.json();
+          const minorUnit = typeof raw.prices?.currency_minor_unit === 'number' ? raw.prices.currency_minor_unit : 0;
+          const divisor = Math.pow(10, minorUnit);
+          const currentPrice = raw.prices?.price ? Number(raw.prices.price) / divisor : Number(raw.price || 0);
+          const regularPrice = raw.prices?.regular_price ? Number(raw.prices.regular_price) / divisor : currentPrice;
+          const rawImages = Array.isArray(raw.images) && raw.images.length > 0 ? raw.images : raw.image ? [raw.image] : [];
+          const images = rawImages.map((img: any, idx: number) => ({
+            id: img.id || idx + 1,
+            src: img.src || img.thumbnail || img.url || '',
+            name: img.name || raw.name || 'Product Image',
+            alt: img.alt || raw.name || 'Product Image',
+          }));
+
+          const mapped: Product = {
+            id: raw.id,
+            name: raw.name,
+            slug: raw.slug || `product-${raw.id}`,
+            permalink: raw.permalink || '',
+            featured: Boolean(raw.featured),
+            description: raw.description || raw.name,
+            short_description: (raw.short_description || '').replace(/<[^>]*>?/gm, ' ').trim() || raw.name,
+            sku: raw.sku || `CDT-${raw.id}`,
+            price: currentPrice,
+            regular_price: regularPrice,
+            sale_price: undefined,
+            on_sale: false,
+            stock_status: raw.is_in_stock === false ? 'outofstock' : 'instock',
+            stock_quantity: 10,
+            manage_stock: true,
+            categories: Array.isArray(raw.categories)
+              ? raw.categories.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug }))
+              : [],
+            images: images.length > 0 ? images : [{ id: 1, src: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&auto=format&fit=crop&q=80', name: raw.name, alt: raw.name }],
+            attributes: [],
+            rating_count: 5,
+            average_rating: 5.0,
+            brand: 'Cyber Dynamic Technologies',
+            warranty: '1 Year Warranty Included',
+          };
+          clientCache.set(cacheKey, mapped, 180);
+          return mapped;
+        }
+      } catch {
+        // Continue to throw error
+      }
       throw err;
     }
   },
@@ -602,6 +696,17 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status, note }),
     }, 'Failed to update order status');
+  },
+
+  async cancelOrder(
+    identifier: string | number,
+    reason?: string
+  ): Promise<{ success: boolean; order: CustomerOrder; message: string }> {
+    return safeFetch(`/api/orders/${identifier}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    }, 'Failed to cancel order');
   },
 
   async submitOrderPayment(
@@ -839,5 +944,24 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }, 'Failed to broadcast announcement');
+  },
+
+  async backupDatabase(): Promise<any> {
+    return safeFetch('/api/database/backup', { method: 'GET' }, 'Failed to backup database');
+  },
+
+  async restoreDatabase(payload: any): Promise<{ success: boolean; message: string }> {
+    return safeFetch('/api/database/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }, 'Failed to restore database');
+  },
+
+  async syncDatabase(): Promise<{ success: boolean; message: string }> {
+    return safeFetch('/api/database/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    }, 'Failed to sync database');
   },
 };

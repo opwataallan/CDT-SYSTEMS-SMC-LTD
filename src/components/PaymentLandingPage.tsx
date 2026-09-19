@@ -13,9 +13,11 @@ import {
   AlertTriangle,
   Receipt,
   Send,
+  Printer,
 } from 'lucide-react';
 import { CustomerOrder } from '../types';
 import { api } from '../services/api';
+import { OrderReceiptModal } from './OrderReceiptModal';
 
 interface PaymentLandingPageProps {
   order: CustomerOrder;
@@ -40,9 +42,10 @@ export const PaymentLandingPage: React.FC<PaymentLandingPageProps> = ({
   const [isSubmittingProof, setIsSubmittingProof] = useState(false);
   const [proofSubmitted, setProofSubmitted] = useState(Boolean(order.payment_submitted));
   const [currentOrder, setCurrentOrder] = useState<CustomerOrder>(order);
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
 
-  const paymentNumber = currentOrder.payment_details?.payment_number || '0394 760459';
-  const accountName = currentOrder.payment_details?.account_name || 'CYBER DYNAMIC TECH';
+  const paymentNumber = currentOrder.payment_details?.payment_number || '0394760459';
+  const accountName = currentOrder.payment_details?.account_name || 'OPWATA ALLAN SAMUEL';
   const isCOD = currentOrder.payment_method === 'cod';
   const isConfirmed = currentOrder.status === 'processing' || currentOrder.payment_details?.status === 'completed';
 
@@ -316,7 +319,7 @@ export const PaymentLandingPage: React.FC<PaymentLandingPageProps> = ({
 
                 <a
                   href={`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(
-                    `Hello Cyber Dynamic Tech Support, I have placed order ${currentOrder.order_number} for UGX ${currentOrder.total.toLocaleString()} and made payment to ${paymentNumber}. Please confirm!`
+                    `Hello Cyber Dynamic Technologies Support, I have placed order ${currentOrder.order_number} for UGX ${currentOrder.total.toLocaleString()} and made payment to ${paymentNumber}. Please confirm!`
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -387,6 +390,14 @@ export const PaymentLandingPage: React.FC<PaymentLandingPageProps> = ({
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
           <button
             type="button"
+            onClick={() => setShowReceiptModal(true)}
+            className="w-full sm:w-auto py-2.5 px-5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            <span>Generate & Print Receipt</span>
+          </button>
+          <button
+            type="button"
             onClick={() => onTrackOrder(currentOrder.order_number)}
             className="w-full sm:w-auto py-2.5 px-6 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
           >
@@ -402,6 +413,13 @@ export const PaymentLandingPage: React.FC<PaymentLandingPageProps> = ({
           </button>
         </div>
       </div>
+
+      {showReceiptModal && (
+        <OrderReceiptModal
+          order={currentOrder}
+          onClose={() => setShowReceiptModal(false)}
+        />
+      )}
     </div>
   );
 };

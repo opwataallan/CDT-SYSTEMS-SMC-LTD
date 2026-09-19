@@ -207,13 +207,13 @@ export const StorePoliciesPage: React.FC<StorePoliciesPageProps> = ({ initialPol
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-bold mb-3">
               <Shield className="w-3.5 h-3.5 text-cyan-600" />
-              <span>Official Cyber Dynamic Tech Policies & Legal Terms</span>
+              <span>Official Cyber Dynamic Technologies Policies & Legal Terms</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
               Store Policies & Customer Protection
             </h1>
             <p className="text-sm text-slate-600 leading-relaxed">
-              At Cyber Dynamic Tech, customer confidence, hardware authenticity, and transparent logistics are our top priorities.
+              At Cyber Dynamic Technologies, customer confidence, hardware authenticity, and transparent logistics are our top priorities.
               Review our nine store operating standards covering warranties, returns, payments, delivery zones across Uganda, and consumer privacy.
             </p>
 

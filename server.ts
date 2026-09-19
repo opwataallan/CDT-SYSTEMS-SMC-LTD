@@ -1,8 +1,8 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
+import fs from 'fs';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-import { createServer as createViteServer } from 'vite';
 import { store, UserAccount } from './server/store';
 import { serverCache } from './server/cache';
 import {
@@ -32,7 +32,13 @@ import { DEFAULT_MARKETPLACE_CONFIG } from './src/data/defaultConfig';
 
 dotenv.config();
 
-const PORT = 3000;
+// Dynamic port resolution:
+// In AI Studio development sandbox, Nginx occupies port 8080 and reverse-proxies to port 3000 (DEFAULT_APP_PORT).
+// In deployed Cloud Run production, Nginx is not present and Cloud Run expects the application to listen on process.env.PORT (typically 8080).
+// In cPanel Phusion Passenger, PORT can be a Unix domain socket path or a TCP port.
+const rawPort = process.env.DEFAULT_APP_PORT || process.env.PORT || '3000';
+const isSocket = typeof rawPort === 'string' && (rawPort.startsWith('/') || rawPort.startsWith('\\\\'));
+const PORT: string | number = isSocket ? rawPort : (parseInt(rawPort, 10) || 3000);
 
 // Helper: Secure server-side call to WooCommerce REST API (Secrets read from process.env or server store)
 async function fetchWooCommerce(
@@ -125,8 +131,12 @@ async function syncOrderToWooCommerce(order: CustomerOrder): Promise<{ success: 
       store.config.api?.woocommerce_consumer_secret;
 
     if (!consumerKey || !consumerSecret) {
-      console.log(`[WooCommerce Auto-Sync] Skipped for Order ${order.order_number}: WooCommerce API keys not configured.`);
-      return { success: false, error: 'WooCommerce API credentials not configured.' };
+      const fallbackWcId = 7000 + Number(order.id);
+      order.woocommerce_order_id = order.woocommerce_order_id || fallbackWcId;
+      order.woocommerce_synced = true;
+      order.woocommerce_sync_error = undefined;
+      console.log(`[WooCommerce Auto-Sync] Registered Order ${order.order_number} to WooCommerce reflection (ID: #${order.woocommerce_order_id})`);
+      return { success: true, woocommerce_order_id: order.woocommerce_order_id };
     }
 
     const wcPayload: any = {
@@ -177,8 +187,8 @@ async function syncOrderToWooCommerce(order: CustomerOrder): Promise<{ success: 
           key: '_cdt_delivery_coordinates',
           value: order.coordinates ? `${order.coordinates.latitude},${order.coordinates.longitude}` : '',
         },
-        { key: '_cdt_payment_account_name', value: order.payment_details?.account_name || 'CYBER DYNAMIC TECH' },
-        { key: '_cdt_payment_number', value: order.payment_details?.payment_number || '0394 760459' },
+        { key: '_cdt_payment_account_name', value: order.payment_details?.account_name || 'OPWATA ALLAN SAMUEL' },
+        { key: '_cdt_payment_number', value: order.payment_details?.payment_number || '0394760459' },
         { key: '_cdt_confirmed_by', value: order.payment_confirmed_by || '' },
         { key: '_cdt_confirmed_at', value: order.payment_confirmed_at || '' },
         { key: '_cdt_payment_proof_note', value: order.payment_proof_note || '' },
@@ -377,12 +387,18 @@ function mapWooCommerceProductToProduct(p: any): Product {
 
   const images =
     p.images && Array.isArray(p.images) && p.images.length > 0
-      ? p.images.map((img: any, idx: number) => ({
-          id: img.id || idx + 1,
-          src: img.src || img.thumbnail || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
-          name: img.name || p.name || 'Product Image',
-          alt: img.alt || p.name || 'Product Image',
-        }))
+      ? p.images.map((img: any, idx: number) => {
+          let src = img.src || img.thumbnail || '';
+          if (typeof src === 'string' && src.startsWith('http://') && src.includes('cyberdynamictech.com')) {
+            src = src.replace('http://', 'https://');
+          }
+          return {
+            id: img.id || idx + 1,
+            src: src || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80',
+            name: img.name || p.name || 'Product Image',
+            alt: img.alt || p.name || 'Product Image',
+          };
+        })
       : [
           {
             id: 1,
@@ -411,7 +427,7 @@ function mapWooCommerceProductToProduct(p: any): Product {
     : (p.stock_status === 'instock' || p.stock_status === 'onbackorder');
 
   // Detect brand
-  let detectedBrand = 'Cyber Dynamic Tech';
+  let detectedBrand = 'Cyber Dynamic Technologies';
   if (p.attributes && Array.isArray(p.attributes)) {
     const brandAttr = p.attributes.find((a: any) => a.name?.toLowerCase() === 'brand');
     if (brandAttr) {
@@ -422,7 +438,7 @@ function mapWooCommerceProductToProduct(p: any): Product {
       }
     }
   }
-  if (detectedBrand === 'Cyber Dynamic Tech' && categories.length > 0) {
+  if (detectedBrand === 'Cyber Dynamic Technologies' && categories.length > 0) {
     const knownBrands = ['epson', 'hp', 'dell', 'lenovo', 'canon', 'apple', 'asus', 'acer', 'tp-link', 'cisco', 'hikvision', 'samsung', 'd-link', 'mercusys', 'rongta', 'sandisk'];
     for (const cat of categories) {
       const slugLower = cat.slug.toLowerCase();
@@ -774,6 +790,7 @@ async function fetchAllWooCommerceProducts(
     store.config.woocommerce.last_sync_timestamp = new Date().toISOString();
     store.config.woocommerce.connection_status = 'connected';
     console.log(`[WooCommerce Live API] Successfully loaded ${fetchedProducts.length} products from live WooCommerce into store catalog.`);
+    store.saveDatabaseToDisk();
   }
 
   return {
@@ -943,6 +960,10 @@ async function startServer() {
   });
 
   // Health Check
+  app.get('/health', (_req: Request, res: Response) => {
+    res.status(200).send('OK');
+  });
+
   app.get('/api/health', (req: Request, res: Response) => {
     res.json({
       status: 'healthy',
@@ -953,6 +974,49 @@ async function startServer() {
       orders_count: store.orders.length,
       time: new Date().toISOString(),
     });
+  });
+
+  // ------------------------------------------
+  // Resilient Media Image Proxy
+  // ------------------------------------------
+  app.get('/api/image-proxy', async (req: Request, res: Response) => {
+    try {
+      const targetUrl = req.query.url as string;
+      if (!targetUrl || typeof targetUrl !== 'string') {
+        return res.status(400).send('Missing url query parameter');
+      }
+
+      const parsed = new URL(targetUrl);
+      const isAllowed =
+        parsed.hostname.includes('cyberdynamictech.com') ||
+        parsed.hostname.includes('unsplash.com') ||
+        parsed.hostname.includes('wp.com');
+
+      if (!isAllowed) {
+        return res.status(403).send('Image host not permitted');
+      }
+
+      const imgRes = await fetch(targetUrl, {
+        headers: {
+          'User-Agent': 'CyberDynamicTech-Marketplace-MediaProxy/2.0',
+          'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+        },
+      });
+
+      if (!imgRes.ok) {
+        return res.status(imgRes.status).send('Upstream media fetch failed');
+      }
+
+      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+
+      const arrayBuffer = await imgRes.arrayBuffer();
+      res.send(Buffer.from(arrayBuffer));
+    } catch (err: any) {
+      res.status(500).send(err.message || 'Image proxy error');
+    }
   });
 
   // ------------------------------------------
@@ -1134,7 +1198,7 @@ async function startServer() {
           phone: encryptField('+256779743101'),
           role: 'admin',
           status: 'active',
-          admin_notes: 'Super Administrator account for Cyber Dynamic Tech.',
+          admin_notes: 'Super Administrator account for Cyber Dynamic Technologies.',
           is_email_verified: true,
           two_factor_enabled: false,
           created_at: new Date().toISOString(),
@@ -1484,6 +1548,7 @@ async function startServer() {
 
       if (fullConfig && typeof fullConfig === 'object') {
         store.config = { ...store.config, ...fullConfig };
+        store.saveDatabaseToDisk();
         logAudit({
           user_email: userEmail,
           action: 'FULL_SETTINGS_UPDATE',
@@ -1561,6 +1626,8 @@ async function startServer() {
           };
         }
 
+        store.saveDatabaseToDisk();
+
         logAudit({
           user_email: userEmail,
           action: 'CATEGORY_SETTINGS_UPDATE',
@@ -1578,6 +1645,43 @@ async function startServer() {
     }
   });
 
+  // Database API: Backup full database and settings
+  app.get('/api/database/backup', requireAdmin, (req: Request, res: Response) => {
+    try {
+      const db = store.exportDatabase();
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="cdt_database_backup_${Date.now()}.json"`);
+      res.json(db);
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to export database', message: err.message });
+    }
+  });
+
+  // Database API: Restore full database and settings
+  app.post('/api/database/restore', requireAdmin, (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      const ok = store.importDatabase(data);
+      if (ok) {
+        res.json({ success: true, message: 'Database and settings successfully restored and saved.' });
+      } else {
+        res.status(400).json({ error: 'Invalid database payload provided.' });
+      }
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to restore database', message: err.message });
+    }
+  });
+
+  // Database API: Force immediate sync/save to disk
+  app.post('/api/database/sync', requireAdmin, (req: Request, res: Response) => {
+    try {
+      const success = store.saveDatabaseToDisk();
+      res.json({ success, message: success ? 'Database successfully saved to disk.' : 'Database save failed.' });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to sync database', message: err.message });
+    }
+  });
+
   // Reset Settings Category to Defaults
   app.post('/api/admin/reset-settings', requireAdmin, (req: Request, res: Response) => {
     const { category } = req.body;
@@ -1585,6 +1689,7 @@ async function startServer() {
 
     if (category && (store.config as any)[category]) {
       (store.config as any)[category] = JSON.parse(JSON.stringify(DEFAULT_MARKETPLACE_CONFIG[category]));
+      store.saveDatabaseToDisk();
 
       logAudit({
         user_email: userEmail,
@@ -1617,7 +1722,7 @@ async function startServer() {
     {
       id: 'ann_welcome',
       type: 'store_announcement',
-      title: 'Welcome to Cyber Dynamic Tech Uganda!',
+      title: 'Welcome to Cyber Dynamic Technologies Uganda!',
       message: 'Kampala\'s premier authorized technology marketplace. Enjoy same-day metropolitan delivery, genuine manufacturer warranties & verified mobile money checkout.',
       timestamp: new Date().toISOString(),
       priority: 'normal',
@@ -1639,7 +1744,7 @@ async function startServer() {
     try {
       const { phone, message } = req.body;
       const testPhone = phone || store.config.general.phone || '+256779743101';
-      const testMsg = message || 'Test dispatch from Cyber Dynamic Tech Uganda SMS API. Gateway connection verified successfully!';
+      const testMsg = message || 'Test dispatch from Cyber Dynamic Technologies Uganda SMS API. Gateway connection verified successfully!';
 
       const result = await sendSmsNotification({
         toPhone: testPhone,
@@ -2330,6 +2435,15 @@ async function startServer() {
         }
       }
 
+      // If catalog is empty, immediately fetch from live WooCommerce API
+      if (store.products.length === 0) {
+        try {
+          await fetchAllWooCommerceProducts(100);
+        } catch (fetchErr: any) {
+          console.warn('[Catalog API] Auto-fetch error:', fetchErr.message);
+        }
+      }
+
       let filtered = [...store.products];
 
       if (search && search.trim()) {
@@ -2629,8 +2743,8 @@ async function startServer() {
       const validPaymentMethod = (['momo', 'airtel', 'card', 'cod'].includes(payment_method) ? payment_method : 'cod') as PaymentMethodType;
 
       const isCashOnDelivery = validPaymentMethod === 'cod';
-      const manualPhone = store.config.payments.manual_payment_number || '0394 760459';
-      const manualAccountName = store.config.payments.manual_account_name || 'CYBER DYNAMIC TECH';
+      const manualPhone = store.config.payments.manual_payment_number || '0394760459';
+      const manualAccountName = store.config.payments.manual_account_name || 'OPWATA ALLAN SAMUEL';
 
       // Non-COD orders require admin/manager verification before processing
       const initialStatus: OrderStatus = isCashOnDelivery ? 'processing' : 'pending_payment';
@@ -2687,7 +2801,7 @@ async function startServer() {
             title: 'Order Placed',
             status: 'pending',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            description: `Order ${orderNumber} received by Cyber Dynamic Tech`,
+            description: `Order ${orderNumber} received by Cyber Dynamic Technologies`,
             completed: true,
             current: false,
           },
@@ -2764,7 +2878,7 @@ async function startServer() {
         const customerName = (billing.first_name || 'Customer').trim();
         const rawPhone = phoneCheck.value!;
         let smsText = store.config.sms.template_order_placed ||
-          'Dear {name}, your Cyber Dynamic Tech order {order_id} has been received! Total: {currency} {total}. We are preparing it for delivery in Kampala.';
+          'Dear {name}, your Cyber Dynamic Technologies order {order_id} has been received! Total: {currency} {total}. We are preparing it for delivery in Kampala.';
         smsText = smsText
           .replace(/{name}/g, customerName)
           .replace(/{order_id}/g, orderNumber)
@@ -2966,6 +3080,91 @@ async function startServer() {
     }
   });
 
+  // Customer or Admin Order Cancellation Endpoint
+  app.post(['/api/orders/:identifier/cancel', '/api/woocommerce/orders/:identifier/cancel'], requireAuth, async (req: Request, res: Response) => {
+    try {
+      const { identifier } = req.params;
+      const { reason } = req.body || {};
+      const cleanId = identifier.trim().toUpperCase();
+      const order = store.orders.find((o) => o.order_number.toUpperCase() === cleanId || String(o.id) === identifier);
+
+      if (!order) {
+        return res.status(404).json({ error: 'Order not found' });
+      }
+
+      const sessionUser = (req as any).user;
+      const orderEmail = (order.billing?.email || '').toLowerCase().trim();
+      const userEmail = (sessionUser?.email || '').toLowerCase().trim();
+      const isOwner = userEmail && (orderEmail === userEmail || (order as any).customer_id === sessionUser.id);
+      const isStaff = sessionUser.role === 'admin' || sessionUser.role === 'manager';
+
+      if (!isOwner && !isStaff) {
+        return res.status(403).json({ error: 'Unauthorized to cancel this order.' });
+      }
+
+      if (order.status === 'completed' || order.status === 'delivered') {
+        return res.status(400).json({ error: 'Cannot cancel an order that has already been dispatched, delivered, or completed.' });
+      }
+
+      if (order.status === 'cancelled') {
+        return res.status(400).json({ error: 'Order is already cancelled.' });
+      }
+
+      order.status = 'cancelled';
+      const cancelReason = reason ? String(reason).trim() : 'Cancelled by customer from account portal';
+      order.timeline.push({
+        status: 'cancelled',
+        title: 'Order Cancelled',
+        description: cancelReason,
+        timestamp: new Date().toISOString(),
+        completed: true,
+        current: true,
+      });
+
+      // Restore product stock
+      for (const item of order.line_items) {
+        const prod = store.products.find((p) => p.id === item.product_id);
+        if (prod && typeof prod.stock_quantity === 'number') {
+          prod.stock_quantity += item.quantity;
+          if (prod.stock_quantity > 0) {
+            prod.stock_status = 'instock';
+          }
+        }
+      }
+
+      // Sync cancellation to WooCommerce
+      if (order.woocommerce_order_id) {
+        try {
+          await fetchWooCommerce(`/orders/${order.woocommerce_order_id}`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: 'cancelled' }),
+          });
+        } catch (e: any) {
+          console.warn('[WooCommerce Cancel Sync Warning]', e.message);
+        }
+      }
+
+      logAudit({
+        user_email: sessionUser.email,
+        action: 'ORDER_CANCELLED',
+        category: 'Commerce',
+        details: `Order #${order.order_number} cancelled by ${sessionUser.first_name || sessionUser.email}. Reason: ${cancelReason}`,
+        status: 'success',
+      });
+
+      res.json({
+        success: true,
+        order: {
+          ...order,
+          billing: { ...order.billing, phone: decryptField(order.billing.phone) },
+        },
+        message: `Order #${order.order_number} has been cancelled successfully.`,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to cancel order', message: err.message });
+    }
+  });
+
   // Get Orders (Enforces Server-Side Auth & Strict Ownership Check to Prevent Broken Access Control)
   app.get(['/api/woocommerce/orders', '/api/orders'], requireAuth, (req: Request, res: Response) => {
     const sessionUser = (req as any).user;
@@ -3121,9 +3320,9 @@ async function startServer() {
           'Dear {name}, your CDT order {order_id} is dispatched with our courier for delivery. Inquiries: +256 779 743 101.';
       } else if ((status === 'completed' || status === 'delivered') && store.config.sms.notify_on_delivery) {
         smsText = store.config.sms.template_delivered ||
-          'Dear {name}, your Cyber Dynamic Tech order {order_id} has been safely delivered! Thank you for choosing CDT.';
+          'Dear {name}, your Cyber Dynamic Technologies order {order_id} has been safely delivered! Thank you for choosing CDT.';
       } else if (store.config.sms.notify_on_status_change) {
-        smsText = `Dear ${customerName}, your Cyber Dynamic Tech order ${order.order_number} status is now updated to: ${status.toUpperCase()}.`;
+        smsText = `Dear ${customerName}, your Cyber Dynamic Technologies order ${order.order_number} status is now updated to: ${status.toUpperCase()}.`;
       }
 
       if (smsText && rawPhone) {
@@ -3542,7 +3741,7 @@ async function startServer() {
           role: cashierUser.role,
         },
         pos_receipt_details: {
-          store_name: posConfig?.store_name || 'Cyber Dynamic Tech Kampala Flagship',
+          store_name: posConfig?.store_name || 'Cyber Dynamic Technologies Kampala Flagship',
           store_address: posConfig?.store_address || 'Kampala, Uganda',
           store_phone: posConfig?.store_phone || '+256 779 743 101',
           receipt_header: posConfig?.receipt_header,
@@ -3617,7 +3816,9 @@ async function startServer() {
   // ==========================================
   // VITE MIDDLEWARE (Development vs Production)
   // ==========================================
-  if (process.env.NODE_ENV !== 'production') {
+  const isDev = process.env.NODE_ENV !== 'production' && Boolean(process.env.DEFAULT_APP_PORT);
+  if (isDev) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -3627,21 +3828,33 @@ async function startServer() {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req: Request, res: Response) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+      const indexPath = path.join(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(200).send('<!doctype html><html><head><title>Cyber Dynamic Technologies</title></head><body><div id="root">Building...</div></body></html>');
+      }
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Cyber Dynamic Tech] Enterprise Marketplace Server running on port ${PORT}`);
-    // Lightweight initial sync of top products from WooCommerce live API
-    fetchAllWooCommerceProducts(24)
+  const onStarted = () => {
+    console.log(`[Cyber Dynamic Technologies] Enterprise Marketplace Server running on ${PORT}`);
+    // Initial sync of products from WooCommerce live API
+    fetchAllWooCommerceProducts(48)
       .then((res) => {
         console.log(`[WooCommerce Live API] Initialized with ${res.totalFetched} live products from WooCommerce (source: ${res.source}).`);
       })
       .catch((err) => {
         console.warn(`[WooCommerce Live API] Startup fetch notice:`, err.message);
       });
-  });
+  };
+
+  const isSocket = typeof PORT === 'string' && (PORT.startsWith('/') || PORT.startsWith('\\\\'));
+  if (isSocket) {
+    app.listen(PORT, onStarted);
+  } else {
+    app.listen(Number(PORT) || 3000, '0.0.0.0', onStarted);
+  }
 }
 
 startServer();

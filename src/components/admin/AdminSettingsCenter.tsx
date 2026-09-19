@@ -54,6 +54,11 @@ import {
   Smartphone,
   Sparkles,
   MessageCircle,
+  Upload,
+  Clock,
+  Flame,
+  Tag,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 import { MarketplaceConfig, SmsLogEntry } from '../../types';
@@ -106,7 +111,7 @@ const CATEGORIES: CategoryMeta[] = [
 ];
 
 export const AdminSettingsCenter: React.FC = () => {
-  const { config, updateCategorySettings, showToast, setCurrentView } = useShop();
+  const { config, updateCategorySettings, showToast, setCurrentView, products: allShopProducts } = useShop();
 
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('general');
   const [searchQuery, setSearchQuery] = useState('');
@@ -132,7 +137,7 @@ export const AdminSettingsCenter: React.FC = () => {
   const [showSmsApiKey, setShowSmsApiKey] = useState(false);
   const [showSmsSecret, setShowSmsSecret] = useState(false);
   const [smsTestPhone, setSmsTestPhone] = useState('+256779743101');
-  const [smsTestMsg, setSmsTestMsg] = useState('Cyber Dynamic Tech Uganda: This is a test dispatch from the SMS Gateway settings console.');
+  const [smsTestMsg, setSmsTestMsg] = useState('Cyber Dynamic Technologies Uganda: This is a test dispatch from the SMS Gateway settings console.');
   const [isTestingSms, setIsTestingSms] = useState(false);
   const [smsTestFeedback, setSmsTestFeedback] = useState<{ success: boolean; message: string; status?: string } | null>(null);
   const [smsLogs, setSmsLogs] = useState<SmsLogEntry[]>([]);
@@ -656,16 +661,51 @@ export const AdminSettingsCenter: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                <div>
-                  <label className="font-bold text-slate-800 block mb-1">Main Store Logo URL</label>
+                <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-800 block">Main Store Logo</label>
+                    <label
+                      htmlFor="store-logo-file-upload"
+                      className="px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload Logo File</span>
+                    </label>
+                    <input
+                      id="store-logo-file-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (event) => {
+                            const res = event.target?.result as string;
+                            if (res) {
+                              handleFieldChange('branding', 'main_logo', res);
+                              handleFieldChange('branding', 'logo_url', res);
+                              showToast('Store logo uploaded successfully');
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </div>
                   <input
                     type="url"
-                    value={currentValues.main_logo}
-                    onChange={(e) => handleFieldChange('branding', 'main_logo', e.target.value)}
-                    placeholder="https://www.cyberdynamictech.com/wp-content/uploads/...logo.png"
+                    value={currentValues.main_logo || currentValues.logo_url || ''}
+                    onChange={(e) => {
+                      handleFieldChange('branding', 'main_logo', e.target.value);
+                      handleFieldChange('branding', 'logo_url', e.target.value);
+                    }}
+                    placeholder="https://www.cyberdynamictech.com/wp-content/uploads/...logo.png or uploaded image"
                     className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
                   />
-                  <p className="text-[11px] text-slate-400 mt-1">Default logo loaded across headers and navbar</p>
+                  <p className="text-[11px] text-slate-400">
+                    Upload your logo image directly or enter an image URL. Updates across all headers, navbar, and checkout.
+                  </p>
                 </div>
 
                 <div>
@@ -779,7 +819,7 @@ export const AdminSettingsCenter: React.FC = () => {
                       type="text"
                       value={currentValues.hero_title || ''}
                       onChange={(e) => handleFieldChange('homepage', 'hero_title', e.target.value)}
-                      placeholder="Welcome to Cyber Dynamic Tech"
+                      placeholder="Welcome to Cyber Dynamic Technologies"
                       className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs"
                     />
                   </div>
@@ -827,6 +867,440 @@ export const AdminSettingsCenter: React.FC = () => {
                         />
                         <span className="font-bold text-slate-700 text-xs">{sec.label}</span>
                       </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* TOP DEALS COUNTER & AUTOMATION */}
+              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <div className="flex items-center gap-2">
+                    <Flame className="w-4 h-4 text-orange-500" />
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-xs">Top Deals Counter & Campaign Automation</h3>
+                      <p className="text-[11px] text-slate-500">
+                        Configure countdown timer, matching products, and what happens when the promotion ends (auto close or switch)
+                      </p>
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={currentValues.top_deals?.enabled ?? true}
+                      onChange={(e) => {
+                        const prevTop = currentValues.top_deals || {};
+                        handleFieldChange('homepage', 'top_deals', { ...prevTop, enabled: e.target.checked });
+                      }}
+                      className="rounded text-cyan-600"
+                    />
+                    <span className="font-bold text-slate-700 text-xs">Enabled</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Campaign Title</label>
+                    <input
+                      type="text"
+                      value={currentValues.top_deals?.campaign_title || ''}
+                      onChange={(e) => {
+                        const prevTop = currentValues.top_deals || {};
+                        handleFieldChange('homepage', 'top_deals', { ...prevTop, campaign_title: e.target.value });
+                      }}
+                      placeholder="e.g. Top Deals in Uganda"
+                      className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Subtitle / Notice</label>
+                    <input
+                      type="text"
+                      value={currentValues.top_deals?.subtitle || ''}
+                      onChange={(e) => {
+                        const prevTop = currentValues.top_deals || {};
+                        handleFieldChange('homepage', 'top_deals', { ...prevTop, subtitle: e.target.value });
+                      }}
+                      placeholder="Genuine tested hardware in Kampala • Scroll or drag to explore"
+                      className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Promotion End Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={
+                        currentValues.top_deals?.end_time
+                          ? new Date(currentValues.top_deals.end_time).toISOString().slice(0, 16)
+                          : ''
+                      }
+                      onChange={(e) => {
+                        const prevTop = currentValues.top_deals || {};
+                        const dateVal = e.target.value ? new Date(e.target.value).toISOString() : '';
+                        handleFieldChange('homepage', 'top_deals', { ...prevTop, end_time: dateVal });
+                      }}
+                      className="w-full h-8 px-2 bg-white border border-slate-200 rounded-lg text-xs"
+                    />
+                    <p className="text-[10px] text-slate-400 mt-0.5">Leave blank for rolling 12hr counter</p>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">When Counter Ends (Action)</label>
+                    <select
+                      value={currentValues.top_deals?.auto_action || 'switch_next'}
+                      onChange={(e) => {
+                        const prevTop = currentValues.top_deals || {};
+                        handleFieldChange('homepage', 'top_deals', { ...prevTop, auto_action: e.target.value });
+                      }}
+                      className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs"
+                    >
+                      <option value="close">Automatically Close Promotion</option>
+                      <option value="switch_next">Automatically Switch to Next Promotion</option>
+                      <option value="repeat">Restart / Repeat Countdown Cycle</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Next Campaign Title</label>
+                    <input
+                      type="text"
+                      value={currentValues.top_deals?.next_campaign_title || ''}
+                      onChange={(e) => {
+                        const prevTop = currentValues.top_deals || {};
+                        handleFieldChange('homepage', 'top_deals', { ...prevTop, next_campaign_title: e.target.value });
+                      }}
+                      placeholder="e.g. Midnight Tech Flash Sale"
+                      className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* MATCHING PRODUCTS SELECTOR */}
+                <div className="space-y-2 pt-2 border-t border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-800 flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5 text-cyan-600" />
+                      <span>Matching Products for this Promotion ({currentValues.top_deals?.selected_product_ids?.length || 0} Selected)</span>
+                    </label>
+                    <span className="text-[11px] text-slate-400">
+                      Select products to display in the Top Deals slider
+                    </span>
+                  </div>
+
+                  <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg bg-white p-2 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                    {allShopProducts && allShopProducts.length > 0 ? (
+                      allShopProducts.slice(0, 30).map((prod) => {
+                        const selectedIds: number[] = currentValues.top_deals?.selected_product_ids || [];
+                        const isSelected = selectedIds.includes(prod.id);
+                        return (
+                          <label
+                            key={prod.id}
+                            className={`flex items-center gap-2 p-1.5 rounded-md border text-xs cursor-pointer transition-colors ${
+                              isSelected
+                                ? 'bg-cyan-50 border-cyan-300 text-cyan-950 font-bold'
+                                : 'hover:bg-slate-50 border-slate-100 text-slate-700'
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                const prevTop = currentValues.top_deals || {};
+                                const currentSelected = prevTop.selected_product_ids || [];
+                                const updated = e.target.checked
+                                  ? [...currentSelected, prod.id]
+                                  : currentSelected.filter((id: number) => id !== prod.id);
+                                handleFieldChange('homepage', 'top_deals', {
+                                  ...prevTop,
+                                  selected_product_ids: updated,
+                                });
+                              }}
+                              className="rounded text-cyan-600"
+                            />
+                            <div className="w-6 h-6 rounded bg-slate-100 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                              {prod.images?.[0]?.src ? (
+                                <img src={prod.images[0].src} alt="" className="w-full h-full object-contain" />
+                              ) : (
+                                <Package className="w-3 h-3 text-slate-400" />
+                              )}
+                            </div>
+                            <span className="truncate flex-1 text-[11px]">{prod.name}</span>
+                          </label>
+                        );
+                      })
+                    ) : (
+                      <p className="text-slate-400 p-2 text-[11px] col-span-2">No products loaded to select</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* SLIDER 2 ADVERT FLIERS (SMARTPHONES & TABLETS) */}
+              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-cyan-600" />
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-xs">Slider 2: Advert Fliers (Row 2 - Mobile & Tablets)</h3>
+                      <p className="text-[11px] text-slate-500">
+                        Row 2 displays 3 customizable promotional advert fliers instead of standard product cards
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[0, 1, 2].map((idx) => {
+                    const flierList = currentValues.advert_fliers_row2 || [];
+                    const flier = flierList[idx] || {
+                      id: `flyer-r2-${idx + 1}`,
+                      title: `Promotional Flyer ${idx + 1}`,
+                      subtitle: 'Special tech discount & Kampala delivery',
+                      image: '',
+                      badge: 'OFFER',
+                      button_text: 'View Deals',
+                      link_target: 'smartphones-tablets',
+                      link_type: 'category',
+                    };
+
+                    const updateFlierField = (field: string, val: string) => {
+                      const updated = [...flierList];
+                      updated[idx] = { ...flier, [field]: val };
+                      handleFieldChange('homepage', 'advert_fliers_row2', updated);
+                    };
+
+                    return (
+                      <div key={idx} className="p-3 bg-white border border-slate-200 rounded-xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-800 text-[11px]">Flyer #{idx + 1}</span>
+                          <label
+                            htmlFor={`flyer-row2-upload-${idx}`}
+                            className="px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            <Upload className="w-3 h-3" />
+                            <span>Upload</span>
+                          </label>
+                          <input
+                            id={`flyer-row2-upload-${idx}`}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const res = event.target?.result as string;
+                                  if (res) updateFlierField('image', res);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Image Preview */}
+                        <div className="w-full h-24 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center border border-slate-200">
+                          {flier.image ? (
+                            <img src={flier.image} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-slate-400 text-[10px]">No image uploaded</span>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Image URL</label>
+                          <input
+                            type="url"
+                            value={flier.image || ''}
+                            onChange={(e) => updateFlierField('image', e.target.value)}
+                            placeholder="https://... or uploaded image"
+                            className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Title</label>
+                          <input
+                            type="text"
+                            value={flier.title || ''}
+                            onChange={(e) => updateFlierField('title', e.target.value)}
+                            placeholder="Flyer Headline"
+                            className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Subtitle</label>
+                          <input
+                            type="text"
+                            value={flier.subtitle || ''}
+                            onChange={(e) => updateFlierField('subtitle', e.target.value)}
+                            placeholder="Promotional details"
+                            className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Badge</label>
+                            <input
+                              type="text"
+                              value={flier.badge || ''}
+                              onChange={(e) => updateFlierField('badge', e.target.value)}
+                              placeholder="e.g. 20% OFF"
+                              className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Button Text</label>
+                            <input
+                              type="text"
+                              value={flier.button_text || ''}
+                              onChange={(e) => updateFlierField('button_text', e.target.value)}
+                              placeholder="e.g. Shop Now"
+                              className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* SLIDER 4 ADVERT FLIERS (NETWORKING & SECURITY) */}
+              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-emerald-600" />
+                    <div>
+                      <h3 className="font-bold text-slate-900 text-xs">Slider 4: Advert Fliers (Row 4 - Networking & Security)</h3>
+                      <p className="text-[11px] text-slate-500">
+                        Row 4 displays 3 customizable promotional advert fliers instead of standard product cards
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[0, 1, 2].map((idx) => {
+                    const flierList = currentValues.advert_fliers_row4 || [];
+                    const flier = flierList[idx] || {
+                      id: `flyer-r4-${idx + 1}`,
+                      title: `Networking Flyer ${idx + 1}`,
+                      subtitle: 'Enterprise switches, routers & cameras',
+                      image: '',
+                      badge: 'ENTERPRISE',
+                      button_text: 'Get Quote',
+                      link_target: 'networking-security',
+                      link_type: 'category',
+                    };
+
+                    const updateFlierField = (field: string, val: string) => {
+                      const updated = [...flierList];
+                      updated[idx] = { ...flier, [field]: val };
+                      handleFieldChange('homepage', 'advert_fliers_row4', updated);
+                    };
+
+                    return (
+                      <div key={idx} className="p-3 bg-white border border-slate-200 rounded-xl space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-800 text-[11px]">Flyer #{idx + 1}</span>
+                          <label
+                            htmlFor={`flyer-row4-upload-${idx}`}
+                            className="px-2 py-0.5 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            <Upload className="w-3 h-3" />
+                            <span>Upload</span>
+                          </label>
+                          <input
+                            id={`flyer-row4-upload-${idx}`}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (event) => {
+                                  const res = event.target?.result as string;
+                                  if (res) updateFlierField('image', res);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {/* Image Preview */}
+                        <div className="w-full h-24 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center border border-slate-200">
+                          {flier.image ? (
+                            <img src={flier.image} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-slate-400 text-[10px]">No image uploaded</span>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Image URL</label>
+                          <input
+                            type="url"
+                            value={flier.image || ''}
+                            onChange={(e) => updateFlierField('image', e.target.value)}
+                            placeholder="https://... or uploaded image"
+                            className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Title</label>
+                          <input
+                            type="text"
+                            value={flier.title || ''}
+                            onChange={(e) => updateFlierField('title', e.target.value)}
+                            placeholder="Flyer Headline"
+                            className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Subtitle</label>
+                          <input
+                            type="text"
+                            value={flier.subtitle || ''}
+                            onChange={(e) => updateFlierField('subtitle', e.target.value)}
+                            placeholder="Promotional details"
+                            className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Badge</label>
+                            <input
+                              type="text"
+                              value={flier.badge || ''}
+                              onChange={(e) => updateFlierField('badge', e.target.value)}
+                              placeholder="e.g. ENTERPRISE"
+                              className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-600 block mb-0.5">Button Text</label>
+                            <input
+                              type="text"
+                              value={flier.button_text || ''}
+                              onChange={(e) => updateFlierField('button_text', e.target.value)}
+                              placeholder="e.g. Get Quote"
+                              className="w-full h-7 px-2 border border-slate-200 rounded text-[11px]"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -1014,9 +1488,9 @@ export const AdminSettingsCenter: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      value={currentValues['manual_payment_number'] ?? '0394 760459'}
+                      value={currentValues['manual_payment_number'] ?? '0394760459'}
                       onChange={(e) => handleFieldChange('payments', 'manual_payment_number', e.target.value)}
-                      placeholder="e.g. 0394 760459"
+                      placeholder="e.g. 0394760459"
                       className="w-full h-8 px-2.5 bg-white border border-slate-300 rounded-lg text-xs font-mono font-bold focus:outline-hidden focus:border-cyan-500"
                     />
                     <p className="text-[10px] text-slate-500 mt-0.5">Customers will see a 1-click Copy button for this number</p>
@@ -1028,9 +1502,9 @@ export const AdminSettingsCenter: React.FC = () => {
                     </label>
                     <input
                       type="text"
-                      value={currentValues['manual_account_name'] ?? 'CYBER DYNAMIC TECH'}
+                      value={currentValues['manual_account_name'] ?? 'OPWATA ALLAN SAMUEL'}
                       onChange={(e) => handleFieldChange('payments', 'manual_account_name', e.target.value)}
-                      placeholder="e.g. CYBER DYNAMIC TECH"
+                      placeholder="e.g. OPWATA ALLAN SAMUEL"
                       className="w-full h-8 px-2.5 bg-white border border-slate-300 rounded-lg text-xs font-bold uppercase focus:outline-hidden focus:border-cyan-500"
                     />
                     <p className="text-[10px] text-slate-500 mt-0.5">Name displayed on MTN/Airtel receiver confirmation</p>
@@ -1045,10 +1519,10 @@ export const AdminSettingsCenter: React.FC = () => {
                     rows={2}
                     value={
                       currentValues['manual_payment_instructions'] ??
-                      `Make the payment to ${currentValues['manual_payment_number'] || '0394 760459'} and put accounts names ${currentValues['manual_account_name'] || 'CYBER DYNAMIC TECH'}, please use order number as id`
+                      `Make the payment to ${currentValues['manual_payment_number'] || '0394760459'} and put accounts names ${currentValues['manual_account_name'] || 'OPWATA ALLAN SAMUEL'}, please use order number as reference ID`
                     }
                     onChange={(e) => handleFieldChange('payments', 'manual_payment_instructions', e.target.value)}
-                    placeholder="Make the payment to 0394 760459 and put accounts names CYBER DYNAMIC TECH, please use order number as id"
+                    placeholder="Make the payment to 0394760459 and put accounts names OPWATA ALLAN SAMUEL, please use order number as reference ID"
                     className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500"
                   />
                   <p className="text-[10px] text-slate-500 mt-0.5">
@@ -1062,7 +1536,7 @@ export const AdminSettingsCenter: React.FC = () => {
                     Customer Screen Preview
                   </span>
                   <p className="font-bold text-slate-900 text-xs">
-                    "Make the payment to <span className="font-mono text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded border border-cyan-200">{currentValues['manual_payment_number'] || '0394 760459'}</span> and put accounts names <span className="text-slate-900 underline font-extrabold">{currentValues['manual_account_name'] || 'CYBER DYNAMIC TECH'}</span>, please use order number as id"
+                    "Make the payment to <span className="font-mono text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded border border-cyan-200">{currentValues['manual_payment_number'] || '0394760459'}</span> and put accounts names <span className="text-slate-900 underline font-extrabold">{currentValues['manual_account_name'] || 'OPWATA ALLAN SAMUEL'}</span>, please use order number as reference ID"
                   </p>
                 </div>
               </div>
@@ -2005,7 +2479,7 @@ export const AdminSettingsCenter: React.FC = () => {
                       type="text"
                       value={currentValues.store_name || ''}
                       onChange={(e) => handleFieldChange('pos', 'store_name', e.target.value)}
-                      placeholder="CYBER DYNAMIC TECH LIMITED"
+                      placeholder="CYBER DYNAMIC TECHNOLOGIES LIMITED"
                       className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
                     />
                   </div>
@@ -2522,7 +2996,7 @@ export const AdminSettingsCenter: React.FC = () => {
                       rows={2}
                       value={currentValues.template_order_placed || ''}
                       onChange={(e) => handleFieldChange('sms', 'template_order_placed', e.target.value)}
-                      placeholder="Dear {name}, your Cyber Dynamic Tech order {order_id} has been received! Total: {currency} {total}. We are preparing it for delivery in Kampala."
+                      placeholder="Dear {name}, your Cyber Dynamic Technologies order {order_id} has been received! Total: {currency} {total}. We are preparing it for delivery in Kampala."
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-xs font-mono"
                     />
                   </div>
@@ -2544,7 +3018,7 @@ export const AdminSettingsCenter: React.FC = () => {
                       rows={2}
                       value={currentValues.template_delivered || ''}
                       onChange={(e) => handleFieldChange('sms', 'template_delivered', e.target.value)}
-                      placeholder="Dear {name}, your Cyber Dynamic Tech order {order_id} has been safely delivered! Thank you for choosing CDT."
+                      placeholder="Dear {name}, your Cyber Dynamic Technologies order {order_id} has been safely delivered! Thank you for choosing CDT."
                       className="w-full p-2.5 border border-slate-200 rounded-lg text-xs font-mono"
                     />
                   </div>

@@ -1,8 +1,7 @@
 import { Product, Category, DeliveryZone, Coupon, HeroBanner, StoreSettings } from '../types';
-import { INITIAL_PRODUCTS_LIST } from './initialProducts';
 
 export const INITIAL_STORE_SETTINGS: StoreSettings = {
-  site_name: 'Cyber Dynamic Tech',
+  site_name: 'Cyber Dynamic Technologies',
   site_url: 'https://www.cyberdynamictech.com',
   tagline: 'Premier Technology & Electronics Marketplace Uganda',
   phone: '+256 779 743 101',
@@ -134,7 +133,8 @@ export const INITIAL_CATEGORIES: Category[] = [
   },
 ];
 
-export const INITIAL_PRODUCTS: Product[] = [...INITIAL_PRODUCTS_LIST];
+// Pure live API-driven catalog (no dummy products)
+export const INITIAL_PRODUCTS: Product[] = [];
 
 export const INITIAL_DELIVERY_ZONES: DeliveryZone[] = [
   {
@@ -297,7 +297,7 @@ export const INITIAL_DELIVERY_ZONES: DeliveryZone[] = [
     districts: ['Kampala Central', 'Wakiso', 'Mukono', 'Jinja', 'Mbarara', 'Gulu', 'Arua', 'Mbale', 'Masaka', 'Lira', 'Soroti', 'Fort Portal', 'Hoima', 'Kabale'],
     fee: 0,
     estimated_delivery: 'Kampala: 30 Mins | Upcountry: 1-2 Days',
-    description: 'Collect your order at the official Cyber Dynamic Tech district station or showroom in your chosen district.',
+    description: 'Collect your order at the official Cyber Dynamic Technologies district station or showroom in your chosen district.',
   },
 ];
 

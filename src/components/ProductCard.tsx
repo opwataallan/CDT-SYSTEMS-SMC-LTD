@@ -22,6 +22,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
     setCurrentView('product', { slug: product.slug, id: product.id });
   };
 
+  const rawImage = product.images?.[0]?.src || (product as any).image;
+  const primaryImage = rawImage
+    ? (rawImage.startsWith('http://') && rawImage.includes('cyberdynamictech.com')
+        ? rawImage.replace('http://', 'https://')
+        : rawImage)
+    : 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&auto=format&fit=crop&q=80';
+
   return (
     <div
       id={`product-card-${product.id}`}
@@ -60,14 +67,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
         </button>
       </div>
 
-      {/* Product Image Container (High Density Compact Aspect Ratio) */}
-      <div className="relative w-full pt-[78%] bg-slate-100 rounded overflow-hidden mb-1 flex items-center justify-center">
+      {/* Product Image Container */}
+      <div className="relative w-full aspect-[4/3] bg-white rounded overflow-hidden mb-1.5 flex items-center justify-center border border-slate-100/90 shadow-2xs">
         <OptimizedImage
-          src={product.images[0]?.src}
-          alt={product.images[0]?.alt || product.name}
-          width={320}
-          height={250}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          src={primaryImage}
+          alt={product.images?.[0]?.alt || product.name}
+          width={360}
+          height={270}
+          containerClassName="w-full h-full"
+          className="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-300"
         />
       </div>
 

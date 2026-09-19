@@ -42,7 +42,7 @@ const AD_SLIDES: TopAdSlide[] = [
     id: 3,
     badge: '⚡ INSTANT MOMO VERIFY',
     badgeColor: 'bg-emerald-500 text-white animate-pulse',
-    headline: 'PAY DIRECT VIA MTN & AIRTEL MOBILE MONEY (0394 760459)',
+    headline: 'PAY DIRECT VIA MTN & AIRTEL MOBILE MONEY (0394760459)',
     subtext: 'Instant finance team verification, official automated invoice & express dispatch',
     ctaText: 'Shop Catalog',
     ctaAction: 'laptops',

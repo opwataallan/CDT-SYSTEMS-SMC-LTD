@@ -324,6 +324,28 @@ export interface HomepageSectionConfig {
   category_filter?: string;
 }
 
+export interface AdvertFlyer {
+  id: string;
+  title: string;
+  subtitle: string;
+  badge: string;
+  image_url: string;
+  button_text: string;
+  link_target: string;
+  link_type?: 'product' | 'category' | 'whatsapp' | 'url';
+}
+
+export interface TopDealsConfig {
+  enabled: boolean;
+  campaign_title: string;
+  subtitle?: string;
+  end_time: string; // ISO string
+  duration_hours?: number;
+  auto_action: 'close' | 'switch_next' | 'repeat';
+  next_campaign_title?: string;
+  selected_product_ids?: number[];
+}
+
 export interface HomepageSettings {
   sections: HomepageSectionConfig[];
   banners: HeroBanner[];
@@ -334,6 +356,9 @@ export interface HomepageSettings {
     bg_color?: string;
     text_color?: string;
   };
+  advert_fliers_row2?: AdvertFlyer[];
+  advert_fliers_row4?: AdvertFlyer[];
+  top_deals?: TopDealsConfig;
 }
 
 export interface ProductDisplaySettings {

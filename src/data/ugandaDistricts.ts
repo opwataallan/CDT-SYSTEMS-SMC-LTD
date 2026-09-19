@@ -23,7 +23,7 @@ export interface DistrictPickupLocation {
 // Known prominent pickup hub centers for major municipalities and cities
 const PROMINENT_HUBS: Record<string, Partial<DistrictPickupLocation>> = {
   kampala: {
-    hubName: 'Cyber Dynamic Tech Flagship Hub & Showroom',
+    hubName: 'Cyber Dynamic Technologies Flagship Hub & Showroom',
     stationAddress: 'Plot 42, Kampala Central CBD, Nakasero & Old Kampala Corridor',
     landmark: 'Opposite City Square / Posta Uganda General Post Office',
     contactPhone: '+256 779 743 101 / +256 394 760 459',
@@ -151,7 +151,7 @@ const PROMINENT_HUBS: Record<string, Partial<DistrictPickupLocation>> = {
 };
 
 /**
- * Returns the official Cyber Dynamic Tech Pickup Hub for ANY of the 146 districts in Uganda.
+ * Returns the official Cyber Dynamic Technologies Pickup Hub for ANY of the 146 districts in Uganda.
  * Guarantees 100% nationwide coverage for every single district.
  */
 export function getDistrictPickupLocation(districtQuery: string): DistrictPickupLocation {

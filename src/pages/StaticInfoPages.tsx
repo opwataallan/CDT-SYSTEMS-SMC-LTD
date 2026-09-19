@@ -12,7 +12,7 @@ export const ContactPage: React.FC = () => {
           Physical Showroom & Repair Center
         </span>
         <h1 className="text-xl sm:text-2xl font-black text-slate-900">
-          Visit Cyber Dynamic Tech in Kampala
+          Visit Cyber Dynamic Technologies in Kampala
         </h1>
         <p className="text-xs text-slate-500 max-w-lg mx-auto">
           Located in the commercial heart of Kampala Central. We welcome personal inspections, corporate purchasing, and walk-in technical support.
@@ -72,7 +72,7 @@ export const ContactPage: React.FC = () => {
           </div>
 
           <a
-            href="https://wa.me/256779743101?text=Hello%20Cyber%20Dynamic%20Tech,%20I%20am%20coming%20to%20the%20Kampala%20store"
+            href="https://wa.me/256779743101?text=Hello%20Cyber%20Dynamic%20Technologies,%20I%20am%20coming%20to%20the%20Kampala%20store"
             target="_blank"
             rel="noreferrer"
             className="block w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-center font-bold rounded-lg shadow-2xs transition-colors text-xs"
@@ -91,7 +91,7 @@ export const ContactPage: React.FC = () => {
           </p>
           <ul className="space-y-1.5 text-slate-700 list-disc pl-4 text-[11px]">
             <li>Located in Kampala Central, easily accessible from all major metropolitan routes.</li>
-            <li>Look for the prominent <strong>Cyber Dynamic Tech</strong> entrance with customer service and test bench.</li>
+            <li>Look for the prominent <strong>Cyber Dynamic Technologies</strong> entrance with customer service and test bench.</li>
             <li>Secure dedicated client parking available on premises.</li>
           </ul>
 
@@ -115,7 +115,7 @@ export const WarrantyPage: React.FC = () => {
           Warranty & Authenticity Guarantee
         </h1>
         <p className="text-slate-500 max-w-md mx-auto text-xs">
-          Every product sold through Cyber Dynamic Tech is backed by formal hardware warranty and post-purchase maintenance.
+          Every product sold through Cyber Dynamic Technologies is backed by formal hardware warranty and post-purchase maintenance.
         </p>
       </div>
 
@@ -123,14 +123,14 @@ export const WarrantyPage: React.FC = () => {
         <div className="space-y-1">
           <h2 className="font-bold text-xs text-slate-900">1. 100% Genuine Hardware Promise</h2>
           <p className="text-slate-600 leading-relaxed text-[11px]">
-            Cyber Dynamic Tech does not sell counterfeit or imitation items. All laptops (HP, Lenovo, Dell), printers (Epson, HP LaserJet), and networking units (MTN, Airtel, TP-Link) carry verified factory serial numbers eligible for direct warranty service.
+            Cyber Dynamic Technologies does not sell counterfeit or imitation items. All laptops (HP, Lenovo, Dell), printers (Epson, HP LaserJet), and networking units (MTN, Airtel, TP-Link) carry verified factory serial numbers eligible for direct warranty service.
           </p>
         </div>
 
         <div className="space-y-1">
           <h2 className="font-bold text-xs text-slate-900">2. 7-Day Replacement Guarantee</h2>
           <p className="text-slate-600 leading-relaxed text-[11px]">
-            If any equipment arrives damaged in transit or exhibits a factory defect within 7 days of delivery, Cyber Dynamic Tech will immediately replace the unit free of charge or issue a full refund upon return of the original packaging.
+            If any equipment arrives damaged in transit or exhibits a factory defect within 7 days of delivery, Cyber Dynamic Technologies will immediately replace the unit free of charge or issue a full refund upon return of the original packaging.
           </p>
         </div>
 
@@ -144,7 +144,7 @@ export const WarrantyPage: React.FC = () => {
         <div className="space-y-1">
           <h2 className="font-bold text-xs text-slate-900">4. How to Claim Warranty Service</h2>
           <p className="text-slate-600 leading-relaxed text-[11px]">
-            Simply present your Cyber Dynamic Tech Order Number (e.g. <code>CDT-10491</code>) or invoice at our showroom in Kampala, or contact our technical support line at <strong>+256 779 743 101</strong> for courier pickup instructions.
+            Simply present your Cyber Dynamic Technologies Order Number (e.g. <code>CDT-10491</code>) or invoice at our showroom in Kampala, or contact our technical support line at <strong>+256 779 743 101</strong> for courier pickup instructions.
           </p>
         </div>
       </div>

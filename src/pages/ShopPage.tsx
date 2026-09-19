@@ -389,7 +389,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                 <div className="h-3 w-32 bg-slate-200 animate-pulse rounded"></div>
                 <div className="h-3 w-20 bg-slate-200 animate-pulse rounded"></div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
                 {Array.from({ length: 18 }).map((_, idx) => (
                   <ProductCardSkeleton key={idx} />
                 ))}
@@ -413,7 +413,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

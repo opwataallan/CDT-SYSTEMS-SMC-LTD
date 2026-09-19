@@ -83,7 +83,7 @@ export const Footer: React.FC = () => {
         <div className="lg:col-span-2 space-y-3">
           <BrandLogo inverted size="md" customLogoUrl={storeSettings.logo_url} onClick={() => setCurrentView('home')} />
           <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-            Cyber Dynamic Tech is Uganda's leading computer marketplace, retail showroom, and enterprise ICT solutions center.
+            Cyber Dynamic Technologies is Uganda's leading computer marketplace, retail showroom, and enterprise ICT solutions center.
             Genuine laptops, printers, 4G LTE routers, and point-of-sale hardware backed by physical warranty.
           </p>
 
@@ -287,20 +287,12 @@ export const Footer: React.FC = () => {
             Cash on Delivery
           </span>
         </div>
-
-        <div className="flex items-center gap-3 text-slate-400">
-          <button onClick={() => setCurrentView('admin')} className="text-cyan-400 hover:underline text-[11px] font-semibold cursor-pointer">
-            Store Management & Settings
-          </button>
-          <span>•</span>
-          <span className="text-[11px]">WooCommerce REST API v3</span>
-        </div>
       </div>
 
       {/* 4. Bottom Copyright & Legal Links */}
       <div className="max-w-7xl mx-auto px-4 mt-4 pt-3 border-t border-slate-800/60 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-slate-500">
         <div>
-          © {new Date().getFullYear()} Cyber Dynamic Tech. All rights reserved. Kampala, Uganda.
+          © {new Date().getFullYear()} Cyber Dynamic Technologies. All rights reserved. Kampala, Uganda.
         </div>
         <div className="flex items-center gap-3">
           <button

@@ -1,6 +1,8 @@
+import fs from 'fs';
+import path from 'path';
 import { MarketplaceConfig, CustomerOrder, Product, Category, DeliveryZone, Coupon, SmsLogEntry } from '../src/types';
 import { DEFAULT_MARKETPLACE_CONFIG } from '../src/data/defaultConfig';
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES, INITIAL_DELIVERY_ZONES, INITIAL_COUPONS } from '../src/data/cyberCatalog';
+import { INITIAL_DELIVERY_ZONES, INITIAL_COUPONS } from '../src/data/cyberCatalog';
 import { hashPassword, encryptField, decryptField } from './security';
 
 export interface UserAccount {
@@ -27,11 +29,14 @@ export interface UserAccount {
 
 export class MarketplaceStore {
   public config: MarketplaceConfig = { ...DEFAULT_MARKETPLACE_CONFIG };
-  public products: Product[] = [...INITIAL_PRODUCTS];
-  public categories: Category[] = [...INITIAL_CATEGORIES];
+  // Only products and categories fetched from the live API are stored (no dummy products)
+  public products: Product[] = [];
+  public categories: Category[] = [];
   public deliveryZones: DeliveryZone[] = [...INITIAL_DELIVERY_ZONES];
   public coupons: Coupon[] = [...INITIAL_COUPONS];
   public orders: CustomerOrder[] = [];
+
+  private dbPath: string = path.join(process.cwd(), 'data', 'database.json');
 
   public users: UserAccount[] = [
     {
@@ -43,7 +48,7 @@ export class MarketplaceStore {
       phone: '+256779743101',
       role: 'admin',
       status: 'active',
-      admin_notes: 'Primary Super Administrator for Cyber Dynamic Tech Marketplace and WooCommerce API configuration.',
+      admin_notes: 'Primary Super Administrator for Cyber Dynamic Technologies Marketplace and WooCommerce API configuration.',
       is_email_verified: true,
       two_factor_enabled: false,
       created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
@@ -58,7 +63,7 @@ export class MarketplaceStore {
           district: 'Kampala',
           city: 'Kampala Central',
           address_1: 'Kampala',
-          landmark: 'Cyber Dynamic Tech Headquarters',
+          landmark: 'Cyber Dynamic Technologies Headquarters',
           is_default: true,
         },
       ],
@@ -73,7 +78,7 @@ export class MarketplaceStore {
       phone: '+256779743101',
       role: 'admin',
       status: 'active',
-      admin_notes: 'Secondary backup admin account for Cyber Dynamic Tech system maintenance.',
+      admin_notes: 'Secondary backup admin account for Cyber Dynamic Technologies system maintenance.',
       is_email_verified: true,
       two_factor_enabled: false,
       created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
@@ -157,6 +162,105 @@ export class MarketplaceStore {
     if (process.env.SMS_ENDPOINT_URL) {
       this.config.sms.custom_endpoint_url = process.env.SMS_ENDPOINT_URL;
     }
+
+    // Default payment configuration for Uganda Mobile Money
+    if (this.config?.payments) {
+      this.config.payments.manual_payment_number = '0394760459';
+      this.config.payments.manual_account_name = 'OPWATA ALLAN SAMUEL';
+      this.config.payments.manual_payment_instructions =
+        'Make the payment to 0394760459 and put account names OPWATA ALLAN SAMUEL, please use order number as reference ID';
+    }
+
+    // Load any previously persisted data from disk
+    this.loadDatabaseFromDisk();
+  }
+
+  public loadDatabaseFromDisk(): boolean {
+    try {
+      if (fs.existsSync(this.dbPath)) {
+        const raw = fs.readFileSync(this.dbPath, 'utf8');
+        const data = JSON.parse(raw);
+        if (data.config) {
+          this.config = { ...this.config, ...data.config };
+        }
+        if (Array.isArray(data.products) && data.products.length > 0) {
+          this.products = data.products;
+        }
+        if (Array.isArray(data.categories) && data.categories.length > 0) {
+          this.categories = data.categories;
+        }
+        if (Array.isArray(data.orders)) {
+          this.orders = data.orders;
+        }
+        if (Array.isArray(data.users) && data.users.length > 0) {
+          this.users = data.users;
+        }
+        if (Array.isArray(data.deliveryZones)) {
+          this.deliveryZones = data.deliveryZones;
+        }
+        if (Array.isArray(data.coupons)) {
+          this.coupons = data.coupons;
+        }
+        console.log(`[Database] Loaded persistent data: ${this.products.length} products, ${this.orders.length} orders, ${this.users.length} users.`);
+        return true;
+      }
+    } catch (err: any) {
+      console.warn(`[Database] Failed to load database file: ${err.message}`);
+    }
+    return false;
+  }
+
+  public saveDatabaseToDisk(): boolean {
+    try {
+      const dataDir = path.dirname(this.dbPath);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+
+      const dump = {
+        saved_at: new Date().toISOString(),
+        config: this.config,
+        products: this.products,
+        categories: this.categories,
+        orders: this.orders,
+        users: this.users,
+        deliveryZones: this.deliveryZones,
+        coupons: this.coupons,
+      };
+
+      const tmpPath = `${this.dbPath}.tmp`;
+      fs.writeFileSync(tmpPath, JSON.stringify(dump, null, 2), 'utf8');
+      fs.renameSync(tmpPath, this.dbPath);
+      return true;
+    } catch (err: any) {
+      console.error(`[Database] Error saving database to disk: ${err.message}`);
+      return false;
+    }
+  }
+
+  public exportDatabase() {
+    return {
+      exported_at: new Date().toISOString(),
+      config: this.config,
+      products: this.products,
+      categories: this.categories,
+      orders: this.orders,
+      users: this.users.map((u) => this.getSafeUser(u)),
+      deliveryZones: this.deliveryZones,
+      coupons: this.coupons,
+    };
+  }
+
+  public importDatabase(data: any): boolean {
+    if (!data || typeof data !== 'object') return false;
+    if (data.config) this.config = { ...this.config, ...data.config };
+    if (Array.isArray(data.products)) this.products = data.products;
+    if (Array.isArray(data.categories)) this.categories = data.categories;
+    if (Array.isArray(data.orders)) this.orders = data.orders;
+    if (Array.isArray(data.deliveryZones)) this.deliveryZones = data.deliveryZones;
+    if (Array.isArray(data.coupons)) this.coupons = data.coupons;
+    this.saveDatabaseToDisk();
+    return true;
   }
 
   public getSafeUser(user: UserAccount) {

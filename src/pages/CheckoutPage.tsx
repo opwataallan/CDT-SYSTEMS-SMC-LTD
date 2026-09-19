@@ -658,7 +658,7 @@ export const CheckoutPage: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  Send to 0394 760459 (CYBER DYNAMIC TECH). Manager confirms before dispatch.
+                  Send to 0394760459 (OPWATA ALLAN SAMUEL). Manager confirms before dispatch.
                 </p>
               </div>
 
@@ -681,7 +681,7 @@ export const CheckoutPage: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  Send to 0394 760459 (CYBER DYNAMIC TECH). Manager confirms before dispatch.
+                  Send to 0394760459 (OPWATA ALLAN SAMUEL). Manager confirms before dispatch.
                 </p>
               </div>
 
@@ -848,7 +848,7 @@ export const CheckoutPage: React.FC = () => {
                 <ShieldCheck className="w-3 h-3 text-cyan-600" />
                 <span>Cyber Dynamic Tech Warranty Guarantee (Uganda)</span>
               </p>
-              <p>Store hotline: 0394 760459</p>
+              <p>Store hotline: 0394760459</p>
             </div>
           </div>
         </div>

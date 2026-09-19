@@ -10,7 +10,7 @@ import {
   Coupon,
   MarketplaceConfig,
 } from '../types';
-import { INITIAL_DELIVERY_ZONES, INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/cyberCatalog';
+import { INITIAL_DELIVERY_ZONES } from '../data/cyberCatalog';
 import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
 
@@ -133,7 +133,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // CDT Page Loader state
   const [isPageLoading, setIsPageLoadingState] = useState<boolean>(true);
   const [pageLoadingMessage, setPageLoadingMessage] = useState<string>(
-    'Initializing Cyber Dynamic Tech Marketplace...'
+    'Initializing Cyber Dynamic Technologies Marketplace...'
   );
 
   const setPageLoading = (loading: boolean, message = 'Loading Cyber Dynamic Technologies...') => {
@@ -149,11 +149,13 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await Promise.allSettled([
           fetchProducts(),
           fetchCategories(),
+          // Background pre-fetch first page of shop catalog (page: 1, limit: 18) to ensure instant catalog readiness
+          api.getProducts({ page: 1, limit: 18 }),
         ]);
       } finally {
         setTimeout(() => {
           if (isMounted) setIsPageLoadingState(false);
-        }, 650);
+        }, 500);
       }
     };
     initApp();
@@ -252,7 +254,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     config.delivery.zones || INITIAL_DELIVERY_ZONES
   );
   const [selectedZone, setSelectedZone] = useState<DeliveryZone>(
-    config.delivery.zones?.[1] || INITIAL_DELIVERY_ZONES[1]
+    config.delivery.zones?.[0] || INITIAL_DELIVERY_ZONES[0]
   );
 
   // Sync delivery zones if config changes

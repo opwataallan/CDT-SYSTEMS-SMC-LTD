@@ -46,6 +46,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
     addToRecentlyViewed,
     showToast,
     user,
+    storeSettings,
   } = useShop();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -161,7 +162,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
     }
   };
 
-  const whatsappInquiryUrl = `https://wa.me/256779743101?text=Hello%20Cyber%20Dynamic%20Tech,%20I%20am%20interested%20in%20buying:%20${encodeURIComponent(
+  const cleanWaNumber = (storeSettings.whatsapp_number || '256779743101').replace(/[^0-9]/g, '');
+  const whatsappInquiryUrl = `https://wa.me/${cleanWaNumber}?text=Hello%20Cyber%20Dynamic%20Tech,%20I%20am%20interested%20in%20buying:%20${encodeURIComponent(
     product.name
   )}%20for%20UGX%20${activePrice.toLocaleString()}`;
 
@@ -412,7 +414,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
               className="w-full py-2 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center gap-1.5 border border-emerald-200 transition-colors"
             >
               <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-              <span>Inquire on WhatsApp (+256 779 743 101)</span>
+              <span>Inquire on WhatsApp</span>
             </a>
           </div>
         </div>

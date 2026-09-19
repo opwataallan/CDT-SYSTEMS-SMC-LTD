@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Cpu } from 'lucide-react';
 
 export interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  src: string;
+  src?: string | null;
   alt: string;
   width?: number;
   height?: number;
@@ -13,24 +13,40 @@ export interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageEl
   fallbackSrc?: string;
 }
 
+const DEFAULT_FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&auto=format&fit=crop&q=80';
+
 /**
- * Optimizes image URLs with modern WebP/AVIF format parameters and responsive dimension constraints.
+ * Optimizes image URLs with responsive dimension constraints and SSL upgrades.
  */
 export function getOptimizedImageUrl(
-  url: string,
+  url?: string | null,
   width?: number,
   quality: number = 80,
   format: 'webp' | 'avif' | 'auto' = 'auto'
 ): string {
   if (!url || typeof url !== 'string') return '';
 
+  let sanitized = url.trim();
+
+  // Upgrade insecure HTTP to HTTPS for cyberdynamictech.com and common hosts
+  if (sanitized.startsWith('http://')) {
+    if (
+      sanitized.includes('cyberdynamictech.com') ||
+      sanitized.includes('wp.com') ||
+      sanitized.includes('unsplash.com')
+    ) {
+      sanitized = sanitized.replace('http://', 'https://');
+    }
+  }
+
   // Local assets or data URLs: return as-is
-  if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('/')) {
-    return url;
+  if (sanitized.startsWith('data:') || sanitized.startsWith('blob:') || sanitized.startsWith('/')) {
+    return sanitized;
   }
 
   try {
-    const parsed = new URL(url);
+    const parsed = new URL(sanitized);
 
     // 1. Unsplash Images Optimization
     if (parsed.hostname.includes('unsplash.com')) {
@@ -46,25 +62,13 @@ export function getOptimizedImageUrl(
     // 2. Cloudinary Images Optimization
     if (parsed.hostname.includes('res.cloudinary.com')) {
       const transform = `f_${format === 'auto' ? 'auto' : format},q_auto:${quality}${width ? `,w_${width}` : ''}`;
-      return url.replace('/upload/', `/upload/${transform}/`);
+      return sanitized.replace('/upload/', `/upload/${transform}/`);
     }
 
-    // 3. WordPress / WooCommerce / Jetpack Images
-    if (parsed.pathname.includes('/wp-content/uploads/')) {
-      // If dynamic resizing is supported or query param based
-      if (width) {
-        parsed.searchParams.set('w', String(width));
-        parsed.searchParams.set('quality', String(quality));
-        if (format !== 'auto') {
-          parsed.searchParams.set('format', format);
-        }
-        return parsed.toString();
-      }
-    }
-
-    return url;
+    // 3. WordPress / WooCommerce Images
+    return sanitized;
   } catch {
-    return url;
+    return sanitized;
   }
 }
 
@@ -78,44 +82,42 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   priority = false,
   className = '',
   containerClassName = '',
-  fallbackSrc,
+  fallbackSrc = DEFAULT_FALLBACK_IMAGE,
   loading,
   decoding,
   ...props
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [useProxy, setUseProxy] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
 
-  // Reset states if src changes
+  const cleanSrc = getOptimizedImageUrl(src, width, quality, 'auto');
+  const activeSrc = hasError
+    ? fallbackSrc
+    : useProxy && cleanSrc.includes('cyberdynamictech.com')
+    ? `/api/image-proxy?url=${encodeURIComponent(cleanSrc)}`
+    : cleanSrc || fallbackSrc;
+
+  // Reset error state and check cache completion when src changes
   useEffect(() => {
-    setIsLoaded(false);
     setHasError(false);
-  }, [src]);
-
-  const webpUrl = getOptimizedImageUrl(src, width, quality, 'webp');
-  const avifUrl = getOptimizedImageUrl(src, width, quality, 'avif');
-  const defaultUrl = getOptimizedImageUrl(src, width, quality, 'auto');
-
-  // If loading failed and fallback provided, or render branded SVG fallback
-  if (hasError) {
-    if (fallbackSrc) {
-      return (
-        <img
-          src={fallbackSrc}
-          alt={alt}
-          className={`${className} object-cover`}
-          loading="lazy"
-          decoding="async"
-        />
-      );
+    setUseProxy(false);
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setIsLoaded(true);
+    } else {
+      setIsLoaded(false);
     }
+  }, [cleanSrc]);
 
+  // If even fallback fails or no src at all, render graceful branded hardware placeholder
+  if (hasError && !fallbackSrc) {
     return (
       <div
-        className={`w-full h-full min-h-[100px] flex flex-col items-center justify-center bg-slate-100/90 text-slate-400 p-2 select-none border border-slate-200/60 rounded ${containerClassName}`}
+        className={`w-full h-full min-h-[100px] flex flex-col items-center justify-center bg-slate-100 text-slate-400 p-2 select-none border border-slate-200 rounded ${containerClassName}`}
         style={aspectRatio ? { aspectRatio } : undefined}
       >
-        <Cpu className="w-6 h-6 sm:w-8 sm:h-8 text-slate-300 stroke-[1.5] mb-1" />
+        <Cpu className="w-7 h-7 text-slate-300 stroke-[1.5] mb-1" />
         <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 text-center line-clamp-1">
           CDT Hardware
         </span>
@@ -123,51 +125,48 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
     );
   }
 
-  const imageElement = (
-    <picture className="w-full h-full contents">
-      {/* Modern AVIF format (smallest file size, highest fidelity) */}
-      {avifUrl !== defaultUrl && (
-        <source type="image/avif" srcSet={avifUrl} />
+  // Determine if parent is absolute or relative
+  const isAbsoluteParent = className.includes('absolute');
+  const baseContainerClass = isAbsoluteParent
+    ? 'absolute inset-0 w-full h-full'
+    : 'relative w-full h-full';
+
+  return (
+    <div
+      className={`${baseContainerClass} overflow-hidden flex items-center justify-center ${containerClassName}`}
+      style={aspectRatio ? { aspectRatio } : undefined}
+    >
+      {/* Background Pulse Loader while image loads */}
+      {!isLoaded && !hasError && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-slate-100 animate-pulse flex items-center justify-center pointer-events-none z-0"
+        >
+          <div className="w-5 h-5 rounded-full bg-slate-200/80 animate-ping" />
+        </div>
       )}
 
-      {/* Universally supported WebP format (25-35% smaller than JPEG) */}
-      {webpUrl !== defaultUrl && (
-        <source type="image/webp" srcSet={webpUrl} />
-      )}
-
-      {/* Fallback Image with progressive onload transition */}
       <img
-        src={defaultUrl}
+        ref={imgRef}
+        src={activeSrc}
         alt={alt}
         loading={priority ? 'eager' : (loading || 'lazy')}
         decoding={priority ? 'sync' : (decoding || 'async')}
         fetchPriority={priority ? 'high' : 'auto'}
+        referrerPolicy="no-referrer"
         onLoad={() => setIsLoaded(true)}
-        onError={() => setHasError(true)}
-        className={`${className} transition-opacity duration-300 ${
-          isLoaded ? 'opacity-100' : 'opacity-0'
+        onError={() => {
+          if (!useProxy && cleanSrc.includes('cyberdynamictech.com')) {
+            setUseProxy(true);
+          } else if (!hasError) {
+            setHasError(true);
+          }
+        }}
+        className={`${className} relative z-10 transition-opacity duration-300 ${
+          isLoaded ? 'opacity-100' : 'opacity-80'
         }`}
         {...props}
       />
-    </picture>
-  );
-
-  return (
-    <div
-      className={`relative overflow-hidden ${containerClassName}`}
-      style={aspectRatio ? { aspectRatio } : undefined}
-    >
-      {/* Skeleton Pulse Loader Placeholder */}
-      {!isLoaded && !hasError && (
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-slate-200/80 animate-pulse flex items-center justify-center pointer-events-none z-0"
-        >
-          <div className="w-6 h-6 rounded-full bg-slate-300/60 animate-ping" />
-        </div>
-      )}
-
-      {imageElement}
     </div>
   );
 };

@@ -92,7 +92,7 @@ export const NotificationCenter: React.FC = () => {
       {
         id: 'seed_welcome',
         type: 'store_announcement',
-        title: 'Welcome to Cyber Dynamic Tech Uganda!',
+        title: 'Welcome to Cyber Dynamic Technologies Uganda!',
         message: 'Kampala\'s trusted electronics & IT supply center. Enjoy same-day delivery & 1-year warranties on brand new laptops.',
         timestamp: new Date().toISOString(),
         read: false,

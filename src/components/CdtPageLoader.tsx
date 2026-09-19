@@ -62,7 +62,7 @@ export const CdtPageLoader: React.FC<CdtPageLoaderProps> = ({
       <div className="space-y-1.5 max-w-sm mx-auto">
         <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-800 text-[10px] font-black uppercase tracking-wider mb-1">
           <Zap className="w-3 h-3 text-cyan-600 fill-cyan-600" />
-          <span>Cyber Dynamic Tech</span>
+          <span>Cyber Dynamic Technologies</span>
         </div>
         <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
           {message}

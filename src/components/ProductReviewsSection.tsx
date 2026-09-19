@@ -57,16 +57,16 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
     };
   }, [productId]);
 
-  // Compute stats
-  const totalReviews = reviews.length || initialRatingCount;
+  // Compute stats based exclusively on authentic customer reviews
+  const totalReviews = reviews.length;
   const avgRating = reviews.length > 0
     ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
-    : initialRating;
+    : 0;
 
   // Star breakdown
   const starCounts = [5, 4, 3, 2, 1].map((stars) => {
     const count = reviews.filter((r) => r.rating === stars).length;
-    const percent = reviews.length > 0 ? Math.round((count / reviews.length) * 100) : stars === 5 ? 80 : stars === 4 ? 20 : 0;
+    const percent = reviews.length > 0 ? Math.round((count / reviews.length) * 100) : 0;
     return { stars, count, percent };
   });
 
@@ -246,14 +246,29 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
 
       {/* REVIEWS LIST */}
       {loading ? (
-        <div className="py-8 text-center text-xs text-slate-400">Loading verified customer reviews...</div>
+        <div className="py-8 text-center text-xs text-slate-400">Loading customer reviews...</div>
+      ) : reviews.length === 0 ? (
+        <div className="py-8 text-center text-slate-500 space-y-3 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+          <p className="text-xs font-semibold text-slate-700">No reviews yet for this product.</p>
+          <p className="text-[11px] text-slate-500 max-w-sm mx-auto">
+            Have you purchased this item? Share your honest feedback to assist buyers across Uganda!
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowWriteModal(true)}
+            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs rounded-lg shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+          >
+            <MessageSquarePlus className="w-3.5 h-3.5" />
+            <span>Be the First to Review</span>
+          </button>
+        </div>
       ) : filteredReviews.length === 0 ? (
         <div className="py-8 text-center text-slate-500 space-y-2">
           <p className="text-xs">No reviews matching the selected filter.</p>
           <button
             type="button"
             onClick={() => setFilterStar(null)}
-            className="text-xs font-bold text-cyan-600 hover:underline"
+            className="text-xs font-bold text-cyan-600 hover:underline cursor-pointer"
           >
             View all {reviews.length} reviews
           </button>

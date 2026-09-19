@@ -1,4 +1,5 @@
 import React from 'react';
+import { useShop } from '../context/ShopContext';
 
 export interface BrandLogoProps {
   variant?: 'full' | 'compact' | 'icon' | 'mark';
@@ -17,6 +18,8 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   customLogoUrl,
   onClick,
 }) => {
+  const { storeSettings } = useShop();
+
   // Dimensions map
   const sizeConfig = {
     xs: { height: 'h-6', iconHeight: 'h-6', maxHeight: 24 },
@@ -26,7 +29,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     xl: { height: 'h-16', iconHeight: 'h-16', maxHeight: 64 },
   }[size];
 
-  const logoSrc = customLogoUrl || '/logo.png';
+  const logoSrc = customLogoUrl || storeSettings?.logo_url || (storeSettings as any)?.main_logo || '/logo.png';
 
   const content = (
     <div

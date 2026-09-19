@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProductSliderRow } from './ProductSliderRow';
 import { Zap, CheckCircle2 } from 'lucide-react';
+import { useShop } from '../context/ShopContext';
 
 export interface FiveRowProductSliderProps {
   className?: string;
@@ -11,6 +12,11 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
   className = '',
   showSectionHeader = true,
 }) => {
+  const { config } = useShop();
+
+  const fliersRow2 = config?.homepage?.advert_fliers_row2;
+  const fliersRow4 = config?.homepage?.advert_fliers_row4;
+
   return (
     <section
       id="cdt-five-row-product-catalog-slider"
@@ -35,9 +41,6 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
               <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 tracking-tight">
                 Explore Our 5 Hardware Categories
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 mt-0.5 max-w-2xl">
-                Genuine stock from HP, Dell, Lenovo, Apple, Samsung, Epson, Cisco, TP-Link, and Logitech. Rows 1, 3, & 5 auto-scroll continuously, while Rows 2 & 4 spotlight 3 devices for manual touch & swipe.
-              </p>
             </div>
           </div>
         )}
@@ -74,8 +77,8 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
         />
 
         {/* =========================================================================
-            ROW 2: SMARTPHONES & TABLETS (Strictly Manual Swipe & Drag • 3 Products)
-            Display: Top 3 spotlight smartphones / tablets
+            ROW 2: SMARTPHONES & TABLETS (Strictly Manual Swipe & Drag • 3 Advert Fliers)
+            Display: 3 Spotlight Advert Fliers configurable from Admin Settings
            ========================================================================= */}
         <ProductSliderRow
           rowNumber={2}
@@ -85,6 +88,7 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           badgeText="Official Warranties"
           autoScroll={false}
           maxProducts={3}
+          fliers={fliersRow2}
           filterCategorySlugs={[
             'smartphones-tablets',
             'samsung-phones',
@@ -137,8 +141,8 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
         />
 
         {/* =========================================================================
-            ROW 4: NETWORKING & SECURITY (Strictly Manual Swipe & Drag • 3 Products)
-            Display: Top 3 spotlight networking & security devices
+            ROW 4: NETWORKING & SECURITY (Strictly Manual Swipe & Drag • 3 Advert Fliers)
+            Display: 3 Spotlight Advert Fliers configurable from Admin Settings
            ========================================================================= */}
         <ProductSliderRow
           rowNumber={4}
@@ -148,6 +152,7 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           badgeText="Seamless Enterprise Connectivity"
           autoScroll={false}
           maxProducts={3}
+          fliers={fliersRow4}
           filterCategorySlugs={[
             'networking-security',
             'networking-mifi',

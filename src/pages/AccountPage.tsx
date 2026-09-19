@@ -19,12 +19,16 @@ import {
   Shield,
   Check,
   Palette,
+  Receipt,
+  Ban,
+  X,
 } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
 import { CustomerOrder, Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { ThemeColorSetting } from '../components/ThemeColorSetting';
+import { OrderReceiptModal } from '../components/OrderReceiptModal';
 
 interface AccountPageProps {
   initialTab?: 'orders' | 'profile' | 'wishlist' | 'theme';
@@ -48,6 +52,10 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [wishlistProducts, setWishlistProducts] = useState<Product[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<CustomerOrder | null>(null);
+  const [cancellingOrder, setCancellingOrder] = useState<CustomerOrder | null>(null);
+  const [cancelReason, setCancelReason] = useState('Change of delivery plans / Ordered in error');
+  const [isCancelling, setIsCancelling] = useState(false);
 
   // Auth Modes: 'login' | 'register' | 'forgot' | 'reset'
   const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
@@ -109,6 +117,31 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
       setWishlistProducts([]);
     }
   }, [wishlist]);
+
+  const handleConfirmCancelOrder = async () => {
+    if (!cancellingOrder) return;
+    setIsCancelling(true);
+    try {
+      const res = await api.cancelOrder(cancellingOrder.order_number, cancelReason);
+      if (res.success) {
+        showToast(res.message || `Order #${cancellingOrder.order_number} cancelled successfully.`, 'success');
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.order_number === cancellingOrder.order_number
+              ? { ...o, status: 'cancelled' }
+              : o
+          )
+        );
+        setCancellingOrder(null);
+      } else {
+        showToast(res.message || 'Failed to cancel order.', 'error');
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Error occurred while cancelling order.', 'error');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -737,14 +770,110 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
                   ))}
                 </div>
 
-                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-                  <span className="text-slate-500 text-xs">Total Paid ({ord.payment_method_title})</span>
-                  <span className="font-black text-sm text-cyan-600">{formatPrice(ord.total)}</span>
+                <div className="pt-2.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                  <div>
+                    <span className="text-slate-500 text-xs">Total ({ord.payment_method_title}): </span>
+                    <span className="font-black text-sm text-cyan-600">{formatPrice(ord.total)}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedReceiptOrder(ord)}
+                      className="px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                      title="View & Print Official Receipt"
+                    >
+                      <Receipt className="w-3.5 h-3.5 text-cyan-600" />
+                      <span>Receipt</span>
+                    </button>
+
+                    {ord.status !== 'cancelled' && ord.status !== 'delivered' && ord.status !== 'completed' && (
+                      <button
+                        type="button"
+                        onClick={() => setCancellingOrder(ord)}
+                        className="px-2.5 py-1.5 rounded-lg border border-rose-200 hover:bg-rose-50 text-rose-700 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                        title="Cancel this order"
+                      >
+                        <Ban className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Cancel Order</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))
           )}
         </div>
+      )}
+
+      {/* CANCELLATION MODAL */}
+      {cancellingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4 animate-in fade-in">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2 text-rose-600">
+                <Ban className="w-5 h-5" />
+                <h3 className="text-sm font-black uppercase tracking-wide text-slate-900">
+                  Cancel Order #{cancellingOrder.order_number}
+                </h3>
+              </div>
+              <button
+                onClick={() => setCancellingOrder(null)}
+                className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600">
+              Are you sure you want to cancel this order? If you placed payment, our support desk will contact you regarding a full refund or store voucher.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold text-slate-700 block">
+                Reason for Cancellation (Optional)
+              </label>
+              <select
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="w-full text-xs p-2 rounded-lg border border-slate-300 bg-white text-slate-800 focus:outline-hidden focus:border-cyan-500"
+              >
+                <option value="Change of delivery plans / Ordered in error">Change of delivery plans / Ordered in error</option>
+                <option value="Found alternative product on marketplace">Found alternative product on marketplace</option>
+                <option value="Delivery time does not suit my schedule">Delivery time does not suit my schedule</option>
+                <option value="Payment method issue">Payment method issue</option>
+                <option value="Other / Customer requested cancellation">Other / Personal reason</option>
+              </select>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setCancellingOrder(null)}
+                disabled={isCancelling}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              >
+                Keep Order
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmCancelOrder}
+                disabled={isCancelling}
+                className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 rounded-lg shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                {isCancelling ? 'Cancelling...' : 'Confirm Cancellation'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RECEIPT MODAL */}
+      {selectedReceiptOrder && (
+        <OrderReceiptModal
+          order={selectedReceiptOrder}
+          onClose={() => setSelectedReceiptOrder(null)}
+        />
       )}
 
       {/* TAB CONTENT: WISHLIST */}
