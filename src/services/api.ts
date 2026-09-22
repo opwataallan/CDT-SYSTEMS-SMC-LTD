@@ -28,6 +28,21 @@ function getFullUrl(input: string): string {
   if (input.startsWith('http://') || input.startsWith('https://')) {
     return input;
   }
+
+  // Check if running inside WordPress plugin environment
+  const wpSettings = typeof window !== 'undefined' ? (window as any).cdtSettings : undefined;
+  if (wpSettings?.apiUrl) {
+    const wpBase = wpSettings.apiUrl.replace(/\/+$/, '');
+    let endpoint = input;
+    if (endpoint.startsWith('/api/woocommerce/')) {
+      endpoint = endpoint.replace('/api/woocommerce/', '/');
+    } else if (endpoint.startsWith('/api/')) {
+      endpoint = endpoint.replace('/api/', '/');
+    }
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    return `${wpBase}${cleanEndpoint}`;
+  }
+
   if (API_BASE_URL && input.startsWith('/')) {
     return `${API_BASE_URL}${input}`;
   }
@@ -40,6 +55,7 @@ function getFullUrl(input: string): string {
  * 2. Checks content-type and payload BEFORE calling res.json()
  * 3. Gracefully catches HTML fallbacks without throwing raw SyntaxError ("Unexpected token <")
  * 4. Extracts structured server errors
+ * 5. Passes WordPress nonce header when embedded in WordPress
  */
 async function safeFetch<T = any>(
   input: string,
@@ -47,11 +63,13 @@ async function safeFetch<T = any>(
   fallbackError = 'Request failed'
 ): Promise<T> {
   const targetUrl = getFullUrl(input);
+  const wpNonce = typeof window !== 'undefined' ? (window as any).cdtSettings?.nonce : undefined;
   const mergedInit: RequestInit = {
     credentials: 'include',
     ...init,
     headers: {
       Accept: 'application/json',
+      ...(wpNonce ? { 'X-WP-Nonce': wpNonce } : {}),
       ...(init?.headers || {}),
     },
   };

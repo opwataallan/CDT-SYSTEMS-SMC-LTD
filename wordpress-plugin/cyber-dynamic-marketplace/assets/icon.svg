@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="cdtGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#008a1c" />
+      <stop offset="50%" stop-color="#007f19" />
+      <stop offset="100%" stop-color="#005711" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe259" />
+      <stop offset="100%" stop-color="#ffa751" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base for Android -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#cdtGrad)" stroke="url(#goldGrad)" stroke-width="8" filter="url(#shadow)" />
+
+  <!-- Circuit lines in background -->
+  <g stroke="#ffffff" stroke-opacity="0.12" stroke-width="4" stroke-linecap="round" fill="none">
+    <path d="M 64 120 L 160 120 L 200 160" />
+    <circle cx="200" cy="160" r="6" fill="#ffffff" fill-opacity="0.2" />
+    <path d="M 448 120 L 352 120 L 312 160" />
+    <circle cx="312" cy="160" r="6" fill="#ffffff" fill-opacity="0.2" />
+    <path d="M 64 392 L 160 392 L 200 352" />
+    <circle cx="200" cy="352" r="6" fill="#ffffff" fill-opacity="0.2" />
+    <path d="M 448 392 L 352 392 L 312 352" />
+    <circle cx="312" cy="352" r="6" fill="#ffffff" fill-opacity="0.2" />
+  </g>
+
+  <!-- Central Shield / Tech Chip -->
+  <g filter="url(#shadow)">
+    <rect x="146" y="146" width="220" height="220" rx="44" fill="#ffffff" />
+    <!-- Inner Accent -->
+    <rect x="160" y="160" width="192" height="192" rx="34" fill="#007f19" />
+    
+    <!-- Monogram CDT / Cyber Chip -->
+    <g fill="#ffffff">
+      <!-- C shape -->
+      <path d="M 230 200 C 195 200 178 222 178 256 C 178 290 195 312 230 312 C 248 312 260 304 266 294 L 250 282 C 246 288 238 294 230 294 C 206 294 198 276 198 256 C 198 236 206 218 230 218 C 240 218 247 224 252 230 L 268 218 C 260 206 247 200 230 200 Z" />
+      
+      <!-- Tech Bolt / Microchip prong in Gold -->
+      <polygon points="268,210 292,256 278,256 296,302 276,266 288,266" fill="url(#goldGrad)" />
+
+      <!-- T shape -->
+      <path d="M 292 218 L 334 218 L 334 234 L 322 234 L 322 294 L 304 294 L 304 234 L 292 234 Z" />
+    </g>
+  </g>
+
+  <!-- Subtitle Tag -->
+  <text x="256" y="420" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="24" fill="#ffffff" text-anchor="middle" letter-spacing="4">
+    CYBER DYNAMIC
+  </text>
+  <text x="256" y="445" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="700" font-size="14" fill="#ffe259" text-anchor="middle" letter-spacing="3">
+    UGANDA APP
+  </text>
+</svg>

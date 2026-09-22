@@ -35,10 +35,11 @@ import { DEFAULT_MARKETPLACE_CONFIG } from './src/data/defaultConfig';
 dotenv.config();
 
 // Dynamic port resolution:
-// In cPanel Phusion Passenger, PORT is provided as an integer port or Unix domain socket.
-// In deployed production, PORT is standard (e.g. 8080 or custom port).
-// In AI Studio development sandbox, Nginx proxies to DEFAULT_APP_PORT (3000).
-const rawPort = process.env.PORT || process.env.DEFAULT_APP_PORT || '3000';
+// In AI Studio development sandbox, Nginx occupies port 8080 and reverse-proxies to port 3000 (DEFAULT_APP_PORT).
+// In cPanel Phusion Passenger and standalone production, Passenger sets process.env.PORT.
+const rawPort = (process.env.NODE_ENV !== 'production' && process.env.DEFAULT_APP_PORT)
+  ? process.env.DEFAULT_APP_PORT
+  : (process.env.PORT || process.env.DEFAULT_APP_PORT || '3000');
 const isSocket = typeof rawPort === 'string' && (rawPort.startsWith('/') || rawPort.startsWith('\\\\'));
 const PORT: string | number = isSocket ? rawPort : (parseInt(rawPort, 10) || 3000);
 
