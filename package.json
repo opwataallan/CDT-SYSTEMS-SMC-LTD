@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
-    "start": "node dist/server.cjs",
+    "build:all": "npm run build && python3 scripts/create-cpanel-zip.py",
+    "package:cpanel": "python3 scripts/create-cpanel-zip.py",
+    "start": "node app.js",
+    "start:prod": "node dist/server.cjs",
     "preview": "vite preview",
-    "clean": "rm -rf dist server.js",
+    "clean": "rm -rf dist server.js cpanel-production.zip",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
@@ -38,6 +41,7 @@
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
-    "vite": "^6.2.3"
+    "vite": "^6.2.3",
+    "vite-plugin-pwa": "^1.3.0"
   }
 }

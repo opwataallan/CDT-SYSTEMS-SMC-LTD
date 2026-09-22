@@ -1,0 +1,3568 @@
+{
+  "saved_at": "2026-09-20T20:08:52.189Z",
+  "config": {
+    "general": {
+      "site_name": "Cyber Dynamic Technologies",
+      "site_tagline": "Premier Ugandan Technology & Electronics Marketplace",
+      "site_url": "https://www.cyberdynamictech.com",
+      "contact_email": "sales@cyberdynamictech.com",
+      "phone": "+256 779 743 101",
+      "whatsapp_number": "+256779743101",
+      "business_address": "Kampala, Uganda",
+      "physical_location": "Kampala, Uganda",
+      "country": "Uganda",
+      "currency": "UGX",
+      "currency_symbol": "UGX",
+      "currency_position": "left",
+      "decimal_places": 0,
+      "date_format": "DD/MM/YYYY",
+      "timezone": "Africa/Kampala",
+      "language": "en_UG",
+      "default_country": "Uganda",
+      "default_city": "Kampala",
+      "store_email": "sales@cyberdynamictech.com",
+      "support_email": "support@cyberdynamictech.com"
+    },
+    "branding": {
+      "logo_url": "/logo.png",
+      "mobile_logo_url": "/logo.png",
+      "dark_logo_url": "/logo.png",
+      "favicon_url": "/logo.png",
+      "login_logo_url": "/logo.png",
+      "email_logo_url": "/logo.png",
+      "default_product_placeholder": "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=500&auto=format&fit=crop&q=80",
+      "primary_color": "#920d35",
+      "secondary_color": "#0f172a",
+      "accent_color": "#770929",
+      "text_color": "#0f172a",
+      "bg_color": "#f8fafc"
+    },
+    "appearance": {
+      "default_theme": "light",
+      "button_style": "solid",
+      "border_radius": "md",
+      "card_style": "bordered",
+      "font_family": "Inter, system-ui, sans-serif",
+      "header_style": "dense",
+      "footer_style": "columns",
+      "product_grid_desktop": "4",
+      "product_grid_mobile": "2",
+      "show_breadcrumbs": true
+    },
+    "homepage": {
+      "banners": [
+        {
+          "id": "banner_hp_pavilion",
+          "productId": 101,
+          "title": "HP Pavilion 15 Core i7 Workstation",
+          "subtitle": "16GB RAM • 512GB NVMe SSD • 15.6\" FHD Micro-Edge",
+          "tagline": "High-performance computing for developers, institutions, and enterprise workflows with 1-Year CDT Warranty.",
+          "badge": "FLAGSHIP BUSINESS LAPTOP",
+          "brand": "HP",
+          "ctaText": "View HP Pavilion 15",
+          "ctaLink": "product:101",
+          "secondaryCtaText": "Explore Laptops",
+          "secondaryCtaLink": "category:laptops-computers",
+          "bgGradient": "from-[#0b1b36] via-[#09152b] to-[#030914]",
+          "accentColor": "#00f2fe",
+          "imageUrl": "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=1200&auto=format&fit=crop&q=80",
+          "highlightPrice": "UGX 2,850,000",
+          "originalPrice": "UGX 3,200,000",
+          "active": true
+        },
+        {
+          "id": "banner_epson_ecotank",
+          "productId": 501,
+          "title": "Epson EcoTank L3210 All-in-One InkTank",
+          "subtitle": "Print, Scan & Copy • Ultra-Low 90% Running Cost • Heat-Free Tech",
+          "tagline": "High-yield ink bottles included. Ideal for schools, secretariats, and busy commercial offices in Uganda.",
+          "badge": "BEST-SELLING PRINTER",
+          "brand": "Epson",
+          "ctaText": "View Epson L3210",
+          "ctaLink": "product:501",
+          "secondaryCtaText": "Shop All Printers",
+          "secondaryCtaLink": "category:printers-office-equipment",
+          "bgGradient": "from-[#032e18] via-[#021f10] to-[#011208]",
+          "accentColor": "#10b981",
+          "imageUrl": "https://images.unsplash.com/photo-1612815154858-60aa4c59eaa6?w=1200&auto=format&fit=crop&q=80",
+          "highlightPrice": "UGX 850,000",
+          "originalPrice": "UGX 980,000",
+          "active": true
+        },
+        {
+          "id": "banner_dell_latitude",
+          "productId": 104,
+          "title": "Dell Latitude 5420 Business Ultrabook",
+          "subtitle": "Intel Core i5 11th Gen • 16GB RAM • 256GB SSD • Backlit KB",
+          "tagline": "Built for enterprise durability, biometric fingerprint security, and all-day mobile battery life.",
+          "badge": "CORPORATE WORKHORSE",
+          "brand": "Dell",
+          "ctaText": "View Dell Latitude",
+          "ctaLink": "product:104",
+          "secondaryCtaText": "Business Catalog",
+          "secondaryCtaLink": "shop",
+          "bgGradient": "from-[#1e1b4b] via-[#141233] to-[#0b0a1d]",
+          "accentColor": "#38bdf8",
+          "imageUrl": "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=1200&auto=format&fit=crop&q=80",
+          "highlightPrice": "UGX 1,450,000",
+          "originalPrice": "UGX 1,650,000",
+          "active": true
+        },
+        {
+          "id": "banner_macbook_air",
+          "productId": 105,
+          "title": "Apple MacBook Air M1 Retina Workstation",
+          "subtitle": "Apple Silicon M1 8-Core CPU • 8GB Unified • 256GB SSD",
+          "tagline": "Silent fanless architecture, up to 18 hours battery life, and vibrant True Tone Retina display.",
+          "badge": "OFFICIAL APPLE HARDWARE",
+          "brand": "Apple",
+          "ctaText": "View MacBook Air",
+          "ctaLink": "product:105",
+          "secondaryCtaText": "Apple Hardware",
+          "secondaryCtaLink": "category:laptops-computers",
+          "bgGradient": "from-[#18181b] via-[#111113] to-[#09090b]",
+          "accentColor": "#f43f5e",
+          "imageUrl": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=1200&auto=format&fit=crop&q=80",
+          "highlightPrice": "UGX 3,450,000",
+          "originalPrice": "UGX 3,800,000",
+          "active": true
+        },
+        {
+          "id": "banner_tplink_ax73",
+          "productId": 401,
+          "title": "TP-Link Archer AX73 WiFi 6 Gigabit Router",
+          "subtitle": "AX5400 Dual-Band • 6 High-Gain Antennas • OneMesh Compatible",
+          "tagline": "Ultra-fast gigabit speeds with simultaneous 4K streams and multi-device corporate routing.",
+          "badge": "GIGABIT NETWORKING",
+          "brand": "TP-Link",
+          "ctaText": "View TP-Link Router",
+          "ctaLink": "product:401",
+          "secondaryCtaText": "View Networking",
+          "secondaryCtaLink": "category:networking-security",
+          "bgGradient": "from-[#082f49] via-[#051e2e] to-[#020e17]",
+          "accentColor": "#f59e0b",
+          "imageUrl": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1200&auto=format&fit=crop&q=80",
+          "highlightPrice": "UGX 380,000",
+          "originalPrice": "UGX 440,000",
+          "active": true
+        }
+      ],
+      "announcement_bar": {
+        "enabled": true,
+        "text": "⚡ Free Express Logistics across Kampala & Wakiso on orders over UGX 500,000 | MTN MoMo & Airtel Money Accepted",
+        "link": "/shop",
+        "bg_color": "#0f172a",
+        "text_color": "#ffffff"
+      },
+      "sections": [
+        {
+          "id": "hero_banners",
+          "name": "Hero Carousel Banners",
+          "enabled": true,
+          "title": "Featured Promotions"
+        },
+        {
+          "id": "value_props",
+          "name": "Trust & Logistics Value Props",
+          "enabled": true,
+          "title": "Why Choose Cyber Dynamic Technologies"
+        },
+        {
+          "id": "flash_deals",
+          "name": "Flash Deals / Daily Offers",
+          "enabled": true,
+          "title": "Flash Sales & Limited Deals",
+          "item_count": 4
+        },
+        {
+          "id": "category_grid",
+          "name": "Featured Categories Grid",
+          "enabled": true,
+          "title": "Explore Product Categories"
+        },
+        {
+          "id": "featured_products",
+          "name": "Trending Hardware & Electronics",
+          "enabled": true,
+          "title": "Trending Tech Products",
+          "item_count": 8
+        },
+        {
+          "id": "printers_networking",
+          "name": "Printers & Networking Showcase",
+          "enabled": true,
+          "title": "Printers & Enterprise Networking",
+          "category_filter": "printers",
+          "item_count": 4
+        },
+        {
+          "id": "why_choose_us",
+          "name": "Verified Warranty & Dispatch Hub",
+          "enabled": true,
+          "title": "Authentic Warranty Guaranteed"
+        }
+      ],
+      "advert_fliers_row2": [
+        {
+          "id": "flier-row2-1",
+          "title": "Samsung Galaxy S24 Ultra & Fold6 Series",
+          "subtitle": "Flagship AI hardware with official Ugandan 24-Month warranty. Free Kampala doorstep delivery.",
+          "badge": "FLAGSHIP PROMO",
+          "image_url": "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80",
+          "button_text": "Explore Deals",
+          "link_type": "category",
+          "link_target": "smartphones-tablets"
+        },
+        {
+          "id": "flier-row2-2",
+          "title": "Apple iPhone 15 Pro Max & iPad Air M2",
+          "subtitle": "Genuine Apple silicon, sealed units with 1-Year Kampala repair and replacement warranty.",
+          "badge": "OFFICIAL FLYER",
+          "image_url": "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80",
+          "button_text": "View Pricing",
+          "link_type": "category",
+          "link_target": "smartphones-tablets"
+        },
+        {
+          "id": "flier-row2-3",
+          "title": "GaN 65W/100W Fast Power Hubs & Anker Gear",
+          "subtitle": "Ultra-fast laptop and phone chargers, MagSafe wireless docks, and braided high-density cables.",
+          "badge": "FAST CHARGE",
+          "image_url": "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80",
+          "button_text": "Claim Offer",
+          "link_type": "category",
+          "link_target": "smartphones-tablets"
+        }
+      ],
+      "advert_fliers_row4": [
+        {
+          "id": "flier-row4-1",
+          "title": "Cisco Catalyst & TP-Link Gigabit Managed Switches",
+          "subtitle": "Enterprise-grade 16/24/48-port PoE switches configured for seamless business and clinic uptime.",
+          "badge": "ENTERPRISE TECH",
+          "image_url": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800&auto=format&fit=crop&q=80",
+          "button_text": "Get Quote",
+          "link_type": "category",
+          "link_target": "networking-security"
+        },
+        {
+          "id": "flier-row4-2",
+          "title": "Solar 4G SIM CCTV & Hikvision ColorVu Cameras",
+          "subtitle": "Remote 24/7 full-color perimeter surveillance. Zero grid electricity required for remote sites.",
+          "badge": "SECURITY DEALS",
+          "image_url": "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&auto=format&fit=crop&q=80",
+          "button_text": "View Systems",
+          "link_type": "category",
+          "link_target": "networking-security"
+        },
+        {
+          "id": "flier-row4-3",
+          "title": "Dual-SIM 4G/5G High-Speed Wi-Fi 6 Routers",
+          "subtitle": "Connect up to 64 devices with failover MTN & Airtel SIM slot. Tested across Kampala & Wakiso.",
+          "badge": "OFFICE NETWORK",
+          "image_url": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&auto=format&fit=crop&q=80",
+          "button_text": "Order Router",
+          "link_type": "category",
+          "link_target": "networking-security"
+        }
+      ],
+      "top_deals": {
+        "enabled": true,
+        "campaign_title": "Top Deals in Uganda",
+        "subtitle": "Limited-Time Hardware Discounts • Authentic Warranties",
+        "end_time": "2026-09-21T03:52:18.666Z",
+        "duration_hours": 12,
+        "auto_action": "switch_next",
+        "next_campaign_title": "Midnight Tech Flash Sale",
+        "selected_product_ids": []
+      }
+    },
+    "products": {
+      "products_per_page": 16,
+      "default_sorting": "popularity",
+      "enable_wishlist": true,
+      "enable_reviews": true,
+      "enable_compare": true,
+      "enable_quick_view": true,
+      "enable_buy_now": true,
+      "enable_add_to_cart": true,
+      "show_sku": true,
+      "show_stock": true,
+      "show_ratings": true,
+      "show_discount_percentage": true,
+      "show_related_products": true,
+      "show_recently_viewed": true,
+      "show_product_badges": true
+    },
+    "categories": {
+      "display_layout": "grid",
+      "show_product_count": true,
+      "show_category_images": true,
+      "enable_subcategories": true
+    },
+    "cart": {
+      "enable_ajax_cart": true,
+      "show_shipping_calculator": true,
+      "show_cross_sells": true,
+      "free_shipping_threshold": 500000,
+      "cart_auto_expire_hours": 48
+    },
+    "badges": [
+      {
+        "id": "badge_sale",
+        "name": "Sale Badge",
+        "text": "SALE",
+        "bg_color": "#ef4444",
+        "text_color": "#ffffff",
+        "position": "top-left",
+        "enabled": true
+      },
+      {
+        "id": "badge_new",
+        "name": "New Badge",
+        "text": "NEW",
+        "bg_color": "#06b6d4",
+        "text_color": "#ffffff",
+        "position": "top-left",
+        "enabled": true
+      },
+      {
+        "id": "badge_hot",
+        "name": "Hot Badge",
+        "text": "POPULAR",
+        "bg_color": "#f97316",
+        "text_color": "#ffffff",
+        "position": "top-right",
+        "enabled": true
+      },
+      {
+        "id": "badge_warranty",
+        "name": "Warranty Badge",
+        "text": "1 YR WARRANTY",
+        "bg_color": "#10b981",
+        "text_color": "#ffffff",
+        "position": "top-right",
+        "enabled": true
+      }
+    ],
+    "customers": {
+      "registration_enabled": true,
+      "require_email_verification": false,
+      "default_customer_role": "customer",
+      "allow_profile_deletion": false,
+      "enable_customer_dashboard": true
+    },
+    "orders": {
+      "order_number_prefix": "CDT-",
+      "default_order_status": "processing",
+      "allow_order_cancellation": true,
+      "order_tracking_public": true,
+      "auto_complete_paid_orders": false
+    },
+    "checkout": {
+      "allow_guest_checkout": true,
+      "require_account": false,
+      "phone_required": true,
+      "email_required": true,
+      "address_required": true,
+      "allow_delivery_instructions": true,
+      "enable_coupons": true,
+      "allow_order_notes": true,
+      "require_terms_acceptance": true,
+      "require_privacy_acceptance": true,
+      "terms_url": "/terms",
+      "privacy_url": "/privacy"
+    },
+    "delivery": {
+      "zones": [
+        {
+          "id": "kampala_central",
+          "name": "Kampala Central (Nakasero, Kololo, CBD, Kamwokya, Old Kampala)",
+          "districts": [
+            "Nakasero",
+            "Kololo",
+            "Central Business District (CBD)",
+            "Kamwokya",
+            "Old Kampala",
+            "Industrial Area",
+            "Civic Centre",
+            "Nakivubo"
+          ],
+          "fee": 5000,
+          "free_threshold": 200000,
+          "estimated_delivery": "1 - 2 Hours (Express Boda / Courier)",
+          "description": "Ultra-fast doorstep dispatch from our Kampala showroom. Delivered within 2 hours."
+        },
+        {
+          "id": "kampala_nakawa",
+          "name": "Nakawa & East Kampala (Ntinda, Naguru, Bugolobi, Kyambogo, Luzira)",
+          "districts": [
+            "Ntinda",
+            "Naguru",
+            "Bugolobi",
+            "Kyambogo",
+            "Luzira",
+            "Banda",
+            "Mutungo",
+            "Kitintale",
+            "Mbuya",
+            "Bukoto",
+            "Kyanja"
+          ],
+          "fee": 7000,
+          "free_threshold": 250000,
+          "estimated_delivery": "Same Day Delivery (2 - 4 Hours)",
+          "description": "Direct courier delivery to offices, residences, and universities across Nakawa division and East Kampala."
+        },
+        {
+          "id": "kampala_makindye",
+          "name": "Makindye & South Kampala (Kabalagala, Kansanga, Munyonyo, Nsambya, Ggaba)",
+          "districts": [
+            "Kabalagala",
+            "Kansanga",
+            "Nsambya",
+            "Ggaba",
+            "Munyonyo",
+            "Katwe",
+            "Makindye Hill",
+            "Bunga",
+            "Kibuli",
+            "Buziga",
+            "Salaama"
+          ],
+          "fee": 7000,
+          "free_threshold": 250000,
+          "estimated_delivery": "Same Day Delivery (2 - 4 Hours)",
+          "description": "Express motorcycle and van delivery across Southern Kampala and Lake Victoria corridor."
+        },
+        {
+          "id": "kampala_kawempe",
+          "name": "Kawempe & North Kampala (Kisaasi, Komamboga, Kalerwe, Bwaise, Kawempe)",
+          "districts": [
+            "Kisaasi",
+            "Komamboga",
+            "Kalerwe",
+            "Kawempe",
+            "Bwaise",
+            "Kikoni",
+            "Makerere",
+            "Kyebando",
+            "Mawanda Road",
+            "Mpererwe"
+          ],
+          "fee": 7000,
+          "free_threshold": 250000,
+          "estimated_delivery": "Same Day Delivery (2 - 4 Hours)",
+          "description": "Doorstep tech dispatch to northern residential areas and universities in Kawempe division."
+        },
+        {
+          "id": "kampala_rubaga",
+          "name": "Rubaga & West Kampala (Mengo, Namirembe, Lubaga, Nateete, Busega, Kasubi)",
+          "districts": [
+            "Mengo",
+            "Namirembe",
+            "Lubaga",
+            "Nateete",
+            "Busega",
+            "Kasubi",
+            "Lungujja",
+            "Mutundwe",
+            "Nankulabye"
+          ],
+          "fee": 7000,
+          "free_threshold": 250000,
+          "estimated_delivery": "Same Day Delivery (2 - 4 Hours)",
+          "description": "Fast delivery across historical Rubaga division, Mengo, and western commercial hubs."
+        },
+        {
+          "id": "greater_kampala_wakiso",
+          "name": "Greater Kampala & Wakiso (Kira, Nansana, Namugongo, Gayaza, Kasangati)",
+          "districts": [
+            "Kira Municipality",
+            "Nansana",
+            "Namugongo",
+            "Gayaza",
+            "Kasangati",
+            "Bulindo",
+            "Sonde",
+            "Matugga",
+            "Wakiso Town"
+          ],
+          "fee": 10000,
+          "free_threshold": 350000,
+          "estimated_delivery": "Same Day or Next Morning",
+          "description": "Courier delivery to outer metropolitan residential estates and growing commercial hubs."
+        },
+        {
+          "id": "entebbe_corridor",
+          "name": "Entebbe Road & Airport Corridor (Lubowa, Seguku, Kajjansi, Entebbe Town)",
+          "districts": [
+            "Lubowa",
+            "Seguku",
+            "Kajjansi",
+            "Akright City",
+            "Zana",
+            "Lweza",
+            "Abayita Ababiri",
+            "Entebbe Town",
+            "Entebbe International Airport"
+          ],
+          "fee": 15000,
+          "free_threshold": 500000,
+          "estimated_delivery": "Same Day Express Courier",
+          "description": "Dedicated courier transit along Entebbe Expressway and Entebbe Road to hotels, offices, and homes."
+        },
+        {
+          "id": "mukono_corridor",
+          "name": "Mukono & Jinja Road Corridor (Bweyogerere, Namanve, Seeta, Mukono Town)",
+          "districts": [
+            "Bweyogerere",
+            "Namanve Industrial Park",
+            "Kirinya",
+            "Seeta",
+            "Mukono Town",
+            "Kyambogo University",
+            "Mbalala"
+          ],
+          "fee": 12000,
+          "free_threshold": 400000,
+          "estimated_delivery": "Same Day Express Delivery",
+          "description": "Direct delivery to factories in Namanve Industrial Park, university campuses, and Mukono Municipality."
+        },
+        {
+          "id": "store_pickup",
+          "name": "Free District Pickup Hub (Your District Station)",
+          "districts": [
+            "Kampala Central",
+            "Wakiso",
+            "Mukono",
+            "Jinja",
+            "Mbarara",
+            "Gulu",
+            "Arua",
+            "Mbale",
+            "Masaka",
+            "Lira",
+            "Soroti",
+            "Fort Portal",
+            "Hoima",
+            "Kabale"
+          ],
+          "fee": 0,
+          "estimated_delivery": "Kampala: 30 Mins | Upcountry: 1-2 Days",
+          "description": "Collect your order at the official Cyber Dynamic Technologies district station or showroom in your chosen district."
+        }
+      ],
+      "express_delivery_enabled": true,
+      "free_shipping_enabled": true,
+      "local_pickup_enabled": true,
+      "local_pickup_address": "Kampala, Uganda"
+    },
+    "payments": {
+      "momo_enabled": true,
+      "momo_merchant_code": "CDT-MTN-001",
+      "momo_name": "MTN Mobile Money Uganda",
+      "airtel_enabled": true,
+      "airtel_merchant_code": "CDT-AIR-002",
+      "airtel_name": "Airtel Money Uganda",
+      "card_enabled": true,
+      "card_provider": "flutterwave",
+      "cod_enabled": true,
+      "cod_max_limit": 3000000,
+      "currency": "UGX",
+      "manual_payment_number": "0394760459",
+      "manual_account_name": "OPWATA ALLAN SAMUEL",
+      "manual_payment_instructions": "Make the payment to 0394760459 and put account names OPWATA ALLAN SAMUEL, please use order number as reference ID"
+    },
+    "taxes": {
+      "enable_taxes": false,
+      "tax_rate_percent": 18,
+      "prices_include_tax": true,
+      "tax_label": "VAT (18% Included)"
+    },
+    "coupons": {
+      "enabled": true,
+      "allow_multiple_coupons": false,
+      "default_welcome_code": "WELCOME5",
+      "default_welcome_discount_percent": 5
+    },
+    "reviews": {
+      "enabled": true,
+      "require_verified_purchase": false,
+      "auto_approve_reviews": true,
+      "allow_customer_photos": true,
+      "star_rating_required": true
+    },
+    "wishlist": {
+      "enabled": true,
+      "require_login_to_save": false,
+      "allow_public_sharing": true
+    },
+    "notifications": {
+      "order_confirmation_customer": true,
+      "order_status_update": true,
+      "admin_new_order_alert": true,
+      "admin_alert_email": "sales@cyberdynamictech.com",
+      "admin_alert_phone": "+256779743101",
+      "enable_in_app_notifications": true,
+      "enable_browser_push": true,
+      "notify_new_products": true,
+      "notify_new_arrivals": true,
+      "notify_flash_sales": true,
+      "notify_discounts_promotions": true,
+      "notify_payment_confirmation": true,
+      "notify_delivery_shipping_updates": true,
+      "notify_store_announcements": true
+    },
+    "email": {
+      "sender_name": "Cyber Dynamic Technologies Store",
+      "sender_email": "orders@cyberdynamictech.com",
+      "reply_to_email": "support@cyberdynamictech.com",
+      "smtp_host": "mail.cyberdynamictech.com",
+      "smtp_port": 587,
+      "smtp_secure": true,
+      "header_logo_url": "",
+      "footer_text": "Cyber Dynamic Technologies Uganda - High Performance Technology & Electronics",
+      "welcome_subject": "Welcome to Cyber Dynamic Technologies Uganda!",
+      "order_confirmed_subject": "Order Confirmed: {order_number} - Cyber Dynamic Technologies"
+    },
+    "sms": {
+      "enabled": true,
+      "provider": "africastalking",
+      "sender_id": "CYBERTECH",
+      "username": "sandbox",
+      "api_key": "",
+      "api_key_configured": false,
+      "account_sid": "",
+      "api_secret": "",
+      "api_secret_configured": false,
+      "custom_endpoint_url": "",
+      "notify_on_order_placed": true,
+      "notify_on_dispatch": true,
+      "notify_on_delivery": true,
+      "notify_on_status_change": true,
+      "template_order_placed": "Dear {name}, your Cyber Dynamic Technologies order {order_id} has been received! Total: {currency} {total}. We are preparing it for delivery in Kampala.",
+      "template_dispatch": "Dear {name}, your CDT order {order_id} is dispatched with our courier for delivery. Inquiries: +256 779 743 101.",
+      "template_delivered": "Dear {name}, your Cyber Dynamic Technologies order {order_id} has been safely delivered! Thank you for choosing CDT."
+    },
+    "whatsapp": {
+      "enabled": true,
+      "business_number": "+256779743101",
+      "auto_greeting_message": "Hello Cyber Dynamic Technologies, I would like to inquire about an order / product:",
+      "enable_order_on_whatsapp": true
+    },
+    "seo": {
+      "meta_title": "Cyber Dynamic Technologies | Premier Electronics & Tech Marketplace Uganda",
+      "meta_description": "Buy genuine laptops, printers, routers, power backup systems, ink & computer accessories in Uganda. Same-day Kampala delivery and nationwide dispatch.",
+      "keywords": "electronics uganda, buy laptop kampala, epson printer kampala, tp-link router, mtn momo shopping, cyber dynamic technologies",
+      "og_image_url": "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1200&auto=format&fit=crop&q=80",
+      "twitter_handle": "@cyberdynamictech",
+      "google_site_verification": "google-site-verification-cdt-2026",
+      "robots_index": true,
+      "sitemap_enabled": true
+    },
+    "social": {
+      "facebook": "https://facebook.com/cyberdynamictech",
+      "instagram": "https://instagram.com/cyberdynamictech",
+      "tiktok": "https://tiktok.com/@cyberdynamictech",
+      "youtube": "https://youtube.com/@cyberdynamictech",
+      "x": "https://x.com/cyberdynamictech",
+      "whatsapp": "https://wa.me/256779743101",
+      "linkedin": "https://linkedin.com/company/cyberdynamictech"
+    },
+    "analytics": {
+      "ga4_measurement_id": "G-CDTUGANDA01",
+      "meta_pixel_id": "FB-CDT-PIXEL-2026",
+      "enable_cookie_consent": true,
+      "cookie_consent_message": "We use cookies and secure sessions to enhance your shopping experience and process mobile money payments securely."
+    },
+    "security": {
+      "enable_rate_limiting": true,
+      "rate_limit_rpm": 120,
+      "session_timeout_minutes": 1440,
+      "max_login_attempts": 5,
+      "lockout_duration_minutes": 15,
+      "password_min_length": 8,
+      "require_special_char": true,
+      "force_2fa_admin": false,
+      "enable_csrf_protection": true,
+      "sanitize_inputs": true
+    },
+    "auth": {
+      "allow_customer_registration": true,
+      "require_email_verification": false,
+      "allow_phone_login": true,
+      "remember_me_days": 30
+    },
+    "performance": {
+      "enable_api_cache": true,
+      "cache_ttl_seconds": 300,
+      "lazy_load_images": true,
+      "search_debounce_ms": 250,
+      "compress_responses": true
+    },
+    "api": {
+      "rate_limit_per_minute": 120,
+      "enable_cors": true,
+      "cors_allowed_origins": "*",
+      "enable_swagger_docs": true,
+      "woocommerce_api_enabled": true,
+      "woocommerce_store_url": "https://www.cyberdynamictech.com",
+      "woocommerce_consumer_key": "",
+      "woocommerce_consumer_secret": "",
+      "woocommerce_api_version": "wc/v3",
+      "api_timeout_seconds": 30
+    },
+    "woocommerce": {
+      "store_url": "www.cyberdynamictech.com",
+      "consumer_key": "ck_fa7835259a1b227dc8afbad08c0e8311eaf4ea9e",
+      "consumer_secret": "cs_aed65524b56b00bb2b8273efc28299fe1e0bc48a",
+      "consumer_key_configured": true,
+      "consumer_secret_configured": true,
+      "webhook_secret": "CM970381021NDC",
+      "webhook_secret_configured": true,
+      "auto_sync_interval_minutes": 60,
+      "auto_sync_on_startup": true,
+      "api_version": "wc/v3",
+      "verify_ssl": true,
+      "last_sync_timestamp": "2026-09-20T20:08:50.645Z",
+      "connection_status": "connected"
+    },
+    "maintenance": {
+      "enabled": false,
+      "message": "Cyber Dynamic Technologies is currently undergoing scheduled platform upgrades to serve you better. We will be back shortly!",
+      "expected_completion": "Within 30 minutes",
+      "allow_admin_bypass": true,
+      "contact_phone": "+256 779 743 101",
+      "contact_email": "support@cyberdynamictech.com"
+    },
+    "legal": {
+      "cookie_consent_enabled": true,
+      "require_explicit_consent": false,
+      "cookie_banner_text": "We use cookies and local storage to secure checkout, preserve your shopping cart, and deliver genuine electronics across Uganda.",
+      "terms_of_service": "All hardware and electronics sold by Cyber Dynamic Technologies are guaranteed genuine, brand-new or certified refurbished as labeled. Orders placed through this website constitute an agreement of purchase. Prices are listed in Uganda Shillings (UGX). Cyber Dynamic Technologies reserves the right to verify customer orders prior to dispatch.",
+      "privacy_policy": "Cyber Dynamic Technologies respects your privacy. We strictly collect customer contact details, delivery addresses, and payment references exclusively to process orders, coordinate delivery logistics across Uganda, and provide after-sales warranty support. We do not sell or lease personal customer data to third parties.",
+      "refund_return_policy": "Hardware items with verifiable manufacturer defects may be returned within 7 calendar days from delivery date. Returned equipment must include all original packaging, accessories, manuals, power adapters, and intact serial number stickers. Items damaged by power surges, physical drops, or liquid spills are not eligible for return.",
+      "shipping_delivery_policy": "Same-day express delivery is available within Kampala Central, Nakawa, Makindye, Rubaga, Kawempe, and Entebbe for orders placed before 3:00 PM. Upcountry delivery across Uganda (including Jinja, Mbarara, Gulu, Mbale, Arua, Fort Portal) is executed via verified regional courier services within 24 to 48 hours.",
+      "payment_policy": "We accept secure instant mobile money payments via MTN MoMo Merchant / Pay, Airtel Money Pay, direct bank wire transfer to our registered corporate account, and Cash on Delivery (COD) for eligible deliveries within the Kampala metropolitan radius.",
+      "warranty_policy": "All brand-new laptops (HP, Dell, Lenovo), Epson EcoTank printers, and APC/MGE UPS power backups come with an official 1-Year Distributor Warranty covering hardware component failures under normal operating conditions. Refurbished laptops carry a 6-month store warranty.",
+      "cancellation_policy": "Customers may cancel an order free of charge prior to technical testing and dispatch packaging. Once an order is with our delivery driver or regional courier, delivery transport fees may apply if the cancellation is not due to merchant defect.",
+      "cookie_policy": "This web application uses essential cookies required for shopping cart management, user authentication, and secure checkout sessions. With your consent, we also use optional performance analytics cookies to understand site performance and deliver tailored electronics promotions.",
+      "contact_support_policy": "Our technical support team and physical showroom are available Monday to Saturday from 8:30 AM to 6:30 PM. Customer hotline: +256 779 743 101. Email: support@cyberdynamictech.com. Showroom: Kampala, Uganda.",
+      "policy_terms": "All hardware and electronics sold by Cyber Dynamic Technologies are guaranteed genuine, brand-new or certified refurbished as labeled. Orders placed through this website constitute an agreement of purchase. Prices are listed in Uganda Shillings (UGX). Cyber Dynamic Technologies reserves the right to verify customer orders prior to dispatch.",
+      "policy_privacy": "Cyber Dynamic Technologies respects your privacy. We strictly collect customer contact details, delivery addresses, and payment references exclusively to process orders, coordinate delivery logistics across Uganda, and provide after-sales warranty support. We do not sell or lease personal customer data to third parties.",
+      "policy_refund": "Hardware items with verifiable manufacturer defects may be returned within 7 calendar days from delivery date. Returned equipment must include all original packaging, accessories, manuals, power adapters, and intact serial number stickers. Items damaged by power surges, physical drops, or liquid spills are not eligible for return.",
+      "policy_shipping": "Same-day express delivery is available within Kampala Central, Nakawa, Makindye, Rubaga, Kawempe, and Entebbe for orders placed before 3:00 PM. Upcountry delivery across Uganda (including Jinja, Mbarara, Gulu, Mbale, Arua, Fort Portal) is executed via verified regional courier services within 24 to 48 hours.",
+      "policy_payment": "We accept secure instant mobile money payments via MTN MoMo Merchant / Pay, Airtel Money Pay, direct bank wire transfer to our registered corporate account, and Cash on Delivery (COD) for eligible deliveries within the Kampala metropolitan radius.",
+      "policy_warranty": "All brand-new laptops (HP, Dell, Lenovo), Epson EcoTank printers, and APC/MGE UPS power backups come with an official 1-Year Distributor Warranty covering hardware component failures under normal operating conditions. Refurbished laptops carry a 6-month store warranty.",
+      "policy_cancellation": "Customers may cancel an order free of charge prior to technical testing and dispatch packaging. Once an order is with our delivery driver or regional courier, delivery transport fees may apply if the cancellation is not due to merchant defect.",
+      "policy_cookie": "This web application uses essential cookies required for shopping cart management, user authentication, and secure checkout sessions. With your consent, we also use optional performance analytics cookies to understand site performance and deliver tailored electronics promotions.",
+      "policy_contact": "Our technical support team and physical showroom are available Monday to Saturday from 8:30 AM to 6:30 PM. Customer hotline: +256 779 743 101. Email: support@cyberdynamictech.com. Showroom: Kampala, Uganda."
+    },
+    "advanced": {
+      "debug_mode": false,
+      "custom_header_scripts": "",
+      "custom_footer_scripts": "",
+      "allow_export_backup": true
+    },
+    "pos": {
+      "enabled": true,
+      "allowed_roles": [
+        "admin",
+        "manager"
+      ],
+      "allowed_user_emails": [
+        "admin@cyberdynamictech.com",
+        "support@cyberdynamictech.com"
+      ],
+      "store_name": "Cyber Dynamic Technologies Kampala Flagship Store",
+      "store_address": "Kampala, Uganda",
+      "store_phone": "+256 779 743 101",
+      "enable_barcode_scanner": true,
+      "enable_quick_cash_buttons": true,
+      "allow_custom_line_items": true,
+      "allow_manual_discounts": true,
+      "tax_rate_percent": 18,
+      "receipt_header": "CYBER DYNAMIC TECHNOLOGIES LIMITED\nKampala, Uganda\nTel: +256 779 743 101 / +256 701 000 000\nOfficial Genuine Tech Distributor & IT Solutions",
+      "receipt_footer": "Thank you for choosing Cyber Dynamic Technologies!\n1-Year official distributor warranty on all brand-new hardware.\nPlease retain this receipt for warranty and support claims.",
+      "default_payment_method": "cash",
+      "auto_print_receipt": false
+    }
+  },
+  "products": [
+    {
+      "id": 4720,
+      "name": "EPSON L3110 Printer- REFURBISHED",
+      "slug": "product-4720",
+      "permalink": "www.cyberdynamictech.com/product/4720",
+      "sku": "SKU-4720",
+      "barcode": "CDT004720",
+      "price": 590000,
+      "regular_price": 650000,
+      "sale_price": 590000,
+      "on_sale": true,
+      "stock_status": "outofstock",
+      "stock_quantity": 0,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 1,
+          "name": "General Tech",
+          "slug": "general-tech"
+        }
+      ],
+      "images": [
+        {
+          "id": 1,
+          "src": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
+          "name": "EPSON L3110 Printer- REFURBISHED",
+          "alt": "EPSON L3110 Printer- REFURBISHED"
+        }
+      ],
+      "attributes": [],
+      "short_description": "EPSON L3110 Printer- REFURBISHED",
+      "description": "EPSON L3110 Printer- REFURBISHED",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4666,
+      "name": "HP LaserJet Pro MFP M128fn",
+      "slug": "hp-laserjet-pro-mfp-m128fn",
+      "permalink": "https://www.cyberdynamictech.com/product/hp-laserjet-pro-mfp-m128fn/",
+      "sku": "SKU-4666",
+      "barcode": "CDT004666",
+      "price": 950000,
+      "regular_price": 950000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 23,
+          "name": "PRINTERS",
+          "slug": "printers"
+        }
+      ],
+      "images": [
+        {
+          "id": 4664,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/783147.jpg",
+          "name": "2026/08/783147.jpg",
+          "alt": "HP LaserJet Pro MFP M128fn"
+        },
+        {
+          "id": 4665,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/783146.jpg",
+          "name": "2026/08/783146.jpg",
+          "alt": "HP LaserJet Pro MFP M128fn"
+        }
+      ],
+      "attributes": [],
+      "short_description": "HP LaserJet Pro MFP M128fn — Multifunction Mono Laser Printer",
+      "description": "<p>HP LaserJet Pro MFP M128fn — Multifunction Mono Laser Printer</p>\n<p>🔥 Key Features<br />\n4-in-1 functionality: Print, Copy, Scan &amp; Fax<br />\nPrint speed: Up to 20 pages per minute<br />\nPrint resolution: Up to 600 × 600 dpi<br />\nAutomatic Document Feeder (ADF): 35 sheets<br />\nPaper input: 150 sheets<br />\nOutput capacity: Up to 100 sheets<br />\nScanner: Flatbed + ADF<br />\nOptical scan resolution: Up to 1200 dpi<br />\nCopy speed: Up to 20 copies per minute<br />\nCopy quantity: Up to 99 copies<br />\nFax: 33.6 kbps with up to 500-page memory<br />\nMemory: 128 MB<br />\nConnectivity: USB 2.0 + built-in Fast Ethernet<br />\nToner: HP 88A / CC388A<br />\nMonthly duty cycle: Up to 8,000 pages<br />\nDisplay: 2-line LCD<br />\nDuplex printing: Manual<br />\nColour: Black &amp; White printing<br />\nHP confirms these specifications for the M128fn.</p>\n<p>💼 Perfect For<br />\n✔ Offices &amp; businesses<br />\n✔ Schools and institutions<br />\n✔ Printing shops<br />\n✔ SACCOs and NGOs<br />\n✔ Government offices<br />\n✔ Home offices<br />\n✔ Businesses handling invoices, reports, forms and documents<br />\n💡 Why Choose the HP M128fn?<br />\nGet printing, copying, scanning and faxing from one dependable machine. Its laser technology delivers crisp black-and-white documents, while the 35-sheet ADF makes processing multiple pages much easier.<br />\nOrder yours today from CYBER DYNAMIC TECHNOLOGIES.<br />\nWebsite: www.cyberdynamictech.com⁠�<br />\nCall: 0394 760459<br />\nWhatsApp: 0779 743101<br />\nNote: The M128fn does not have built-in Wi-Fi; network connectivity is provided through Ethernet. �</p>\n<p>HP LaserJet Pro MFP M128fn — Multifunction Mono Laser Printer<br />\nPrint • Copy • Scan • Fax | Fast • Reliable • Professional<br />\nThe HP LaserJet Pro MFP M128fn is a practical all-in-one monochrome laser printer designed for offices, businesses, schools, shops and home users who need fast, sharp and reliable document printing. With printing, copying, scanning and faxing in one compact machine, it helps reduce the need for multiple devices.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4646,
+      "name": "Sun King HomePlus Pro Solar",
+      "slug": "sun-king-homeplus-pro-solar",
+      "permalink": "https://www.cyberdynamictech.com/product/sun-king-homeplus-pro-solar/",
+      "sku": "SKU-4646",
+      "barcode": "CDT004646",
+      "price": 350000,
+      "regular_price": 350000,
+      "sale_price": 310000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 4644,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/769118.jpg",
+          "name": "2026/08/769118.jpg",
+          "alt": "Sun King HomePlus Pro Solar"
+        },
+        {
+          "id": 4645,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/769117.jpg",
+          "name": "2026/08/769117.jpg",
+          "alt": "Sun King HomePlus Pro Solar"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Sun King HomePlus Pro Solar Home Light System",
+      "description": "<p>The HomePlus Pro is a solar home system that is designed to provide comprehensive lighting and phone charging for families and businesses without access to electricity.</p>\n<p>The large battery and solar panel provide reliable phone charging and lighting.</p>\n<p>A battery management system automatically dims the lamps and pauses phone charging when the battery charge is low, providing extended lighting for several hours until sunrise.</p>\n<p>What’s in the box<br />\nWhat&#8217;s in the box;</p>\n<p>1 x solar panel</p>\n<p>4x 240 Lumens Tube Lights</p>\n<p>1 x USB-A phone charging port</p>\n<p>38.4 Wh LFP Battery</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4549,
+      "name": "Intel i7 3770K SUPER GAMING DESKTOP",
+      "slug": "intel-i7-3770k-gtx-1080-8gb-32gb-ram-desktop-pc",
+      "permalink": "https://www.cyberdynamictech.com/product/intel-i7-3770k-gtx-1080-8gb-32gb-ram-desktop-pc/",
+      "sku": "SKU-4549",
+      "barcode": "CDT004549",
+      "price": 4500000,
+      "regular_price": 4500000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 19,
+          "name": "DESKTOPS",
+          "slug": "desktops"
+        }
+      ],
+      "images": [
+        {
+          "id": 4546,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/722813qez1GEx51785908738.png",
+          "name": "2026/08/722813qez1GEx51785908738.png",
+          "alt": "Intel i7 3770K SUPER GAMING DESKTOP"
+        },
+        {
+          "id": 4545,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/722823sHpuQIgi1785908729.png",
+          "name": "2026/08/722823sHpuQIgi1785908729.png",
+          "alt": "Intel i7 3770K SUPER GAMING DESKTOP"
+        },
+        {
+          "id": 4547,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/7228190tsAoMRK1785908747.png",
+          "name": "2026/08/7228190tsAoMRK1785908747.png",
+          "alt": "Intel i7 3770K SUPER GAMING DESKTOP"
+        },
+        {
+          "id": 4548,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/722824RDUC5Vmc1785908756.png",
+          "name": "2026/08/722824RDUC5Vmc1785908756.png",
+          "alt": "Intel i7 3770K SUPER GAMING DESKTOP"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Intel i7 3770K + GTX 1080 8GB + 32GB RAM | Desktop PC",
+      "description": "<p>An excellent 1080p gaming PC. Rocking an Intel i7 3770K clocked @ 3.9GHz CPU and an Nvidia GTX 1080 8GB graphics card gets you speed &amp; power that dominates the most popular games. This PC comes with 32GB RAM, 500GB SSD &amp; 1TB HDD giving you the speed and space packed in this budget-friendly Gaming PC.</p>\n<p>1080p Gaming Performance;</p>\n<p>Fortnite: 220FPS</p>\n<p>Apex Legends: 120FPS<br />\nCOD Warzone: 80FPS</p>\n<p>Valorant: 220FPS</p>\n<p>GTA V: 80FPS</p>\n<p>Other Games: 60-80FPS</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4532,
+      "name": "Epson L382/L386/L486 Resetter",
+      "slug": "epson-l382-l386-l486-resetter",
+      "permalink": "https://www.cyberdynamictech.com/product/epson-l382-l386-l486-resetter/",
+      "sku": "SKU-4532",
+      "barcode": "CDT004532",
+      "price": 10000,
+      "regular_price": 10000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 17,
+          "name": "OTHERS",
+          "slug": "others"
+        },
+        {
+          "id": 24,
+          "name": "SOFTWARE",
+          "slug": "software"
+        }
+      ],
+      "images": [
+        {
+          "id": 4530,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/07/686115FUlKV3l51784464593.jpg",
+          "name": "2026/07/686115FUlKV3l51784464593.jpg",
+          "alt": "Epson L382/L386/L486 Resetter"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Epson L382/L386/L486 Resetter",
+      "description": "<p>Reset Waste Ink Pad Counter<br />\nEEPROM initial setting<br />\nInitial Ink Charge<br />\nHead ID Setting<br />\nTop margin Adjustment<br />\nBi-D Adjustment<br />\nUSB ID Input<br />\nCleaning the Print Head</p>\n<p>Put Adjustment Program to Antivirus Ignore list or Disable Antivirus. Then Run the program.</p>\n<p>Epson L382/L386/L486 AdjProg or Epson L382/L386/L486 Adjustment Program or Epson L382/L386/L486 Adj Program, is a middleware developed by third-party software to supply for Epson L382/L386/L486 printer, making printer continuous printing without error.<br />\n– Epson L382/L386/L486 Adjustment Program enables to perform maintenance</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4510,
+      "name": "HP LaserJet Pro M1132 MFP Monochrome Laser Printer",
+      "slug": "hp-laserjet-pro-m1132-mfp-monochrome-laser-printer",
+      "permalink": "https://www.cyberdynamictech.com/product/hp-laserjet-pro-m1132-mfp-monochrome-laser-printer/",
+      "sku": "SKU-4510",
+      "barcode": "CDT004510",
+      "price": 850000,
+      "regular_price": 950000,
+      "sale_price": 850000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 23,
+          "name": "PRINTERS",
+          "slug": "printers"
+        }
+      ],
+      "images": [
+        {
+          "id": 4511,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/07/654262fHLMyjH21783429801.jpg",
+          "name": "2026/07/654262fHLMyjH21783429801.jpg",
+          "alt": "HP LaserJet Pro M1132 MFP Monochrome Laser Printer"
+        },
+        {
+          "id": 4512,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/07/655654Wu5plqRS1783429818.png",
+          "name": "2026/07/655654Wu5plqRS1783429818.png",
+          "alt": "HP LaserJet Pro M1132 MFP Monochrome Laser Printer"
+        }
+      ],
+      "attributes": [],
+      "short_description": "HP LaserJet Pro M1132 MFP Monochrome Laser Printer",
+      "description": "<p>HP LaserJet Pro M1132 MFP Monochrome Laser Printer<br />\nFast, Reliable &amp; Compact All-in-One Laser Printer<br />\nThe HP LaserJet Pro M1132 MFP is a compact monochrome laser printer designed for homes, offices, schools, and small businesses. It combines printing, copying, and scanning in one reliable machine, delivering sharp black-and-white documents with fast print speeds and low operating costs.<br />\nIts space-saving design, easy setup, and energy-efficient performance make it an ideal choice for everyday office tasks.<br />\nKey Features<br />\n✅ Print, Copy &amp; Scan (3-in-1)<br />\n✅ Monochrome Laser Printing<br />\n✅ Print Speed: Up to 18 pages per minute<br />\n✅ Print Resolution: Up to 600 × 600 dpi<br />\n✅ Flatbed Color Scanner<br />\n✅ USB 2.0 Connectivity<br />\n✅ Energy-efficient HP Auto-On/Auto-Off Technology<br />\n✅ Compact design suitable for home and office use<br />\n✅ High-quality, professional text output<br />\nSpecifications<br />\nBrand: HP<br />\nModel: LaserJet Pro M1132 MFP<br />\nFunctions: Print, Copy, Scan<br />\nPrint Technology: Laser<br />\nPrint Color: Black &amp; White (Monochrome)<br />\nConnectivity: USB 2.0<br />\nPaper Size: A4, A5, B5, Letter, Legal<br />\nMonthly Duty Cycle: Up to 8,000 pages<br />\nRecommended Monthly Volume: 250–2,000 pages<br />\nIdeal For<br />\nOffices<br />\nSchools<br />\nBusinesses<br />\nRetail Shops<br />\nHome Users<br />\nCyber Cafés<br />\nPackage Includes<br />\nHP LaserJet Pro M1132 MFP Printer<br />\nPower Cable<br />\nUSB Cable (if included)<br />\nStarter Toner Cartridge<br />\nUser Guide<br />\nWhy Choose This Printer?<br />\nFast and reliable performance<br />\nCrisp, professional-quality prints<br />\nLow maintenance costs<br />\nEasy to operate<br />\nDurable HP build quality<br />\nPerfect for everyday document printing</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4473,
+      "name": "Hp Elitebook 850",
+      "slug": "hp-elitebook-850-3",
+      "permalink": "https://www.cyberdynamictech.com/product/hp-elitebook-850-3/",
+      "sku": "SKU-4473",
+      "barcode": "CDT004473",
+      "price": 1500000,
+      "regular_price": 2000000,
+      "sale_price": 1500000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 21,
+          "name": "LAPTOPS",
+          "slug": "laptops"
+        }
+      ],
+      "images": [
+        {
+          "id": 4472,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/06/633853QFGYw41r1782302724.jpg",
+          "name": "2026/06/633853QFGYw41r1782302724.jpg",
+          "alt": "Hp Elitebook 850"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Hp Elitebook 850",
+      "description": "Hp Elitebook 850",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4411,
+      "name": "SAMSUNG A06",
+      "slug": "samsung-a06",
+      "permalink": "https://www.cyberdynamictech.com/product/samsung-a06/",
+      "sku": "SKU-4411",
+      "barcode": "CDT004411",
+      "price": 450000,
+      "regular_price": 450000,
+      "on_sale": false,
+      "stock_status": "outofstock",
+      "stock_quantity": 0,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 22,
+          "name": "PHONES",
+          "slug": "phones"
+        }
+      ],
+      "images": [
+        {
+          "id": 4412,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/06/download-1.webp",
+          "name": "SAMSUNG A06",
+          "alt": "SAMSUNG A06"
+        }
+      ],
+      "attributes": [],
+      "short_description": "SAMSUNG A06",
+      "description": "<p>Samsung Galaxy A06</p>\n<p>Experience smooth performance and reliable connectivity with the Samsung Galaxy A06. Designed for everyday use, the Galaxy A06 features a large immersive display, long-lasting battery, and powerful cameras to keep you connected, productive, and entertained throughout the day.</p>\n<p>Key Features:</p>\n<p>• Large HD+ Display for an immersive viewing experience</p>\n<p>• Powerful Octa-Core Processor for smooth multitasking</p>\n<p>• High-Resolution Rear Camera for clear photos and videos</p>\n<p>• Long-Lasting 5000mAh Battery</p>\n<p>• Fast Charging Support</p>\n<p>• Ample Storage with expandable memory support</p>\n<p>• Secure and user-friendly Samsung One UI</p>\n<p>Whether you&#8217;re browsing, streaming, gaming, or capturing memories, the Samsung Galaxy A06 delivers dependable performance at an affordable price.</p>\n<p>Available now from CYBER DYNAMIC TECHNOLOGIES.</p>\n<p>Contact: 0394760459 / 0742689706</p>\n<p>Website: www.cyberdynamictech.com</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4409,
+      "name": "TCL 40&#8243; Smart TV – Full HD Entertainment at Its Best",
+      "slug": "tcl-40-smart-tv-full-hd-entertainment-at-its-best",
+      "permalink": "https://www.cyberdynamictech.com/product/tcl-40-smart-tv-full-hd-entertainment-at-its-best/",
+      "sku": "SKU-4409",
+      "barcode": "CDT004409",
+      "price": 800000,
+      "regular_price": 900000,
+      "sale_price": 800000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 27,
+          "name": "TVS",
+          "slug": "tvs"
+        }
+      ],
+      "images": [
+        {
+          "id": 4408,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/06/590727.jpg",
+          "name": "2026/06/590727.jpg",
+          "alt": "TCL 40&#8243; Smart TV – Full HD Entertainment at Its Best"
+        }
+      ],
+      "attributes": [],
+      "short_description": "TCL 40&#8243; Smart TV – Full HD Entertainment at Its Best",
+      "description": "<p>Experience immersive entertainment with the TCL 40-Inch Smart TV, designed to bring your favorite movies, sports, and shows to life in stunning Full HD clarity. Featuring a sleek modern design, vibrant LED display, and smart connectivity, this TV gives you easy access to popular streaming platforms such as YouTube, Netflix, Prime Video, and more.</p>\n<p>With built-in Wi-Fi, multiple HDMI and USB ports, and a user-friendly smart interface, the TCL 40-Inch Smart TV allows seamless connection to gaming consoles, decoders, sound systems, and other devices. Its powerful audio output and crystal-clear picture quality make it perfect for living rooms, bedrooms, offices, and entertainment spaces.</p>\n<p>Key Features:<br />\n• 40-Inch Full HD (1080p) LED Display<br />\n• Smart TV with Built-in Wi-Fi<br />\n• Access to Popular Streaming Apps<br />\n• Multiple HDMI &amp; USB Connectivity Ports<br />\n• Clear, Vibrant Colors and Sharp Images<br />\n• Slim, Modern, and Space-Saving Design<br />\n• Compatible with External Audio Devices and Gaming Consoles</p>\n<p>Upgrade your home entertainment experience with the TCL 40-Inch Smart TV — the perfect combination of quality, performance, and affordability.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4372,
+      "name": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier",
+      "slug": "conica-minolta-bizhub-c454e-colour-photocopier",
+      "permalink": "https://www.cyberdynamictech.com/product/conica-minolta-bizhub-c454e-colour-photocopier/",
+      "sku": "SKU-4372",
+      "barcode": "CDT004372",
+      "price": 5450000,
+      "regular_price": 6500000,
+      "sale_price": 5450000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 23,
+          "name": "PRINTERS",
+          "slug": "printers"
+        }
+      ],
+      "images": [
+        {
+          "id": 4367,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571581.jpg",
+          "name": "2026/05/571581.jpg",
+          "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+        },
+        {
+          "id": 4368,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571587.jpg",
+          "name": "2026/05/571587.jpg",
+          "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+        },
+        {
+          "id": 4369,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571593.jpg",
+          "name": "2026/05/571593.jpg",
+          "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+        },
+        {
+          "id": 4370,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571590.jpg",
+          "name": "2026/05/571590.jpg",
+          "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+        },
+        {
+          "id": 4371,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571584.jpg",
+          "name": "2026/05/571584.jpg",
+          "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+        }
+      ],
+      "attributes": [],
+      "short_description": "**Konica Minolta bizhub C454e – Smart, fast, and reliable A3 color multifunction printer delivering 45 ppm performance, advanced scanning, and intuitive touchscreen operation for demanding office environments.**",
+      "description": "<p>The Konica Minolta bizhub C454e is a high-performance A3 color multifunction printer (MFP) designed for medium to large offices. It combines printing, copying, scanning, and optional faxing in one compact and professional document management system. Built for productivity and reliability, the C454e delivers fast color and black-and-white output while supporting advanced workflow and security features.</p>\n<p>Konica Minolta bizhub C454e – Product Description</p>\n<p>Key Features<br />\nPrint, Copy, Scan, and Optional Fax<br />\nColor and Black &amp; White printing<br />\n45 pages per minute (A4) output speed<br />\n22 pages per minute (A3) printing<br />\n9-inch color multi-touch display for easy operation<br />\nDual-scan document feeder with scan speeds up to 160 images per minute<br />\nAutomatic duplex (double-sided) printing and scanning<br />\nSupports paper sizes from A6 to SRA3, including banner printing up to 1.2 meters<br />\nLarge expandable paper capacity for high-volume office work</p>\n<p>Feature<br />\nSpecification<br />\nPrint Speed<br />\n45 ppm (A4 color &amp; mono)<br />\nA3 Speed<br />\n22 ppm<br />\nPrint Resolution<br />\nUp to 1200 × 1200 dpi<br />\nCopy Resolution<br />\n600 × 600 dpi<br />\nWarm-up Time<br />\nApprox. 25 sec<br />\nFirst Print Time<br />\n4.6 sec mono / 5.5 sec color<br />\nMemory<br />\n2 GB RAM<br />\nStorage<br />\n250 GB HDD<br />\nPaper Capacity<br />\n1,150 sheets standard, up to 6,650 sheets max<br />\nConnectivity<br />\nUSB 2.0, Gigabit Ethernet<br />\nSupported Formats<br />\nA6–SRA3, custom sizes, banner printing<br />\nPaper Weight<br />\n52–300 gsm</p>\n<p><strong>Konica Minolta bizhub C454e – Smart, fast, and reliable A3 color multifunction printer delivering 45 ppm performance, advanced scanning, and intuitive touchscreen operation for demanding office environments.</strong></p>\n<p>Ideal For<br />\nThe C454e is suitable for:<br />\nCorporate offices<br />\nSchools and universities<br />\nPrint rooms<br />\nGovernment and administrative offices<br />\nBusinesses needing high-volume color printing and scanning with professional quality</p>\n<p>Productivity &amp; Workflow<br />\nThe bizhub C454e is designed to streamline office workflows. Users can:<br />\nScan directly to Email, USB, FTP, SMB, or network folders<br />\nPrint PDF, TIFF, XPS, and Microsoft Office files<br />\nStore documents in built-in user boxes<br />\nCustomize workflows using the touch interface and downloadable applications<br />\nUse secure and authenticated printing for confidential documents</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4366,
+      "name": "TCL 43 inch Android SmartTV",
+      "slug": "tcl-43-inch-android-smarttv",
+      "permalink": "https://www.cyberdynamictech.com/product/tcl-43-inch-android-smarttv/",
+      "sku": "SKU-4366",
+      "barcode": "CDT004366",
+      "price": 780000,
+      "regular_price": 780000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 27,
+          "name": "TVS",
+          "slug": "tvs"
+        }
+      ],
+      "images": [
+        {
+          "id": 4373,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571599.png",
+          "name": "2026/05/571599.png",
+          "alt": "TCL 43 inch Android SmartTV"
+        },
+        {
+          "id": 4365,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571578.jpg",
+          "name": "2026/05/571578.jpg",
+          "alt": "TCL 43 inch Android SmartTV"
+        }
+      ],
+      "attributes": [],
+      "short_description": "TCL 43 Inch Smart android Tv , HDR 10 Google TV ,Full HD Dolby Audio,Game Mode,Multiple Eye qled Care w ith Slim Design 2025 Model, YouTube, Netflix, Hifi, Prime Video Chromcast, Built in Free to air Decorder4k &#8211; Black",
+      "description": "<p>TCL 43 ,Brilliant QLED Display for Vivid Colors Full HD Tv ,Experience Exceptional Picture Quality with the TCL 43S5K QLED Full HD Tv.</p>\n<p>Full HD Resolution with enhanced clarity .Enjoy Crisp with Clear Viewing  experience with 192*1080 Full HD Resolution</p>\n<p>Dolby Audio for immersive Sound ,Feel the Action With Dolby Sound Delivering Clear  dialogue rich bass and Surround Sound like Performance Perfect for movies Sports and gaming ,the Tv Brings Cinema quality Sound right into your home.</p>\n<p>Google Tv with Personalised  Content.</p>\n<p>Key Features<br />\nImmersive HDR10 for deeper Contast and clear details .</p>\n<p>Power full 24W Doulby Audio for cinematic Sound</p>\n<p>Smart google Tv Os with google cast built in access your favourite Streaming apps voice Control and Seamless casting for mobile device all powered by google inuitive google Tv Platforms .</p>\n<p>Tailored viewing modes for gaming ,movies and Sports mode.</p>\n<p>Elegant Metallic Bezel less Slim Design Sleek Modern and Space Saving ,the bazel less frame enhance your viewing area while Elevating your home decor .</p>\n<p>Versatile Connectivity ,Stay with 3 HDMI ports,2 USB ports , wifi Ethernet and Bluetooth v5.0 Perfect for gaming Consoles Sound Bars and others.</p>",
+      "average_rating": 2,
+      "rating_count": 0
+    },
+    {
+      "id": 4359,
+      "name": "Car &amp; Motorcycle GPS Tracker",
+      "slug": "car-motorcycle-gps-tracker",
+      "permalink": "https://www.cyberdynamictech.com/product/car-motorcycle-gps-tracker/",
+      "sku": "SKU-4359",
+      "barcode": "CDT004359",
+      "price": 185000,
+      "regular_price": 185000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 17,
+          "name": "OTHERS",
+          "slug": "others"
+        }
+      ],
+      "images": [
+        {
+          "id": 4360,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571184.png",
+          "name": "2026/05/571184.png",
+          "alt": "Car &amp; Motorcycle GPS Tracker"
+        },
+        {
+          "id": 4355,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571170.jpg",
+          "name": "2026/05/571170.jpg",
+          "alt": "Car &amp; Motorcycle GPS Tracker"
+        },
+        {
+          "id": 4354,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571174.jpg",
+          "name": "2026/05/571174.jpg",
+          "alt": "Car &amp; Motorcycle GPS Tracker"
+        },
+        {
+          "id": 4356,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571173-1.jpg",
+          "name": "2026/05/571173-1.jpg",
+          "alt": "Car &amp; Motorcycle GPS Tracker"
+        },
+        {
+          "id": 4357,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571172.jpg",
+          "name": "2026/05/571172.jpg",
+          "alt": "Car &amp; Motorcycle GPS Tracker"
+        },
+        {
+          "id": 4358,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571171.jpg",
+          "name": "2026/05/571171.jpg",
+          "alt": "Car &amp; Motorcycle GPS Tracker"
+        },
+        {
+          "id": 4361,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571184-1.png",
+          "name": "2026/05/571184-1.png",
+          "alt": "Car &amp; Motorcycle GPS Tracker"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Car &amp; Motorcycle GPS Tracker for Vehicles – Anti-Theft Real-Time Tracking with Engine Cut-Off – Free App Hosting",
+      "description": "<p>Protect your car or motorcycle from theft with real-time GPS tracking and remote engine cut-off. Monitor your vehicle live from your phone, receive instant alerts if it moves without permission, and review trip history anytime. This smart tracker helps you stay in control and protect your investment.</p>\n<p>Key Security Benefits</p>\n<p>Real-Time Location Tracking – See your vehicle live on your mobile phone map anytime.<br />\nRemote Engine Cut-Off – Stop the engine from your app in case of theft.<br />\nInstant Movement Alerts – Get notified if your car or motorcycle is moved unexpectedly.<br />\nGeo-Fence Alerts – Receive alerts when the vehicle enters or leaves a set area.<br />\nTrip Playback History – Review routes, stops, and driving patterns anytime.<br />\nHidden Installation – Device can be safely concealed inside the vehicle.<br />\nEasy Mobile App Monitoring</p>\n<p>Monitor everything from your smartphone using a free mobile app (Android &amp; iPhone).</p>\n<p>✔ Live tracking<br />\n✔ Speed monitoring<br />\n✔ Route history<br />\n✔ Alarm notifications<br />\n✔ Engine cut-off control</p>\n<p>Designed for Use in Uganda<br />\nThis GPS tracker works reliably across Uganda using MTN or Airtel SIM cards. It provides stable tracking in cities, highways, and rural areas. Suitable for personal cars, bodas (motorcycles), and fleet vehicles.</p>\n<p>No complicated setup — just insert a SIM card and connect.</p>\n<p>Installation &amp; Use</p>\n<p>Professional installation is recommended for the engine cut-off feature. The device connects to the vehicle’s power system and can be hidden safely inside the dashboard area.</p>\n<p>What’s in the Box</p>\n<p>• GPS Tracking Device<br />\n• Wiring Harness<br />\n• Engine Cut-Off Relay<br />\n• User Manual</p>\n<p>Technical Specifications<br />\n• Positioning: GPS + LBS + AGPS<br />\n• GPS Accuracy: Up to 5 meters<br />\n• Voltage Range: 9V–90V<br />\n• Waterproof Rating: IPX5<br />\n• Built-in Battery Backup<br />\n• Alarm Types: Vibration, Power Cut, Geo-Fence, Overspeed</p>\n<p>Why Buy From Us?<br />\n✔ Used by vehicle owners across Uganda<br />\n✔ Free app hosting — no monthly tracking subscription<br />\n✔ Reliable tracking performance<br />\n✔ Ideal for personal, boda &amp; fleet vehicle security</p>\n<p>Key Features<br />\nCar/Motorbike  GPS tracker with remote engine cutoff APP monitoring</p>\n<p>Product properties:</p>\n<p>Material: anti-lock braking system (ABS)<br />\nModel: CY03A<br />\nMemory: 0 (m)<br />\nGPS positioning accuracy: 5 (meters)<br />\nAlarm mode: vibration alarm, power failure alarm, mobile alarm, fence alarm, overspeed alarm.<br />\nDimensions: 77.7<em>28.8</em>16 (mm)<br />\nBattery type: polymer battery<br />\nBattery life: 8 (hours)<br />\nWaterproof function: IPX5<br />\nAntenna type: integrated<br />\nExternal power supply as power supply: 9-90 V<br />\nMap function: Google/Baidu/Google<br />\nGPS tracking device for car/motorcycle/scooter</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4352,
+      "name": "foldable/ Portable Washing Machine,y",
+      "slug": "foldable-portable-washing-machiney",
+      "permalink": "https://www.cyberdynamictech.com/product/foldable-portable-washing-machiney/",
+      "sku": "SKU-4352",
+      "barcode": "CDT004352",
+      "price": 180000,
+      "regular_price": 180000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 17,
+          "name": "OTHERS",
+          "slug": "others"
+        }
+      ],
+      "images": [
+        {
+          "id": 4345,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571087.jpg",
+          "name": "2026/05/571087.jpg",
+          "alt": "foldable/ Portable Washing Machine,y"
+        },
+        {
+          "id": 4346,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571084.jpg",
+          "name": "2026/05/571084.jpg",
+          "alt": "foldable/ Portable Washing Machine,y"
+        },
+        {
+          "id": 4347,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571085.jpg",
+          "name": "2026/05/571085.jpg",
+          "alt": "foldable/ Portable Washing Machine,y"
+        },
+        {
+          "id": 4348,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571086.jpg",
+          "name": "2026/05/571086.jpg",
+          "alt": "foldable/ Portable Washing Machine,y"
+        },
+        {
+          "id": 4349,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571089.jpg",
+          "name": "2026/05/571089.jpg",
+          "alt": "foldable/ Portable Washing Machine,y"
+        },
+        {
+          "id": 4350,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571090.jpg",
+          "name": "2026/05/571090.jpg",
+          "alt": "foldable/ Portable Washing Machine,y"
+        },
+        {
+          "id": 4351,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571088.jpg",
+          "name": "2026/05/571088.jpg",
+          "alt": "foldable/ Portable Washing Machine,y"
+        }
+      ],
+      "attributes": [],
+      "short_description": "foldable/ Portable Washing Machine,y",
+      "description": "<p>Attention】The mini washing machine is designed special for small items as like baby clothes ,underwear,sock,towels ,fruits vegetables and pet supplies and other small things which can&#8217;t wash sweaters and large clothes.Please be aware that this washing machine does not include a dehydration function and a dryer function. This mini washer is not intended to replace a full-sized washing machine.</p>\n<p>【Folding Design &amp; Larger Capacity 】 Measuring 11.6 x 11.6 x 11.4inches when unfolded and 11.6 x 11.6 x 5.7 inches when folded.Washing Capacity is 2.64 LB / 8L, 3 baby t-shirts or 6 under wears or 10 pairs of socks in one load.Perfect for travelers, small spaces, and busy families with babies, pets, or patients.</p>\n<p>【Super convenient and Cost-Saving】Our mini portable washing machine is the epitome of super savings and convenience. The washing cycle time is only ten minutes, while the water consumption is as low as 1.32 gallons, and power consumption is as low as 0.003 kWh. This means you can save both time and money while getting your laundry done quickly and efficiently. Our product is designed with your convenience and cost-savings in mind.&#8221;</p>\n<p>Durable and Eco-Friendly Materials】Our mini washing machine is designed to last, thanks to its durable and eco-friendly materials. Made of high-quality ABS and TPR materials, making it a great choice for washing personal items, baby items, pet items, fruits, and vegetables.It can handle up to 2kg of clothing weight (when filled with water) and effectively removes dirt, leaving your clothes looking clean and fresh.</p>\n<p>【Easy to operate &amp; Three Modes】Compact simple washing machine has a semi-automatic cleaning function and is equipped with 3 washing modes .By long-pressing switch button for 2 seconds, the mode can be switched on or off. Clicking on the switch button once will set the washing mode to standard for a duration of 10 minutes. Pressing the switch button again will switch to a 15-minute washing mode. Similarly, pressing the switch button will convert the dehydration mode for 2 minutes.</p>\n<p>Key Features</p>\n<p>Washing Rated Capacity:8L<br />\nOutput voltage: DC12V<br />\nWaterproof Grade:IPX4<br />\nWashing Capacity and Power:Semi-Automatic Cleaning Function 110V-240V</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4318,
+      "name": "Hp LaserJet Pro 4003dn Printer &#8211; White",
+      "slug": "hp-laserjet-pro-4003dn-printer-white",
+      "permalink": "https://www.cyberdynamictech.com/product/hp-laserjet-pro-4003dn-printer-white/",
+      "sku": "SKU-4318",
+      "barcode": "CDT004318",
+      "price": 1300000,
+      "regular_price": 1300000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 23,
+          "name": "PRINTERS",
+          "slug": "printers"
+        }
+      ],
+      "images": [
+        {
+          "id": 4315,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562719.jpg",
+          "name": "2026/05/562719.jpg",
+          "alt": "Hp LaserJet Pro 4003dn Printer &#8211; White"
+        },
+        {
+          "id": 4316,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562718.jpg",
+          "name": "2026/05/562718.jpg",
+          "alt": "Hp LaserJet Pro 4003dn Printer &#8211; White"
+        },
+        {
+          "id": 4317,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562720.jpg",
+          "name": "2026/05/562720.jpg",
+          "alt": "Hp LaserJet Pro 4003dn Printer &#8211; White"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Hp LaserJet Pro 4003dn Printer &#8211; White",
+      "description": "<p>The HP LaserJet 4003dn Printer is a high-performance printing solution designed for black and white printing tasks. With its print-only functionality, it focuses on producing high-quality monochrome documents efficiently. Featuring network connectivity, it allows seamless printing from multiple devices within the same network, enhancing productivity in shared office environments. Its sleek white design adds a modern touch to any workspace or office setting. Ideal for users who prioritize network printing capabilities, the HP LaserJet Pro 4003dn Printer offers reliability, speed, and versatility for business and professional use.</p>\n<p>Technical Specifications</p>\n<p>Functions</p>\n<p>Print<br />\nPrint Speed</p>\n<p>Black (ISO, letter): Up to 42 ppm 1<br />\nBlack (ISO, A4): Up to 40 ppm 1<br />\nFirst Page Out</p>\n<p>Black (letter, ready): As fast as 6.1 sec 2<br />\nBlack (A4, ready): As fast as 6.3 sec 2<br />\nColor (letter, ready): 2<br />\nColor (A4, ready): 2<br />\nDuty Cycle (Monthly)</p>\n<p>Letter: Up to 80,000 pages<br />\nA4: Up to 80,000 pages<br />\nRecommended Monthly Page Volume</p>\n<p>750 to 4,000<br />\nPrint Quality (Best)</p>\n<p>Black: Fine Lines (1200 x 1200 dpi)<br />\nPrint Languages</p>\n<p>HP PCL 6, HP PCL 5e, HP postscript level 3 emulation, PDF, URF, PWG Raster<br />\nPrint Technology</p>\n<p>Laser<br />\nConnectivity, Standard</p>\n<p>1 Hi-Speed USB 2.0; 1 host USB at rear side; Gigabit Ethernet 10/100/1000BASE-T network; 802.3az(EEE)<br />\nMobile Printing Capability</p>\n<p>HP Smart App; Apple AirPrint™; Mopria™ Certified<br />\nNetwork Capabilities</p>\n<p>Yes, via built-in 10/100/1000Base-TX Ethernet, Gigabit; Auto-crossover Ethernet; Authentication via 802.1X (does not apply to D bundles)<br />\nMinimum System Requirements</p>\n<p>For Macintosh: 2 GB available hard drive space; Internet connection or USB port Internet browser. For additional OS hardware requirements see apple.com<br />\nFor Windows: 2 GB available hard disk space; Internet connection or USB port Internet browser. For additional OS hardware requirements see microsoft.com<br />\nDisplay</p>\n<p>2-line backlit LCD graphic display<br />\nProcessor Speed</p>\n<p>1200 MHz<br />\nMaximum Memory</p>\n<p>256 MB<br />\nMemory</p>\n<p>256 MB<br />\nInternal Storage</p>\n<p>None<br />\nStorage</p>\n<p>Optional Job storage via external rear host USB port (Minimum 16 GB)<br />\nCompatible Operating Systems</p>\n<p>Windows 11; Windows 10; Android; iOS; Mobile OS; macOS 10.15 Catalina; macOS 11 Big Sur; macOS 12 Monterey; macOS 13 Ventura; Chrome OS<br />\nPaper Handling Input, Standard</p>\n<p>100-sheet multipurpose Tray 1, 250-sheet input Tray 2<br />\nPaper Handling Output, Standard</p>\n<p>150-sheet output bin<br />\nPaper Handling Input, Optional</p>\n<p>Optional third 550-sheet tray<br />\nFinished Output Handling</p>\n<p>Sheetfed<br />\nMedia Types</p>\n<p>Paper (plain, EcoFFICIENT, light, heavy, bond, colored, letterhead, preprinted, prepunched, recycled, rough); envelopes; labels<br />\nMedia Sizes, Custom</p>\n<p>Tray 1: 76 x 127 to 216 x 356 mm; Tray 2, optional Tray 3: 104.9 x 148.5 to 2165.9 x 356.6 mm<br />\nPower Consumption</p>\n<p>495 watts (active printing), 5.5 watts (ready), 0.5 watts (sleep), 0.5 (Auto Off/Wake on LAN, enabled at shipment), 0.05 watts (Auto-off/Manual-on), 0.05 (Manual Off) (Power requirements are based on the country/region where the printer is sold. Do not convert operating voltages. This will damage the printer and void the product warranty.)<br />\nPower</p>\n<p>110-volt input voltage: 110 to 127 VAC (+/- 10%), 50/60 Hz (+/- 2 Hz); 220-volt input voltage: 220 to 240 VAC (+/- 10%), 50/60 Hz (+/- 2 Hz) (Not dual voltage, product varies by part number with # Option code identifier)<br />\nOperating Humidity Range</p>\n<p>10 to 80% RH<br />\nRecommended Operating Humidity Range</p>\n<p>30 to 70% RH<br />\nOperating Temperature Range</p>\n<p>10 to 32.5°C<br />\n50 to 91°F<br />\nBlue Angel Compliant</p>\n<p>No, please refer to the ECI (Ecolabel Comparison Information) document<br />\nTypical Electricity Consumption (TEC) Number</p>\n<p>5 (Typical Electricity Consumption (TEC) rating represents the typical electricity consumed by a product during 1 week, measured in kilowatt-hours (kWh).)<br />\nEnergy Savings Feature Technology</p>\n<p>HP Auto-On/Auto-Off Technology; Instant-on Technology; EcoSmart black toner; Power save<br />\nEcolabels</p>\n<p>IT ECO Declaration (EPEAT® registered where applicable. EPEAT registration varies by country. See http://www.epeat.net for registration status by country.)<br />\nEnergy Star Certified</p>\n<p>No<br />\nSafety</p>\n<p>IEC 60950-1:2005 +A1:2009 +A2:2013; IEC 62368-1:2014 / EN 62368-1:2014; IEC 60825-1:2014 / EN 60825-1:2014; IEC 62479:2010 / EN 62479:2010<br />\nSecurity Management</p>\n<p>Management security: SNMP v1 v2 v3, SSL/TLS (HTTPS), 802.1x authentication; wireless network security: WPA (Wi-Fi Protected Access) WPA2 WPA3, WEP encryption (64 and 128 bit), 802.1x authentication (EAP-PEAP, LEAP, EAP-TLS) with RADIUS servers<br />\nHP Security Manager; Optional Smart Security; HP Secure Print and Insights<br />\nMinimum Dimensions (W x D x H)</p>\n<p>381 x 357 x 216 mm (Without trays and covers not extended)<br />\nMaximum Dimensions (W x D x H)</p>\n<p>381 x 634 x 241 mm (Without trays and covers not extended)<br />\nWeight</p>\n<p>8.56 kg<br />\nWhat&#8217;s in the Box</p>\n<p>HP LaserJet 4003dn Printer; Preinstalled HP Black Original LaserJet Toner Cartridge (3,050 pages); Getting Started Guide; Support Flyer; Warranty Guide; Regulatory Flyer; Power cord<br />\nNumber of Print Cartridges</p>\n<p>1 (black)<br />\nReplacement Cartridges</p>\n<p>HP 151A Black Original LaserJet Toner Cartridge (~3,050 pages), W1510A; HP 151X Black Original LaserJet Toner Cartridge (~9,700 pages), W1510X<br />\nKey Features<br />\nFunctions: Print Only<br />\nPrint Speed: Up to 42 ppm<br />\nPrint Quality (Black, Best): Fine Lines (1200 x 1200 dpi)<br />\nConnectivity, Standard: 1 Hi-Speed USB 2.0; 1 host USB at rear side; Gigabit Ethernet 10/100/1000BASE-T network; 802.3az(EEE)<br />\nDuty Cycle (Monthly, Letter): Up to 80,000 pages<br />\nPaper Handling Input, Standard: 100-sheet multipurpose Tray 1, 250-sheet input Tray 2<br />\nPrint Technology: Laser</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4314,
+      "name": "Hp Dvr M141w Multifunction LaserJet Printer",
+      "slug": "hp-dvr-m141w-multifunction-laserjet-printer",
+      "permalink": "https://www.cyberdynamictech.com/product/hp-dvr-m141w-multifunction-laserjet-printer/",
+      "sku": "SKU-4314",
+      "barcode": "CDT004314",
+      "price": 850000,
+      "regular_price": 850000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 23,
+          "name": "PRINTERS",
+          "slug": "printers"
+        }
+      ],
+      "images": [
+        {
+          "id": 4311,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562708.jpg",
+          "name": "2026/05/562708.jpg",
+          "alt": "Hp Dvr M141w Multifunction LaserJet Printer"
+        },
+        {
+          "id": 4312,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562707.jpg",
+          "name": "2026/05/562707.jpg",
+          "alt": "Hp Dvr M141w Multifunction LaserJet Printer"
+        },
+        {
+          "id": 4313,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562706.jpg",
+          "name": "2026/05/562706.jpg",
+          "alt": "Hp Dvr M141w Multifunction LaserJet Printer"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Hp Dvr M141w Multifunction LaserJet Printer",
+      "description": "<p>he HP LaserJet MFP M141w Printer  is a reliable all-in-one device that can print, copy, and scan at speeds of up to 21 pages per minute. With a first-page-out time of as fast as 8.3 seconds, this printer is ideal for busy work environments.</p>\n<p>It features a duty cycle of up to 8,000 pages per month and can handle a recommended monthly page volume of 100 to 1,000 pages. The printer produces high-quality black prints with a resolution of up to 600 x 600 dpi using laser technology.</p>\n<p>The HP LaserJet MFP M141w Printer comes with 64 MB of memory and is compatible with various operating systems, including Windows 11, Windows 10, macOS Catalina, and Linux. It also supports mobile printing via the HP Smart App, Apple Air Print, and Mopria, making it easy to print from your smartphone or tablet.</p>\n<p>In terms of connectivity, the printer has a Hi-Speed USB port and 802.11b/g/n Wi-Fi radio, allowing you to connect to your network wirelessly. The 150-sheet input tray and 100-sheet output bin can handle various media types such as plain paper, envelopes, and postcards.</p>\n<p>Overall, the HP LaserJet MFP M141w Printer is a versatile and efficient device that can meet the printing, copying, and scanning needs of your business or home office.</p>\n<p>Key Features<br />\nFunctions: Print, copy, scan<br />\nPrint speed: Up to 21 ppm (black, ISO letter)<br />\nFirst page out: As fast as 8.3 sec (black, letter, ready)<br />\nDuplex printing: No<br />\nDuty cycle: Up to 8,000 pages/month (letter, A4)<br />\nRecommended monthly page volume: 100-1000<br />\nPrint quality: Up to 600 x 600 dpi (black, best)<br />\nPrint technology: Laser<br />\nConnectivity: Hi-Speed USB, Wi-Fi, BLE<br />\nMobile printing capability: HP Smart App, Apple AirPrint, Mopria Certified, Wi-Fi Direct Printing<br />\nWireless capability: Yes<br />\nDisplay: ICON LCD, LED<br />\nProcessor speed: 500 MHz<br />\nMemory: 64 MB<br />\nPaper handling: 150-sheet input tray, 100-sheet outpu<br />\nWhat’s in the box<br />\nM141w Multifunction LaserJet Printer<br />\nSpecifications</p>\n<p>Weight (kg): 1</p>\n<p>Certifications: Australian Made|AFRDI Leather|PEFC Timber Certificate|FSC &#8211; Forest Stewardship Council|PEFC &#8211; Programme for the Endorsement of Forest Certification|GECA &#8211; Good Environmental Choice Australia|Fair Trade|AFRDI &#8211; Australian Furnishing Research &amp; Development Institute|Eco Friendly|ASTM Certified|Organic|Suitable For Allergics|Made in Morocco|Swiss Made|Hong Kong Made|Made in Turkey</p>\n<p>Color: wrafasv</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4310,
+      "name": "Hp EliteBook Core I5 8th Gen",
+      "slug": "hp-elitebook-core-i5-8th-gen",
+      "permalink": "https://www.cyberdynamictech.com/product/hp-elitebook-core-i5-8th-gen/",
+      "sku": "SKU-4310",
+      "barcode": "CDT004310",
+      "price": 1250000,
+      "regular_price": 1600000,
+      "sale_price": 1250000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 21,
+          "name": "LAPTOPS",
+          "slug": "laptops"
+        }
+      ],
+      "images": [
+        {
+          "id": 4306,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562696.jpg",
+          "name": "2026/05/562696.jpg",
+          "alt": "Hp EliteBook Core I5 8th Gen"
+        },
+        {
+          "id": 4307,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562705.jpg",
+          "name": "2026/05/562705.jpg",
+          "alt": "Hp EliteBook Core I5 8th Gen"
+        },
+        {
+          "id": 4309,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562684.jpg",
+          "name": "2026/05/562684.jpg",
+          "alt": "Hp EliteBook Core I5 8th Gen"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Hp EliteBook Core I5 8th Gen, 8GB Ram, 256GB SSD, &#8211; Silver (6MTHS WRTY) Renewed Grade A",
+      "description": "<p>HP EliteBook  Laptop<br />\nThe HP Elitebook  Laptop is designed for modern mobile professionals. It offers a highly secure and manageable system with powerful collaboration tools that enables the enterprise workforce to be more productive and secure on the go or in the office.</p>\n<p>The HP  Elitebook Laptop is designed for modern mobile professionals. It offers a highly secure and manageable system with powerful collaboration tools that enables the enterprise workforce to be more productive and secure on the go or in the office.<br />\nThe 14″ display features a Full HD 1920 x 1080 resolution and a 16:9 aspect ratio. The IPS panel provides wider viewing angles while the anti-glare coating helps reduce glare.</p>\n<p>The system is powered by an 8th Gen 1.6 GHz Intel Core i5-8365U Quad-Core processor. It also has 16GB of DDR4 RAM, a 512GB M.2 NVMe PCIe SSD, Gigabit Ethernet, Wi-Fi 6 (802.11ax), Bluetooth 5.0, Thunderbolt 3, USB Type-A, and a docking connector. In the event that you need to restore the system, this EliteBook has  HP Sure Recovery storage, which is an automated operating system recovery solution integrated into the hardware and firmware.</p>\n<p>Windows 10 Pro (64-bit) includes all of the features of Windows 10 Home plus many designed specifically for business users, including Hyper-V virtualization, BitLocker disk encryption, and remote desktop access. Devices will also be able to join domains and the Azure Active Directory, and they can even access a specialized version of the Windows Store featuring custom, company-specific applications.</p>\n<p>Brilliant Design<br />\nThis ultraslim and distinctively designed aluminum laptop with its anti-glare display adapts to most environments for an improved viewing experience when you work.</p>\n<p>Built On a Secure Foundation<br />\nProtect your system against the evolving malware threats of the future, with self-healing and manageable hardware-enforced security solutions from HP. From the BIOS to the browser, HP Sure Start Gen5 and HP Sure Click help keep you secure.</p>\n<p>Crystal Clear Collaboration<br />\nCalls sound clear and crisp with advanced collaboration features like HP Noise Cancellation. Loud top-firing speakers produce rich sound. The world-facing third microphone and collaboration keys help make calls productive.</p>\n<p>Key Features<br />\nFHD Display<br />\nCore i5 8th Gen<br />\n8GB DDR4 Ram<br />\n256 GB SSD Storage<br />\nWindows 11 Pro<br />\nLasting Battery</p>\n<p>6 months warranty but not on power.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4292,
+      "name": "Kids Learning Tablet- Red/Blue",
+      "slug": "kids-learning-tablet-red-blue",
+      "permalink": "https://www.cyberdynamictech.com/product/kids-learning-tablet-red-blue/",
+      "sku": "SKU-4292",
+      "barcode": "CDT004292",
+      "price": 190000,
+      "regular_price": 190000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 32,
+          "name": "TABLETS",
+          "slug": "tablets"
+        }
+      ],
+      "images": [
+        {
+          "id": 4290,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/540547hdt7MwQg1777927252.jpg",
+          "name": "2026/05/540547hdt7MwQg1777927252.jpg",
+          "alt": "Kids Learning Tablet- Red/Blue"
+        },
+        {
+          "id": 4291,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/540548avPumQ3P1777927261.jpg",
+          "name": "2026/05/540548avPumQ3P1777927261.jpg",
+          "alt": "Kids Learning Tablet- Red/Blue"
+        }
+      ],
+      "attributes": [],
+      "short_description": "BEBE TAB B42pro+ 4GB 128GB RAM 7&#8221; Inch Display Kids Learning And Games Tablet- Red/Blue",
+      "description": "<p>Dear customer, please note that the color of the product received may vary between red and blue according to product availability. Thank you for shopping with us.</p>\n<p>Please come again!</p>\n<p>The B42pro+ Kids Tablet, specially designed to be an ultra-portable model, offers your children all the applications necessary for their full development. Its design which fits perfectly in the palm of the hand will seduce your children. Very practical, The B42prp+ Kids Tablet offers a modern design and a multitude of learning games to spend fun and educational moments.</p>\n<p>Screen: 7 inches TFT – Capacitive<br />\nOS: Android 8.1<br />\nRAM / ROM: 4GB / 128GB<br />\nCamera: 2 MP + 2.0 MP<br />\nProcessor: MTK6582 Quad-core<br />\nConnectivity: WiFi, GPS, Bluetooth, Micro USB v2.0<br />\nMemory Card: Micro SD up to 128 GB<br />\nBattery: 3000 mAh</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4268,
+      "name": "HP ProBook 8470 &#8211; Intel Core i5",
+      "slug": "hp-probook-8470-intel-core-i5-2",
+      "permalink": "https://www.cyberdynamictech.com/product/hp-probook-8470-intel-core-i5-2/",
+      "sku": "hp-probook-640-g1-intel-core-i5-1",
+      "barcode": "hp-probook-640-g1-intel-core-i5-1",
+      "price": 600000,
+      "regular_price": 650000,
+      "sale_price": 600000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 21,
+          "name": "LAPTOPS",
+          "slug": "laptops"
+        },
+        {
+          "id": 210,
+          "name": "PC &amp; LAPTOP",
+          "slug": "pc-laptop"
+        }
+      ],
+      "images": [
+        {
+          "id": 2915,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/b5q11ut_02-s.jpg",
+          "name": "b5q11ut_02-s",
+          "alt": "HP ProBook 8470 &#8211; Intel Core i5"
+        },
+        {
+          "id": 2916,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/OIP.jpg",
+          "name": "OIP",
+          "alt": "HP ProBook 8470 &#8211; Intel Core i5"
+        },
+        {
+          "id": 2917,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/HP-EliteBook-8470p-2-1.png",
+          "name": "HP-EliteBook-8470p-2 (1)",
+          "alt": "HP ProBook 8470 &#8211; Intel Core i5"
+        }
+      ],
+      "attributes": [],
+      "short_description": "HP EliteBook 8470p – Intel Core i5 3230M – 3rd Generation &#8211; 8GB Ram – 500GB HDD – Windows 10 &#8211; Grade A",
+      "description": "<p>The super business base HP EliteBook 8470p is equipped with an Intel Core i5, 2.46hz, 4 Cores, 14 Inches Screen, 8GB Memory and 500GB storage ensuring it is more than capable of reliably handling your daily business, work, study, or casual computing needs capable of 24/7 operations.All GTS UK computers</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4267,
+      "name": "Laptop Tote Bag",
+      "slug": "laptop-tote-bag",
+      "permalink": "https://www.cyberdynamictech.com/product/laptop-tote-bag/",
+      "sku": "SKU-4267",
+      "barcode": "CDT004267",
+      "price": 29500,
+      "regular_price": 35000,
+      "sale_price": 29500,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 17,
+          "name": "OTHERS",
+          "slug": "others"
+        }
+      ],
+      "images": [
+        {
+          "id": 4263,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/04/533500ogygxXsE1777547094.jpg",
+          "name": "2026/04/533500ogygxXsE1777547094.jpg",
+          "alt": "Laptop Tote Bag"
+        },
+        {
+          "id": 4264,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/04/5296780R95PN1m1777547276.jpg",
+          "name": "2026/04/5296780R95PN1m1777547276.jpg",
+          "alt": "Laptop Tote Bag"
+        },
+        {
+          "id": 4265,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/04/529696oixV6Nqr1777547293.jpg",
+          "name": "2026/04/529696oixV6Nqr1777547293.jpg",
+          "alt": "Laptop Tote Bag"
+        },
+        {
+          "id": 4266,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/04/529692VJg3JpJi1777547317.jpg",
+          "name": "2026/04/529692VJg3JpJi1777547317.jpg",
+          "alt": "Laptop Tote Bag"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Laptop Tote Bag",
+      "description": "<p>💻 Perfect For<br />\nLaptop users &amp; IT professionals<br />\nStudents &amp; campus life<br />\nOffice work &amp; business meetings<br />\nTech entrepreneurs &amp; freelancers<br />\nEveryday digital lifestyle</p>\n<p>✔️ Laptop-Friendly Design – Safely carries laptops and tech accessories<br />\n✔️ Strong &amp; Durable – Built for everyday use with reinforced stitching<br />\n✔️ Spacious Interior – Fits laptop, charger, books, and essentials<br />\n✔️ Comfortable Carry – Strong handles for easy movement<br />\n✔️ Custom Tech Designs – Stylish prints inspired by digital life<br />\n✔️ Multi-Purpose Use – Work, school, business, or travel</p>\n<p>Upgrade the way you carry your tech with the CYBER DYNAMIC TECHNOLOGIES Laptop Tote Bag—a perfect blend of durability, style, and functionality.<br />\nDesigned specifically for modern users, this bag is ideal for safely carrying laptops, accessories, and daily essentials. Whether you&#8217;re heading to work, campus, or a client meeting, this tote keeps everything organized and protected.<br />\nBuilt with high-quality materials and reinforced stitching, it offers long-lasting performance while maintaining a clean, professional look. The spacious interior comfortably fits most laptops along with chargers, notebooks, and other accessories.<br />\nWith unique custom designs, this bag also represents your style while staying aligned with today’s digital lifestyle.</p>\n<p>Protect and carry your laptop in style with our premium tech tote bag—designed for professionals, students, and everyday users who need reliability and style.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4192,
+      "name": "SPSS BY IBM 2026",
+      "slug": "spss-by-ibm-2026",
+      "permalink": "https://www.cyberdynamictech.com/product/spss-by-ibm-2026/",
+      "sku": "SKU-4192",
+      "barcode": "CDT004192",
+      "price": 60000,
+      "regular_price": 60000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 24,
+          "name": "SOFTWARE",
+          "slug": "software"
+        }
+      ],
+      "images": [
+        {
+          "id": 4190,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/04/500996IQk46qmL1775942078.jpg",
+          "name": "2026/04/500996IQk46qmL1775942078.jpg",
+          "alt": "SPSS BY IBM 2026"
+        }
+      ],
+      "attributes": [],
+      "short_description": "SPSS BY IBM 2026",
+      "description": "<p>IBM SPSS Statistics is a powerful and reliable software solution for data analysis, statistical modeling, and reporting. Widely used by researchers, businesses, and academic institutions, it enables users to transform complex data into clear, actionable insights.<br />\nWith its intuitive interface, SPSS allows users to easily import, manage, and analyze data without requiring advanced programming skills. It supports a wide range of statistical techniques, including regression, ANOVA, correlation, and predictive analysis. For advanced users, syntax functionality provides flexibility for automation and deeper customization.<br />\nThe software also includes robust data visualization tools, enabling users to create charts, graphs, and detailed reports for effective communication of results. Its ability to handle large datasets makes it suitable for applications such as market research, healthcare analytics, education, and business forecasting.<br />\n<strong>Key Features</strong>:<br />\nUser-friendly interface for easy data analysis<br />\nWide range of statistical tests and procedures<br />\nAdvanced data management and transformation tools<br />\nData visualization with charts and reports<br />\nSupport for large datasets and complex analysis<br />\nCustomizable workflows with syntax and automation<br />\nIBM SPSS Statistics is an ideal solution for anyone looking to analyze data efficiently and make informed, data-driven decisions.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4138,
+      "name": "Samsung Galaxy A17",
+      "slug": "samsung-galaxy-a17-on-loan-2",
+      "permalink": "https://www.cyberdynamictech.com/product/samsung-galaxy-a17-on-loan-2/",
+      "sku": "SKU-4138",
+      "barcode": "CDT004138",
+      "price": 680000,
+      "regular_price": 680000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 22,
+          "name": "PHONES",
+          "slug": "phones"
+        }
+      ],
+      "images": [
+        {
+          "id": 3336,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/samsung-a17.jpg",
+          "name": "samsung a17",
+          "alt": "Samsung Galaxy A17"
+        },
+        {
+          "id": 3337,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/A17.jpg",
+          "name": "A17",
+          "alt": "Samsung Galaxy A17"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "GRAY",
+          "options": [
+            "Gray colour"
+          ]
+        }
+      ],
+      "short_description": "Samsung Galaxy A17 6.7&#8243; 4GB RAM/ 128GB ROM Android 15",
+      "description": "<p>Samsung Galaxy A17 5G</p>\n<p>6.7″ FHD+ Super AMOLED display with a 90Hz refresh rate and 800 nits peak brightness for crisp outdoor viewing; 5,000mAh battery with 25W fast charging that replenishes half capacity in minutes; and a camera system with a 50MP main sensor with optical image stabilization (OIS) for capturing sharp images even on the move.</p>\n<p>Immersive screen</p>\n<p>FHD+ Super AMOLED panel (2340 × 1080 px) with 90Hz refresh rate for smooth animations and scrolling. Up to 800 nits of brightness ensures readability in bright sunlight, enhanced by curved edges that expand the usable area.</p>\n<p>5G Performance</p>\n<p>Exynos 1330 processor with octa-core CPU and Mali-G68 GPU, supported by 4GB of RAM and 128GB expandable via microSD. 5G connectivity, dual-band Wi-Fi, Bluetooth 5.3, and NFC for mobile payments, all managed by the optimized One UI 7.</p>\n<p>Complete camera system</p>\n<ul>\n<li style=\"padding: 0px;margin: 0px\" data-mce-style=\"padding: 0px; margin: 0px;\">Triple rear camera:</li>\n<li style=\"padding: 0px;margin: 0px\" data-mce-style=\"padding: 0px; margin: 0px;\">50 MP OIS (f/1.8) for stable photography</li>\n<li style=\"padding: 0px;margin: 0px\" data-mce-style=\"padding: 0px; margin: 0px;\">5 MP ultra wide angle (f/2.2) to capture more of the scene</li>\n<li style=\"padding: 0px;margin: 0px\" data-mce-style=\"padding: 0px; margin: 0px;\">2 MP macro (f/2.4) for close-up details</li>\n<li style=\"padding: 0px;margin: 0px\" data-mce-style=\"padding: 0px; margin: 0px;\">13 MP (f/2.0) front camera with AI editing suggestions for social media.</li>\n</ul>\n<p>Durability and autonomy</p>\n<p>7.5mm thick chassis with Gorilla Glass Victus and IP54 splash-resistant rating. Samsung Knox protects sensitive data, and up to 6 years of security and system updates ensure longevity. 25W USB-C fast charging included.</p>\n<p>Our expert&#8217;s opinion</p>\n<p>The Galaxy A17 5G improves on the A16 with hybrid OIS and Victus glass, enhancing its durability and photo quality. Compared to the Xiaomi Redmi Note 12 5G, which offers a 120Hz AMOLED display and 33W charging, the A17 stands out for its superior brightness (800 nits), broad update support, and Knox security. Despite sacrificing some charging speed and refresh rate, the balance between display, battery life, and durability, combined with a solid price-quality ratio, makes it a very complete alternative in the 5G mid-range.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4117,
+      "name": "TCL 43 Inch Android smart with Bluetooth",
+      "slug": "tcl-43-inch-android-smart-with-bluetooth",
+      "permalink": "https://www.cyberdynamictech.com/product/tcl-43-inch-android-smart-with-bluetooth/",
+      "sku": "SKU-4117",
+      "barcode": "CDT004117",
+      "price": 750000,
+      "regular_price": 850000,
+      "sale_price": 750000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 27,
+          "name": "TVS",
+          "slug": "tvs"
+        }
+      ],
+      "images": [
+        {
+          "id": 4115,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/02/416820.jpg",
+          "name": "2026/02/416820.jpg",
+          "alt": "TCL 43 Inch Android smart with Bluetooth"
+        }
+      ],
+      "attributes": [],
+      "short_description": "TCL 43 Inch Android smart with Bluetooth",
+      "description": "<p>Brilliant QLED Display with Full HD Clarity: Experience stunning visuals with TCL’s Quantum Dot technology and FHD resolution (1920 x 1080), delivering 2X more pixels for vibrant, lifelike color and enhanced picture detail.</p>\n<p>Immersive HDR10 for Deeper Contrast &amp; Clearer Detail: With HDR10 support, enjoy optimized brightness and contrast across every scene—revealing rich textures even in shadows and highlights.</p>\n<p>Powerful 24W Dolby Audio for Cinematic Sound: Get surrounded by sound with Dolby Audio’s crystal-clear clarity and dynamic range—perfect for movies, sports, and gaming.</p>\n<p>Smart Google TV OS with Google Cast Built-In: Access your favorite streaming apps, voice control, and seamless casting from mobile devices—all powered by the intuitive Google TV platform.</p>\n<p>Tailored Viewing Modes for Gaming, Movies &amp; Sports: Switch between Game Mode, Sports Mode, and Movie Mode to optimize visuals and sound for any type of content.</p>\n<p>Elegant Metallic Bezel-less Slim Design: Sleek, modern, and space-saving—the bezel-less frame enhances your viewing area while elevating your home décor.</p>\n<p>Versatile Connectivity: Stay connected with 3 HDMI ports, 2 USB ports, Wi-Fi, Ethernet, and Bluetooth v5.0—perfect for gaming consoles, soundbars, and more.</p>\n<p><strong>Key Features</strong></p>\n<p>Display size: 43&#8243;</p>\n<p>Bluetooth</p>\n<p>Netflix</p>\n<p>Design: Bezelless Frame</p>\n<p>Resolution: 1920*1080</p>\n<p>Power Consumption: 75W</p>\n<p>Supports PAL/NTSC/SECAM</p>\n<p>Energy Saving</p>\n<p>Multi OSD Language</p>\n<p>Digital Technology</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4100,
+      "name": "Dell OptiPlex 9010 USFF Mini PC i7",
+      "slug": "dell-optiplex-9010-usff-mini-pc-i5-clone",
+      "permalink": "https://www.cyberdynamictech.com/product/dell-optiplex-9010-usff-mini-pc-i5-clone/",
+      "sku": "dell-optiplex-7010-usff-mini-pc-i7",
+      "barcode": "dell-optiplex-7010-usff-mini-pc-i7",
+      "price": 450000,
+      "regular_price": 450000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 19,
+          "name": "DESKTOPS",
+          "slug": "desktops"
+        }
+      ],
+      "images": [
+        {
+          "id": 4101,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/02/990-front_2_2_3.jpg",
+          "name": "990-front_2_2_3",
+          "alt": "Dell OptiPlex 9010 USFF Mini PC i7"
+        },
+        {
+          "id": 4102,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/02/40595t550.jpg",
+          "name": "40595t550",
+          "alt": "Dell OptiPlex 9010 USFF Mini PC i7"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Dell OptiPlex 9010 USFF Mini PC i7 3470s Up to 3.6GHz Quad 4GB 500GB hd",
+      "description": "<p>Specification:Processor: Quad core i7-3470S, 2.90Ghz (Turbo 3.60Ghz) 65watt CPUChipset: Intel Express ChipsetMemory: 8GB DDR3Storage: 500gb hdDOptical Drive: DVD-RomGraphics: Graphics Intel HD GMA 20004 x USB 3.0 ports (2 front, 2 rear).2 x USB 2.0 ports (2 rear).Intel 82579 ethernet.3.5mm Headphone and microphone inputs (front and rear).Serial COM port.DVD-Rom.Software:Windows 10 Pro (Genuine Win 7 Pro COA)Items Included:Dell Optiplex 7010 USFF Mini PCPower Cord x 1Warranty: 3 Months Hardware (Return to Base)</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4091,
+      "name": "Epson EcoTank L3210",
+      "slug": "epson-ecotank-l3210",
+      "permalink": "https://www.cyberdynamictech.com/product/epson-ecotank-l3210/",
+      "sku": "epson",
+      "barcode": "epson",
+      "price": 930000,
+      "regular_price": 930000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 23,
+          "name": "PRINTERS",
+          "slug": "printers"
+        }
+      ],
+      "images": [
+        {
+          "id": 4092,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/02/v.jpg",
+          "name": "v",
+          "alt": "Epson EcoTank L3210"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Epson EcoTank L3210 — Key Specifications General Model: Epson EcoTank L3210 multifunction printer Functions: Print, Scan, Copy Technology: On-demand inkjet (Epson Micro Piezo) Ink System: Integrated refillable EcoTank (Black, Cyan, Magenta, Yellow)",
+      "description": "<p><strong>Epson EcoTank L3210 — Key Specifications</strong><br /><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f5a8.svg\" alt=\"🖨️\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f5a8.svg\"> <strong>General</strong><br /><strong>Model:</strong> Epson EcoTank L3210 multifunction printer<br /><strong>Functions:</strong> Print, Scan, Copy<br /><strong>Technology:</strong> On-demand inkjet (Epson Micro Piezo)<br /><strong>Ink System:</strong> Integrated refillable EcoTank (Black, Cyan, Magenta, Yellow)</p>\n<p><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f5a8.svg\" alt=\"🖨️\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f5a8.svg\"> <strong>Printing</strong><br /><strong>Print Resolution:</strong> Up to <strong>5760 × 1440 dpi</strong><br /><strong>Print Speed (Draft):</strong> Up to <strong>33 ppm (Black)</strong>, <strong>15 ppm (Color)</strong><br /><strong>ISO Print Speed (A4):</strong> Approx. <strong>10 ipm (Black)</strong>, <strong>5 ipm (Color)</strong><br /><strong>Borderless Printing:</strong> Yes, up to 4R / 10×15 cm photo size<br /><strong>First Page Out:</strong> ~10 sec (Black), ~16 sec (Color)<br /><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4e0.svg\" alt=\"📠\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4e0.svg\"> <strong>Scanning</strong><br /><strong>Scanner Type:</strong> Flatbed color image scanner (CIS)<br /><strong>Scan Resolution:</strong> 600 × 1200 dpi<br /><strong>Scan Area:</strong> A4 size (up to 216 × 297 mm)</p>\n<p><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4c4.svg\" alt=\"📄\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4c4.svg\"> <strong>Copying</strong><br /><strong>Copy Resolution:</strong> Max 600 × 600 dpi<br /><strong>Max Copies (Standalone):</strong> Up to 20</p>\n<p><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4e6.svg\" alt=\"📦\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4e6.svg\"> <strong>Ink &amp; Yield</strong><br /><strong>Included Ink Bottles:</strong> 4 × 65 ml bottles (BK, C, M, Y)<br /><strong>Page Yield:</strong><br /><strong>Black:</strong> ~4,500 pages<br /><strong>Color:</strong> ~7,500 pages<br /><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4e5.svg\" alt=\"📥\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4e5.svg\"> <strong>Paper Handling</strong><br /><strong>Input Capacity:</strong> Up to 100 sheets of plain paper (80 g/m²)<br /><strong>Output Capacity:</strong> Up to 30 sheets<br /><strong>Supported Sizes:</strong> A4, A5, A6, B5, Letter, Legal, 4R photo, envelopes, and more</p>\n<p><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f50c.svg\" alt=\"🔌\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f50c.svg\"> <strong>Connectivity</strong><br /><strong>Interface:</strong> USB 2.0 (no built-in Wi-Fi)</p>\n<p><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/26a1.svg\" alt=\"⚡\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/26a1.svg\"> <strong>Power &amp; Efficiency</strong><br /><strong>Power Consumption:</strong> ~14 W operating, ~0.4 W sleep, ~0.2 W off<br /><strong>Eco-friendly:</strong> Heat-Free inkjet technology reduces power use<br /><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4cf.svg\" alt=\"📏\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f4cf.svg\"> <strong>Physical</strong><br /><strong>Dimensions:</strong> Approx. 375 × 347 × 179 mm (W × D × H)<br /><strong>Weight:</strong> Approx. 3.9 kg</p>\n<p><img role=\"img\" class=\"emoji\" src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f5a5.svg\" alt=\"🖥️\" data-mce-src=\"https://s.w.org/images/core/emoji/17.0.2/svg/1f5a5.svg\"> <strong>Compatibility</strong><br />Supports Windows and macOS systems (driver available)</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4043,
+      "name": "DELL E7440, i5 500GB HD",
+      "slug": "dell-e7440-i5-500gb-hd",
+      "permalink": "https://www.cyberdynamictech.com/product/dell-e7440-i5-500gb-hd/",
+      "sku": "SKU-4043",
+      "barcode": "CDT004043",
+      "price": 700000,
+      "regular_price": 700000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 18,
+          "name": "COMPUTERS",
+          "slug": "computers"
+        }
+      ],
+      "images": [
+        {
+          "id": 4042,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/02/3.jpg",
+          "name": "3",
+          "alt": "DELL E7440, i5 500GB HD"
+        },
+        {
+          "id": 4041,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/02/2.jpg",
+          "name": "2",
+          "alt": "DELL E7440, i5 500GB HD"
+        },
+        {
+          "id": 4040,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/02/1.jpg",
+          "name": "1",
+          "alt": "DELL E7440, i5 500GB HD"
+        }
+      ],
+      "attributes": [
+        {
+          "name": "pa_color",
+          "options": [
+            "Grey"
+          ]
+        },
+        {
+          "name": "colour",
+          "options": [
+            "Natural Titanium"
+          ]
+        },
+        {
+          "name": "storage",
+          "options": [
+            "512 GB"
+          ]
+        }
+      ],
+      "short_description": "RENEWED E7440 L Core I5 4th Gen 500GB HD 14 Inches HD Display (Refurbished) – Black Operating system: Windows 10 Pro 64-Bit Edition Memory: 8GB DDR3 – 1600MHz SDRAM (1 x 8 GB) – Upgradeable upto 16 GB Storage: 500GB HD Optical drive: None Graphics Processor: Intel® Integrated HD Graphics up to 4400 Processor: Intel® Core™ i5-4300U (1.9 GHz base frequency, up to 2.9 GHz with Intel® Turbo Boost Technology, 3 MB Intel® Smart Cache, Dual-Core) Processor Family : 4th Generation Intel® Core™ i5 processor Display: 14 Inches (35.6cm) LED backlight Widescreen Display – Image Aspect Ratio 16:9 – (1366 x 768 pixels) Full HD",
+      "description": "<p>he commercial <a href=\"https://www.levnapc.cz/ProductsFiles/dell-latitude-E7240-E7440-technicke-specifikace.pdf\" style=\"font-weight: 700\"><i>Dell Latitude E7440  laptop</i></a> completely redefined — amazing looks, leading reliability and Ultrabook™ mobility Latitude performance packed into a sleek Ultrabook™ featuring Intel® Core™ vPro™ processor family, Windows 8 Pro, an <i><strong>optional</strong></i> 14″ touchscreen and a beautiful design.</p>\n<p><strong>Elite design and reliability</strong><br />The thin, lightweight <a href=\"https://www.dell.com/ae/business/p/latitude-e7440-ultrabook/pd\" style=\"font-weight: 700\"><i>Latitude 7000 Series Ultrabooks</i></a> offer mobility at its finest, with the 12-inch model starting at just 20mm thin and 1.3 kg (2.99 lbs) with a 3-cell battery.</p>\n<p>These Ultrabooks are built to be strong and look amazing. The non-touch screen models feature durable aluminium design with a soft-touch paint finish. The display back on the touchscreen option is wrapped in strong, attractive woven carbon fiber for added durability.</p>\n<p><strong>Consumer-inspired features</strong><br />Latitude 7000 Series Ultrabooks will excite end-users with consumer-inspired details. The option of a touch screen in a full laptop is noteworthy, offering an outstanding productivity experience. The optional backlit keyboard makes it easy to type in dark environments.</p>\n<p>These commercial Ultrabooks feature Intel® Identity Protection Technology (Intel® IPT) with near-field communications (NFC), allowing you to shop online and pay with just a tap of your NFC-enabled credit card on your device. Feel safer knowing your device has confirmed your identity to the online merchant and that your credit card information is being transmitted more securely and faster.</p>\n<p><strong>The most secure Ultrabooks</strong><br />With best-in-class endpoint security solutions that include comprehensive encryption, advanced authentication and<br />leading-edge malware protection from a single source, the Latitude 7000 Series are the world’s most secure Ultrabooks.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3972,
+      "name": "HP LaserJet P1102 Black and white Printer",
+      "slug": "hp-laserjet-p1102-black-and-white-printer",
+      "permalink": "https://www.cyberdynamictech.com/product/hp-laserjet-p1102-black-and-white-printer/",
+      "sku": "SKU-3972",
+      "barcode": "CDT003972",
+      "price": 450000,
+      "regular_price": 450000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 23,
+          "name": "PRINTERS",
+          "slug": "printers"
+        }
+      ],
+      "images": [
+        {
+          "id": 3971,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/02/367394.jpg",
+          "name": "2026/02/367394.jpg",
+          "alt": "HP LaserJet P1102 Black and white Printer"
+        },
+        {
+          "id": 3970,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/02/367395.jpg",
+          "name": "2026/02/367395.jpg",
+          "alt": "HP LaserJet P1102 Black and white Printer"
+        }
+      ],
+      "attributes": [],
+      "short_description": "The HP LaserJet P1102 is a compact, monochrome laser printer designed for home offices and small businesses that need reliable, high-quality black-and-white printing.",
+      "description": "<p>Key Specifications<br />\nPrint Speed: Up to 18 pages per minute (A4)<br />\nPrint Resolution: 600 × 600 dpi, enhanced with HP FastRes 1200 for sharp text<br />\nFirst Page Out: Approximately 8.5 seconds<br />\nMonthly Duty Cycle: Up to 5,000 pages (recommended 250–1,500 pages)<br />\nPaper Handling:<br />\n150-sheet input tray<br />\n100-sheet output tray<br />\nSupports A4, A5, B5, envelopes, labels, and transparencies<br />\nDuplex Printing: Manual (driver-assisted)<br />\nConnectivity: Hi-Speed USB 2.0<br />\nMemory: 2 MB (non-expandable)<br />\nEnergy Efficiency: ENERGY STAR® certified with Auto-On/Auto-Off technology<br />\nDimensions: Approx. 349 × 238 × 196 mm<br />\nWeight: Approx. 5.2 kg<br />\nConsumables<br />\nUses HP 85A (CE285A) black toner cartridge<br />\nAverage yield: ~1,600 pages at 5% coverage<br />\nIdeal For<br />\nHome offices<br />\nSmall businesses<br />\nStudents and individual users<br />\nEveryday document printing such as letters, invoices, and reports<br />\nLimitations<br />\nNo built-in Wi-Fi or network support (available only in the P1102w model)<br />\nManual duplex printing only<br />\nNot intended for high-volume enterprise environments</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3925,
+      "name": "Oraimo Firefly 3 Fast Charging Charger Kit with Fast Micro USB-Black",
+      "slug": "oraimo-firefly-3-fast-charging-charger-kit-with-fast-micro-usb-black",
+      "permalink": "https://www.cyberdynamictech.com/product/oraimo-firefly-3-fast-charging-charger-kit-with-fast-micro-usb-black/",
+      "sku": "SKU-3925",
+      "barcode": "CDT003925",
+      "price": 25000,
+      "regular_price": 25000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 3923,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/352554.jpg",
+          "name": "2026/01/352554.jpg",
+          "alt": "Oraimo Firefly 3 Fast Charging Charger Kit with Fast Micro USB-Black"
+        },
+        {
+          "id": 3924,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/352558.jpg",
+          "name": "2026/01/352558.jpg",
+          "alt": "Oraimo Firefly 3 Fast Charging Charger Kit with Fast Micro USB-Black"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Oraimo Firefly 3 Fast Charging Charger Kit with Fast Micro USB-Black",
+      "description": "<p>Multi-Protection: It provides surge protection, short circuit prevention, temperature control and more to deliver unbeatable protection to you and your devices.<br />\nPremium Design: The hard-wearing exterior and high-gloss detailing are as durable as they are good-looking, and the small body takes up minimal space.<br />\nIts flame retardant material has higher fire-proof rating and the liquid silicone rubber inside improves the stability of components , which provides a secure protection under full-load work and high temperature condition.<br />\nIt has stable charging at 2A max speed and 100-240V wide input voltagte, quickly restores power to your device.<br />\nIt&#8217;s a kind of pocket-friendly compact design, you can hold it with only one hand.</p>\n<p>Specifications:<br />\nCharger:<br />\nModel: OCW-U66S<br />\nInput: 100-240V-50/60Hz, 0.35A<br />\nOutput: 5.0V = 2.0A 10.0W</p>\n<p>Key Features<br />\nCharger Type: Micro USB<br />\nInput: 100-240V-50/60Hz, 0.35A<br />\nOutput: 5.0V = 2.0A 10.0W<br />\nBrand : Oraimo</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3408,
+      "name": "Smart Watch 2030 Waterproof SIM Card Wrist Watch",
+      "slug": "smart-watch-2030-waterproof-sim-card-wrist-watch",
+      "permalink": "https://www.cyberdynamictech.com/product/smart-watch-2030-waterproof-sim-card-wrist-watch/",
+      "sku": "SKU-3408",
+      "barcode": "CDT003408",
+      "price": 50000,
+      "regular_price": 75000,
+      "sale_price": 50000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 29,
+          "name": "WATCHES",
+          "slug": "watches"
+        }
+      ],
+      "images": [
+        {
+          "id": 3407,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/333682.jpg",
+          "name": "2026/01/333682.jpg",
+          "alt": "Smart Watch 2030 Waterproof SIM Card Wrist Watch"
+        },
+        {
+          "id": 3406,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/333683.jpg",
+          "name": "2026/01/333683.jpg",
+          "alt": "Smart Watch 2030 Waterproof SIM Card Wrist Watch"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Smart Watch 2030 Waterproof SIM Card Wrist Watch",
+      "description": "<p>Smart Bluetooth Watch – Android Compatible<br />\nThis versatile smart watch combines classic design with essential smart features, making it a practical companion for everyday use. Featuring a sleek square touchscreen with a comfortable adjustable strap, it delivers both style and functionality.<br />\nDesigned to work seamlessly with Android devices via Bluetooth, the watch allows you to make and receive calls directly from your wrist. It also supports notifications, ensuring you stay connected without constantly reaching for your phone.<br />\nKey features include a built-in camera, pedometer for basic fitness tracking, and multimedia support. With SIM card and TF (microSD) card compatibility, the watch can operate independently for calls, messages, and media playback. A range of pre-installed apps and customizable watch faces enhance usability and personalization.<br />\nHighlights:<br />\nTouchscreen smart watch with modern square design<br />\nBluetooth connectivity for calls and notifications<br />\nBuilt-in camera<br />\nPedometer for activity tracking<br />\nSupports SIM card and TF (microSD) card<br />\nCompatible with Android devices<br />\nMultimedia and app support<br />\nIdeal for users looking for an affordable, multifunctional smart watch that blends communication, convenience, and everyday smart features in one compact device.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3398,
+      "name": "Samsung Galaxy A16 4G",
+      "slug": "samsung-galaxy-a16-4g",
+      "permalink": "https://www.cyberdynamictech.com/product/samsung-galaxy-a16-4g/",
+      "sku": "SKU-3398",
+      "barcode": "CDT003398",
+      "price": 560000,
+      "regular_price": 680000,
+      "sale_price": 560000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 22,
+          "name": "PHONES",
+          "slug": "phones"
+        }
+      ],
+      "images": [
+        {
+          "id": 3395,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/318475.jpg",
+          "name": "2026/01/318475.jpg",
+          "alt": "Samsung Galaxy A16 4G"
+        },
+        {
+          "id": 3396,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/318476.jpg",
+          "name": "2026/01/318476.jpg",
+          "alt": "Samsung Galaxy A16 4G"
+        },
+        {
+          "id": 3397,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/318477.jpg",
+          "name": "2026/01/318477.jpg",
+          "alt": "Samsung Galaxy A16 4G"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Samsung Galaxy A16 4G 6.7&#8243; 4GB RAM 128GB ROM 50MP 5000mAh &#8211; Silver",
+      "description": "<p>Key Features<br />\nNetwork Technology: GSM / HSPA / LTE<br />\nSIM: Hybrid Dual SIM (Nano-SIM, dual stand-by)<br />\nSize: 6.7 inches, 110.2 cm2 (~86.0% screen-to-body ratio)<br />\nPlatform: OS Android 14, up to 6 major Android upgrades, One UI 6.1<br />\nInternal: 128GB 4GB RAM<br />\nMain Camera: Triple 50 MP<br />\nComms: WLAN Wi-Fi 802.11 a/b/g/n/ac, dual-band, Wi-Fi Direct<br />\nBluetooth: 5.3, A2DP, LE<br />\nUSB: USB Type-C 2.0<br />\nBattery    Type: 5000 mAh, non-removable<br />\nWhat’s in the box<br />\n1 x Handset<br />\n1 x Data Cable (USB Type C-to-C)<br />\n1 x Ejection Pin<br />\n1 x Quick Start Guide</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3394,
+      "name": "SQ LS 960-Fixed Wireles Phone",
+      "slug": "sq-ls-960-fixed-wireles-phone",
+      "permalink": "https://www.cyberdynamictech.com/product/sq-ls-960-fixed-wireles-phone/",
+      "sku": "SKU-3394",
+      "barcode": "CDT003394",
+      "price": 160000,
+      "regular_price": 160000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 17,
+          "name": "OTHERS",
+          "slug": "others"
+        },
+        {
+          "id": 22,
+          "name": "PHONES",
+          "slug": "phones"
+        }
+      ],
+      "images": [
+        {
+          "id": 3392,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/316663.jpg",
+          "name": "2026/01/316663.jpg",
+          "alt": "SQ LS 960-Fixed Wireles Phone"
+        },
+        {
+          "id": 3391,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/316661.jpg",
+          "name": "2026/01/316661.jpg",
+          "alt": "SQ LS 960-Fixed Wireles Phone"
+        },
+        {
+          "id": 3393,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/316656-1.jpg",
+          "name": "2026/01/316656-1.jpg",
+          "alt": "SQ LS 960-Fixed Wireles Phone"
+        }
+      ],
+      "attributes": [],
+      "short_description": "SQ LS 960-Fixed Wireles Phone",
+      "description": "<p>DESCRIPTION<br />\nThe GSM Wireless Desktop Telephone support 2 SIM card(Not included) with a working frequency  GSM 900/1800 MHZ. Easy to setup with no ground wire needed. Phone has a superior service quality with a strong Easy &amp; Simple to Use: Can be put on desk or wall mounted. Widely used in family house, office, hotel or telephone shops etc.</p>\n<p>Product Details</p>\n<p>• No ground wire needed</p>\n<p>• Superior service quality</p>\n<p>•Frequency: GSM 900/1800MHZ</p>\n<p>• Strong quality battery</p>\n<p>• Loud speaker phone</p>\n<p>• Caller ID</p>\n<p>• SMS functionality</p>\n<p>• High capacity phone book</p>\n<p>• Support 2 SIM card</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3375,
+      "name": "AIRTEL POCKET MIFI",
+      "slug": "airtel-pocket-mifi",
+      "permalink": "https://www.cyberdynamictech.com/product/airtel-pocket-mifi/",
+      "sku": "SKU-3375",
+      "barcode": "CDT003375",
+      "price": 45000,
+      "regular_price": 45000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 112,
+          "name": "NETWORKING",
+          "slug": "networking"
+        }
+      ],
+      "images": [
+        {
+          "id": 3374,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/307490.jpg",
+          "name": "2026/01/307490.jpg",
+          "alt": "AIRTEL POCKET MIFI"
+        },
+        {
+          "id": 3372,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/307492.jpg",
+          "name": "2026/01/307492.jpg",
+          "alt": "AIRTEL POCKET MIFI"
+        },
+        {
+          "id": 3373,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/307491.jpg",
+          "name": "2026/01/307491.jpg",
+          "alt": "AIRTEL POCKET MIFI"
+        }
+      ],
+      "attributes": [],
+      "short_description": "AIRTEL POCKET MIFI",
+      "description": "<p>Airtel 4G Smart Connect MiFi<br />\nThe Airtel 4G Smart Connect MiFi is a compact, portable wireless internet device designed to deliver reliable high-speed 4G LTE connectivity on the go. Using Airtel’s 4G network, this MiFi creates a secure Wi-Fi hotspot that allows multiple devices to connect simultaneously, making it suitable for home, office, travel, and remote work environments.<br />\nIts sleek and lightweight design ensures easy portability, while the front LED indicator panel clearly displays signal strength, Wi-Fi status, messages, and battery level for simple monitoring. The dedicated power button provides quick and effortless operation.<br />\nThe Airtel 4G Smart Connect MiFi features a built-in rechargeable battery for extended usage without constant power supply. Setup is straightforward—insert an Airtel SIM card, power on the device, and connect your Wi-Fi-enabled devices within minutes.</p>\n<p>Key Features:</p>\n<ol>\n<li>High-speed 4G LTE internet access</li>\n<li>Portable MiFi for on-the-go connectivity</li>\n<li>Supports multiple device connections at once</li>\n<li>LED indicators for network, Wi-Fi, messages, and battery status</li>\n<li>Secure wireless hotspot</li>\n<li>Rechargeable battery for uninterrupted use</li>\n<li>Simple plug-and-play setup with Airtel SIM</li>\n<li>The Airtel 4G Smart Connect MiFi is an efficient and dependable solution for users who need flexible, mobile internet access without being tied to a fixed broadband connection.</li>\n</ol>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3371,
+      "name": "MTN WAKANET MIFI",
+      "slug": "mtn-wakanet-mifi",
+      "permalink": "https://www.cyberdynamictech.com/product/mtn-wakanet-mifi/",
+      "sku": "SKU-3371",
+      "barcode": "CDT003371",
+      "price": 40000,
+      "regular_price": 40000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 112,
+          "name": "NETWORKING",
+          "slug": "networking"
+        }
+      ],
+      "images": [
+        {
+          "id": 3370,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/307459.jpg",
+          "name": "2026/01/307459.jpg",
+          "alt": "MTN WAKANET MIFI"
+        },
+        {
+          "id": 3369,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/01/307456.jpg",
+          "name": "2026/01/307456.jpg",
+          "alt": "MTN WAKANET MIFI"
+        }
+      ],
+      "attributes": [],
+      "short_description": "MTN WAKANET MIFI",
+      "description": "<p>MTN WakaNet MiFi (4G LTE)<br />\nThe MTN WakaNet MiFi is a compact and reliable 4G LTE wireless router designed to provide fast internet access on the go. It delivers stable connectivity for personal, home, or small office use, making it ideal for users who need flexible and portable internet.<br />\nKey Features:<br />\n4G LTE Connectivity: Enjoy fast and reliable internet speeds for browsing, streaming, and downloads.<br />\nMulti-Device Support: Connect up to 10 Wi-Fi enabled devices simultaneously.<br />\nPortable Design: Lightweight and compact, suitable for use at home, in the office, or while traveling.<br />\nBuilt-in Backup Battery: Ensures continued internet access during power outages.<br />\nBonus Data: Comes with FREE 5GB data upon activation.<br />\nMTN Network Coverage: Optimized for strong and dependable MTN network performance.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3347,
+      "name": "SAMSUNG GALAXY A06 -ON LOAN",
+      "slug": "samsung-galaxy-a06-on-loan",
+      "permalink": "https://www.cyberdynamictech.com/product/samsung-galaxy-a06-on-loan/",
+      "sku": "SKU-3347",
+      "barcode": "CDT003347",
+      "price": 150000,
+      "regular_price": 150000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 22,
+          "name": "PHONES",
+          "slug": "phones"
+        }
+      ],
+      "images": [
+        {
+          "id": 3345,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/291636.jpg",
+          "name": "2025/12/291636.jpg",
+          "alt": "SAMSUNG GALAXY A06 -ON LOAN"
+        },
+        {
+          "id": 3346,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/291635.jpg",
+          "name": "2025/12/291635.jpg",
+          "alt": "SAMSUNG GALAXY A06 -ON LOAN"
+        }
+      ],
+      "attributes": [],
+      "short_description": "SAMSUNG GALAXY A06 -ON LOAN",
+      "description": "<p>Technology  GSM / HSPA / LTE<br />\nLaunch<br />\nAnnounced   2024, August 16<br />\nStatus  Available. Released 2024, August 22<br />\nBody<br />\nDimensions  167.3 x 77.3 x 8 mm (6.59 x 3.04 x 0.31 in)<br />\nWeight  189 g (6.67 oz)<br />\nBuild   Glass front, plastic back, plastic frame<br />\nSIM · Nano-SIM<br />\n· Nano-SIM + Nano-SIM<br />\nDisplay<br />\nType    PLS LCD<br />\nSize    6.7 inches, 108.4 cm2 (~83.8% screen-to-body ratio)<br />\nResolution  720 x 1600 pixels, 20:9 ratio (~262 ppi density)<br />\nPlatform<br />\nOS  Android 14, up to 2 major Android upgrades, One UI 8<br />\nChipset Mediatek Helio G85 (12 nm)<br />\nCPU Octa-core (2&#215;2.0 GHz Cortex-A75 &amp; 6&#215;1.8 GHz Cortex-A55)<br />\nGPU Mali-G52 MC2<br />\nMemory<br />\nCard slot   microSDXC (dedicated slot)<br />\nInternal    64GB 4GB RAM, 128GB 4GB RAM, 128GB 6GB RAM<br />\neMMC 5.1<br />\nMain Camera<br />\nDual    50 MP, f/1.8, (wide), 1/2.76&#8243;, 0.64µm, PDAF<br />\nAuxiliary lens<br />\nFeatures    LED flash<br />\nVideo   1080p@30/60fps<br />\nSelfie Camera<br />\nSingle  8 MP, f/2.0, (wide), 1/4.0&#8243;, 1.12µm<br />\nVideo   Yes</p>\n<p>Sound<br />\nLoudspeaker Yes<br />\n3.5mm jack  Yes<br />\nComms<br />\nWLAN    Wi-Fi 802.11 a/b/g/n/ac, dual-band, Wi-Fi Direct<br />\nBluetooth   5.3, A2DP, LE<br />\nPositioning GPS, GLONASS, GALILEO, BDS<br />\nNFC No<br />\nRadio   FM radio<br />\nUSB USB Type-C 2.0<br />\nFeatures<br />\nSensors Fingerprint (side-mounted), accelerometer, proximity<br />\nBattery<br />\nType    Li-Po 5000 mAh<br />\nCharging    25W wired<br />\nMisc<br />\nColors  Blue, Gold, White<br />\nModels  SM-A065F, SM-A065F/DS, SM-A065M, SM-A065M/DS</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3290,
+      "name": "Logitech Mouse Pad Studio Series (Graphite)",
+      "slug": "logitech-mouse-pad-studio-series-graphite",
+      "permalink": "https://www.cyberdynamictech.com/product/logitech-mouse-pad-studio-series-graphite/",
+      "sku": "logitech-mouse-pad-studio-series-graphite",
+      "barcode": "logitech-mouse-pad-studio-series-graphite",
+      "price": 7000,
+      "regular_price": 7000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 16,
+          "name": "ACCESSORIES",
+          "slug": "accessories"
+        }
+      ],
+      "images": [
+        {
+          "id": 3291,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/mousepad.jpg",
+          "name": "mousepad",
+          "alt": "Logitech Mouse Pad Studio Series (Graphite)"
+        },
+        {
+          "id": 3292,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/mousepad2.webp",
+          "name": "mousepad2",
+          "alt": "Logitech Mouse Pad Studio Series (Graphite)"
+        },
+        {
+          "id": 3293,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/pair-image.webp",
+          "name": "pair-image",
+          "alt": "Logitech Mouse Pad Studio Series (Graphite)"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Overview Logitech Mouse Pad is a soft, smooth, no- slip mouse pad made from high- quality materials that lets you glide away with your favourite Logitech Mouse. Key Features Fine weave material cuts the friction, so your mouse glides effortlessly and silently Spill-proof coating withstands accidental mishaps, so liquids can easily be wiped away1 Size: 20 cm x 23 cm Thickness: 2 mm",
+      "description": "<p>Overview<br />Logitech Mouse Pad is a soft, smooth, no- slip mouse pad made from high- quality materials that lets you glide away with your favourite Logitech Mouse.<br />Key Features<br />Fine weave material cuts the friction, so your mouse glides effortlessly and silently<br />Spill-proof coating withstands accidental mishaps, so liquids can easily be wiped away1<br />Size: 20 cm x 23 cm<br />Thickness: 2 mm</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3261,
+      "name": "18&#8243; Inch Stand/Table 3 in1 Fan Design Oscillating &amp; Adjustable Electric Fun &#8211; Silver, Black",
+      "slug": "18-inch-stand-table-3-in1-fan-design-oscillating-adjustable-electric-fun-silver-black",
+      "permalink": "https://www.cyberdynamictech.com/product/18-inch-stand-table-3-in1-fan-design-oscillating-adjustable-electric-fun-silver-black/",
+      "sku": "SKU-3261",
+      "barcode": "CDT003261",
+      "price": 195000,
+      "regular_price": 195000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 3260,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262777.jpg",
+          "name": "2025/12/262777.jpg",
+          "alt": "18&#8243; Inch Stand/Table 3 in1 Fan Design Oscillating &amp; Adjustable Electric Fun &#8211; Silver, Black"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Key Features Color: Silver, Black. Speed setting: 3 speeds. Number of vane:3 vanes. Blade diameter: 45cm. Height:125-130cm. Power:50-100W. Voltage/frequency:220V~240V/50Hz",
+      "description": "<p>18&#8243; Inch Stand/Table 3 in1 Fan Design Oscillating &amp; Adjustable Electric Type &#8211; Silver, BlackA stand fan is a common household appliance they are much more effective and popular but this one comes with both stand and table fan,just hang it down to the table for fresh air in your likely position.• And even it&#8217;s head oscillates till 180 degree or remain steady pointing at one direction.<br />\nKey Features<br />\nColor: Silver, Black.<br />\nSpeed setting: 3 speeds.<br />\nNumber of vane:3 vanes.<br />\nBlade diameter: 45cm.<br />\nHeight:125-130cm.<br />\nPower:50-100W.<br />\nVoltage/frequency:220V~240V/50Hz</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3259,
+      "name": "Sonashi 16 Inch Wall Fan With Energy Conservation-Multicolour",
+      "slug": "sonashi-16-inch-wall-fan-with-energy-conservation-multicolour",
+      "permalink": "https://www.cyberdynamictech.com/product/sonashi-16-inch-wall-fan-with-energy-conservation-multicolour/",
+      "sku": "SKU-3259",
+      "barcode": "CDT003259",
+      "price": 180000,
+      "regular_price": 180000,
+      "sale_price": 170000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 3258,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262815.jpg",
+          "name": "2025/12/262815.jpg",
+          "alt": "Sonashi 16 Inch Wall Fan With Energy Conservation-Multicolour"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Sonashi 16 Inch Wall Fan With Energy Conservation-Multicolour",
+      "description": "<p>Sonashi 16 Inch Wall Fan With Energy Conservation-MulticolourKeep temperatures in check throughout the day with this 5 in Sayona SF 2300 Wall Fan. Ideal for balancing your home or office this fan has a swing motion for ease of distribution as well as direct . The sturdy base will keep your fan steady. Various speed settings perfect for changing temperatures and seasons. Designed with airflow in mind, the mesh grill that surrounds this fan is ideal for circulating the most cool air possible to keep you at an optimum temperature. The lightweight design means it can be easily mounted around the home or office without hassle and it is simple to assemble &amp; operate. The modern design and quiet operation make this attractive Wall Fan ideal for home or small office use.  Order Online from Jumia  and have it delivered right at the comfort of your home.</p>\n<p>Key Features<br />\n3 Speed Energy Efficient<br />\nWhispher Quiet Operation<br />\nHigh Velocity Performance<br />\nLow Noise Motor<br />\n100% Copper Motor<br />\nStrong Safety Grill<br />\nLow power consumption</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3257,
+      "name": "6 Inch Wall Fan MeWe",
+      "slug": "6-inch-wall-fan-mewe",
+      "permalink": "https://www.cyberdynamictech.com/product/6-inch-wall-fan-mewe/",
+      "sku": "SKU-3257",
+      "barcode": "CDT003257",
+      "price": 150000,
+      "regular_price": 150000,
+      "sale_price": 140000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 3256,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262812.jpg",
+          "name": "2025/12/262812.jpg",
+          "alt": "6 Inch Wall Fan MeWe"
+        }
+      ],
+      "attributes": [],
+      "short_description": "6 Inch Wall Fan MeWe",
+      "description": "<p>MeWe 16 Inch Wall Fan With Pure Copper Motor- Multicolour<br />\nWall fan, 16 inch oscillating and tilting fan with minimum noise and durable design with a speed switch to alter the fan speed, powerful wind energy saver, quiet fan.</p>\n<p>Key Features<br />\nWall fan<br />\nSpeed switch<br />\nDurable design<br />\n16 inch<br />\nOscillating and tilting fan<br />\nMinimum noise</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3255,
+      "name": "Wall Electric Fans-WhiteBlue",
+      "slug": "wall-electric-fans-whiteblue",
+      "permalink": "https://www.cyberdynamictech.com/product/wall-electric-fans-whiteblue/",
+      "sku": "SKU-3255",
+      "barcode": "CDT003255",
+      "price": 180000,
+      "regular_price": 180000,
+      "sale_price": 160000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 3254,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262811.jpg",
+          "name": "2025/12/262811.jpg",
+          "alt": "Wall Electric Fans-WhiteBlue"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Wall Electric Fans-WhiteBlue",
+      "description": "<p>16&#8243; Wall Fan Oscillating &amp; tilting Electric Type -White,Blue Easy to use, these Electric Wall Fan are widely demanded in residential and official area to having proper cooling. Light in weight, these fans are quality checked by engineers before bringing in market. In addition to this, these presented wall fans are damage free and work with lesser power consumption.Easy to use<br />\nLightweight<br />\nHome and Office<br />\ncolor: white<br />\n3 speed oscillating fan<br />\nwall mounted</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3253,
+      "name": "Ceiling Fan SAACHI",
+      "slug": "saachi-16-inch-orbit-ceiling-fan-with-3-speed-controls-low-noise",
+      "permalink": "https://www.cyberdynamictech.com/product/saachi-16-inch-orbit-ceiling-fan-with-3-speed-controls-low-noise/",
+      "sku": "SKU-3253",
+      "barcode": "CDT003253",
+      "price": 195500,
+      "regular_price": 195500,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 3252,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262779.jpg",
+          "name": "2025/12/262779.jpg",
+          "alt": "Ceiling Fan SAACHI"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Saachi 16-Inch Orbit Ceiling Fan With 3 Speed Controls &amp; Low Noise",
+      "description": "<p>Description<br />\n16″ (40cm) Orbit/ ceiling fan.<br />\n3- Speed Control<br />\n3 PP Plastic blades<br />\n7.5 hours timer<br />\nPowerful motor<br />\nQuality Guaranteed.<br />\nRecognized Excellence.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3251,
+      "name": "Sonashi 16 Inch Stand Fan With 6 Blades Quiet Operation And Strong Wind Throw-Black/White",
+      "slug": "sonashi-16-inch-stand-fan-with-6-blades-quiet-operation-and-strong-wind-throw-black-white",
+      "permalink": "https://www.cyberdynamictech.com/product/sonashi-16-inch-stand-fan-with-6-blades-quiet-operation-and-strong-wind-throw-black-white/",
+      "sku": "SKU-3251",
+      "barcode": "CDT003251",
+      "price": 195000,
+      "regular_price": 195000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 3249,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262780.jpg",
+          "name": "2025/12/262780.jpg",
+          "alt": "Sonashi 16 Inch Stand Fan With 6 Blades Quiet Operation And Strong Wind Throw-Black/White"
+        },
+        {
+          "id": 3248,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262781.jpg",
+          "name": "2025/12/262781.jpg",
+          "alt": "Sonashi 16 Inch Stand Fan With 6 Blades Quiet Operation And Strong Wind Throw-Black/White"
+        },
+        {
+          "id": 3250,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262785.jpg",
+          "name": "2025/12/262785.jpg",
+          "alt": "Sonashi 16 Inch Stand Fan With 6 Blades Quiet Operation And Strong Wind Throw-Black/White"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Sonashi 16 Inch Stand Fan With 6 Blades Quiet Operation And Strong Wind Throw-Black/White",
+      "description": "<p>3 SPEED SWITCH AND OSCILLATION FUNCTION<br />\nHEIGHT ADJUSTABLE<br />\nSELF-PROTECTION WHEN OVER HEATED<br />\n6 BLADE LEAF<br />\nKOREA GUARD RING<br />\n220V-240V ~ 50Hz/60Hz 75W<br />\nNo remote control</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3247,
+      "name": "Hp  Blue Pin Charger With Power Cable &#8211; Black",
+      "slug": "hp-blue-pin-charger-with-power-cable-black",
+      "permalink": "https://www.cyberdynamictech.com/product/hp-blue-pin-charger-with-power-cable-black/",
+      "sku": "SKU-3247",
+      "barcode": "CDT003247",
+      "price": 45000,
+      "regular_price": 45000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 47,
+          "name": "Laptop Chargers",
+          "slug": "laptop-chargers"
+        }
+      ],
+      "images": [
+        {
+          "id": 3244,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262766.jpg",
+          "name": "2025/12/262766.jpg",
+          "alt": "Hp  Blue Pin Charger With Power Cable &#8211; Black"
+        },
+        {
+          "id": 3245,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262765.jpg",
+          "name": "2025/12/262765.jpg",
+          "alt": "Hp  Blue Pin Charger With Power Cable &#8211; Black"
+        },
+        {
+          "id": 3246,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262764.jpg",
+          "name": "2025/12/262764.jpg",
+          "alt": "Hp  Blue Pin Charger With Power Cable &#8211; Black"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Hp Genuine Adapter Small Blue Pin Charger With Power Cable &#8211; Black",
+      "description": "<p>HP Laptop Charger 19.5V with power cable<br />\nCharge and power your laptop with this Laptop Charger. This laptop power supply is engineered with enough power to deliver a strong charge to any compatible laptop. This unit gives you surge protection, over-current protection, voltage protection and over-temperature protection to keep your laptop operating and charging at the correct voltage.<br />\nBuilt to safeguard your laptop against damage, this charger will not let you down. Order for this Laptop charger from Jumia and have it delivered at your doorstep.<br />\nThis unit gives you surge protection, over-current protection, voltage protection and over-temperature protection to keep your laptop operating and charging at the correct voltage. Built to safeguard your laptop against damage, this charger will not let you down</p>\n<p>Key Features<br />\nSurge protection<br />\nOver-current protection<br />\nVoltage protection<br />\nOver-temperature protection<br />\nHp small Blue pin for notebook laptops<br />\nWith power cable<br />\nWhat’s in the box<br />\nHp charger and power cable</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3243,
+      "name": "Lenovo 65W Power Adapter (USB Type-C) With Power Cable-Black",
+      "slug": "lenovo-65w-power-adapter-usb-type-c-with-power-cable-black",
+      "permalink": "https://www.cyberdynamictech.com/product/lenovo-65w-power-adapter-usb-type-c-with-power-cable-black/",
+      "sku": "SKU-3243",
+      "barcode": "CDT003243",
+      "price": 90000,
+      "regular_price": 90000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 47,
+          "name": "Laptop Chargers",
+          "slug": "laptop-chargers"
+        }
+      ],
+      "images": [
+        {
+          "id": 3240,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262729.jpg",
+          "name": "2025/12/262729.jpg",
+          "alt": "Lenovo 65W Power Adapter (USB Type-C) With Power Cable-Black"
+        },
+        {
+          "id": 3239,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262733.jpg",
+          "name": "2025/12/262733.jpg",
+          "alt": "Lenovo 65W Power Adapter (USB Type-C) With Power Cable-Black"
+        },
+        {
+          "id": 3241,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262730.jpg",
+          "name": "2025/12/262730.jpg",
+          "alt": "Lenovo 65W Power Adapter (USB Type-C) With Power Cable-Black"
+        },
+        {
+          "id": 3242,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262732.jpg",
+          "name": "2025/12/262732.jpg",
+          "alt": "Lenovo 65W Power Adapter (USB Type-C) With Power Cable-Black"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Key Features Brand: Lenovo Compatible with most USB-C laptops, Phones, Tablets and other Type-C devices Connector Type: USB Type-C, Power Capacity : 45W/ 65W Smart Voltage technology Durable Fast Charging",
+      "description": "<p>65W Power Adapter (USB Type-C) With Power cable-Black</p>\n<p>The Lenovo 65W Standard AC Adapter (USB Type-C) offers fast and efficient charging at home, in the office, or on the go. This 65W charger is compatible with ThinkPad USB-C enabled laptops and tablets. It can also be compatible to most USB Type-C devices like samsung phones, tablets, and others. It features Smart Voltage: technology which automatically detects and delivers 5V/2A, 9V/2A, 15V/3A or 20V/2.25A</p>\n<p>PORTABLE DESIGN &#8211; One Adapter for Many Models of Lenovo USB-C Laptop. And the Weight is So Light Which is An Incredibly Small Footprint the Lenovo USB-C Laptop AC Travel Adapter Slips into Bags, Purses and Even Pockets with Ease While You Go Anywhere</p>\n<p>Adapter power cord/ cable to connect to power is inclusive int the box</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3238,
+      "name": "External Hard Drive 500gb",
+      "slug": "external-hard-drive-500gb",
+      "permalink": "https://www.cyberdynamictech.com/product/external-hard-drive-500gb/",
+      "sku": "SKU-3238",
+      "barcode": "CDT003238",
+      "price": 75000,
+      "regular_price": 80000,
+      "sale_price": 75000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 3237,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262723.jpg",
+          "name": "2025/12/262723.jpg",
+          "alt": "External Hard Drive 500gb"
+        },
+        {
+          "id": 3236,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262726.jpg",
+          "name": "2025/12/262726.jpg",
+          "alt": "External Hard Drive 500gb"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Western Digital 3.0 USB High Speed External Hard Disk 500GB &#8211; Black",
+      "description": "<p>Every journey needs a western digital.</p>\n<p>The western digital drive is trusted, portable storage that gives you the confidence and freedom to drive forward in life. With a new, stylish design that fits in the palm of your hand, there’s space to store, organize, and share your photos, videos, music, and documents. Perfectly paired with backup software1 and password protection (Windows® only), the western digita drive helps keep your digital life&#8217;s contents safe.</p>\n<p>Slim style<br />\nMake the most of your journey with style that suits you. The new western digital has been redesigned to feature a convenient, slim form factor and is available in a range of vibrant colors.</p>\n<p>Backed up<br />\nMake sure everything you create while on your own life journey &#8211; photos, videos, music, and documents &#8211; doesn’t get lost.</p>\n<p>Works on Windows and Mac, linux, chrome</p>\n<p>Key Features<br />\nCapacity: 500 GB<br />\nCompatibility: Windows, MAC OS, Chrome OS, Android, Linux<br />\nSleek compact design with plenty of storage<br />\n3.0 USB<br />\nEasy to use with no software to install.<br />\nPlug and play operation.<br />\nHigh Speed data transfer</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3235,
+      "name": "Office Fun",
+      "slug": "office-fun",
+      "permalink": "https://www.cyberdynamictech.com/product/office-fun/",
+      "sku": "SKU-3235",
+      "barcode": "CDT003235",
+      "price": 135000,
+      "regular_price": 160000,
+      "sale_price": 135000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 26,
+          "name": "ELECTRONICS",
+          "slug": "electronics"
+        }
+      ],
+      "images": [
+        {
+          "id": 3234,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262718.jpg",
+          "name": "2025/12/262718.jpg",
+          "alt": "Office Fun"
+        },
+        {
+          "id": 3232,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262719.jpg",
+          "name": "2025/12/262719.jpg",
+          "alt": "Office Fun"
+        },
+        {
+          "id": 3233,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/262717.jpg",
+          "name": "2025/12/262717.jpg",
+          "alt": "Office Fun"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Electric Rotating Box Fan Slimline With Rotating Louvre To Creat Oscillating Effect 3 Blades Class A Energy Efficiency 3 Adjust Speed Table Fan &#8211; Gray/Multicolor&#8230;.",
+      "description": "<p>12 Inch (330mm) diameter High Power electric cooling fan. These new electric radiator fans have been designed and manufactured in Italy and provide high quality engineered solutions to cooling fan installations in virtually any environment from automotive, Industiral, agricultural and marine.</p>\n<p>This 12 Inch version of Comex electric fan features sealed bearings and is waterproof to IP68. The fans have been designed for continuous use and offer high performance whilst maintaining OEM type quality. For use in 12 Volt systems only.</p>\n<p>The outer shroud of the 12 inch fan measures 13.9&#8243; (354mm) in diameter and is 2.7&#8243; (69.5mm) thick. The fan weighs 1.9kgs. More dimensions and flow charts for this Comex 13&#8243; diameter fan can be found in the Technical Info tab. The full Comex part number for this fan is F53-12E8103-28*.</p>\n<p>The 12 Inch diameter fan is available as a suction or blowing type fan. Please select your required fan option from the selection menu before placing the item in your basket…</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3228,
+      "name": "TP-Link 5GHz AC867 Long Range Outdoor CPE",
+      "slug": "tp-link-5ghz-ac867-long-range-outdoor-cpe",
+      "permalink": "https://www.cyberdynamictech.com/product/tp-link-5ghz-ac867-long-range-outdoor-cpe/",
+      "sku": "SKU-3228",
+      "barcode": "CDT003228",
+      "price": 550000,
+      "regular_price": 550000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 112,
+          "name": "NETWORKING",
+          "slug": "networking"
+        }
+      ],
+      "images": [
+        {
+          "id": 3227,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/255682.jpg",
+          "name": "2025/12/255682.jpg",
+          "alt": "TP-Link 5GHz AC867 Long Range Outdoor CPE"
+        }
+      ],
+      "attributes": [],
+      "short_description": "TP-Link 5GHz AC867 Long Range Outdoor CPE For PtP And PtMP Transmission Point To Point Wireless Bridge 23dBi Passive PoE Powered W/Free PoE Pharos Control (CPE710)",
+      "description": "<p>Superior Speeds with No Wait: 23 dBi Directional 2 × 2 MIMO Antenna, 256 QAM and an 80 MHz bandwidth boosts overall speeds up to 867 Mbps<br />\nLong-Range Wireless Transmission: Excellent beam directivity, improved latency, and noise immunity makes CPE710 an ideal choice and cost-effective solution for outdoor long-distance wireless networking applications<br />\nStable Structural Design and Flexible Installation: Snap-lock parts make assembly simple and convenient. Pole mount kits and the freedom of three-axis alignment facilitate flexible installation. Sturdy design ensures stability in windy conditions<br />\nPharos Control &#8211; Centralized Management System: CPE710 comes equipped with Pharos Control centralized management software, the web-based PharOS provides an alternative management method and allows professionals to access more detailed configurations<br />\nDurable IP65 weatherproof enclosure along with 15kV ESD and 6kV lightning protection ensures all-weather suitability. Transmit Power Max. 27 dBm (Adjustable power by 1dBm)</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3226,
+      "name": "TP-Link Omada EAP225 Outdoor",
+      "slug": "tp-link-omada-eap225-outdoor",
+      "permalink": "https://www.cyberdynamictech.com/product/tp-link-omada-eap225-outdoor/",
+      "sku": "SKU-3226",
+      "barcode": "CDT003226",
+      "price": 450000,
+      "regular_price": 450000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 112,
+          "name": "NETWORKING",
+          "slug": "networking"
+        }
+      ],
+      "images": [
+        {
+          "id": 3225,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/255674.jpg",
+          "name": "2025/12/255674.jpg",
+          "alt": "TP-Link Omada EAP225 Outdoor"
+        },
+        {
+          "id": 3224,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/12/255673.jpg",
+          "name": "2025/12/255673.jpg",
+          "alt": "TP-Link Omada EAP225 Outdoor"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Key Features Dual-Band AC1200 Wi-Fi – 2.4GHz (300 Mbps) + 5GHz (867 Mbps) for fast, stable connections Long-Range Coverage – High-gain antennas for wide area signal coverage Omada Mesh &amp; Controller Support – Easy centralized cloud management via Omada app Gigabit Ethernet Port – High-speed wired backhaul support Weatherproof Design (IP65) – Built for outdoor use in any weather",
+      "description": "<p>Description<br />\nUpgrade your network with the TP-Link EAP225 Outdoor, a high-performance AC1200 Dual-Band Gigabit Access Point designed for seamless indoor and outdoor Wi-Fi coverage. With its powerful dual antennas, this access point delivers fast and stable wireless connections, making it perfect for large homes, offices, schools, hotels, and outdoor areas. It supports Omada Mesh Technology, enabling easy expansion and centralized management via the Omada app or controller.</p>\n<p>Engineered for reliability, the EAP225 Outdoor features MU-MIMO technology for simultaneous multi-user connections, gigabit Ethernet ports for ultra-fast data transfer, and seamless roaming to keep you connected as you move. Its durable, weatherproof enclosure (IP65 rated) ensures top performance even in harsh outdoor environments.</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3151,
+      "name": "AMA 15.6 Inch 8GB RAM 256GB SSD",
+      "slug": "ama-15-6-inch-8gb-ram-256gb-ssd",
+      "permalink": "https://www.cyberdynamictech.com/product/ama-15-6-inch-8gb-ram-256gb-ssd/",
+      "sku": "ama-15-6-inch-8gb-ram-256gb-ssd-brand-new-windows-11-business-student-notebook-laptop",
+      "barcode": "ama-15-6-inch-8gb-ram-256gb-ssd-brand-new-windows-11-business-student-notebook-laptop",
+      "price": 1600000,
+      "regular_price": 1800000,
+      "sale_price": 1600000,
+      "on_sale": true,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": true,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 21,
+          "name": "LAPTOPS",
+          "slug": "laptops"
+        }
+      ],
+      "images": [
+        {
+          "id": 3152,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/ezgif.com-animated-gif-maker-1.gif",
+          "name": "ezgif.com-animated-gif-maker",
+          "alt": "AMA 15.6 Inch 8GB RAM 256GB SSD"
+        }
+      ],
+      "attributes": [],
+      "short_description": "AMA 15.6 Inch 8GB RAM 256GB SSD Brand New Windows 11 Business &amp; Student Notebook Laptop",
+      "description": "<p>DescriptionPowerful Quad-Core Performance – Equipped with an Intel Celeron N5095 (up to 2.9GHz) for smooth multitasking, office productivity, and online learning.Ample Storage &amp; Speed – Enjoy lightning-fast boot times and app launches with 256GB SSD and 8GB DDR4 RAM.Vivid Full HD Display – 15.6&#8243; 1920×1080 resolution panel delivers sharp visuals for work, streaming, or creative tasks.Sleek &amp; Lightweight Design – Ultra-slim finish weighing less than 1.8 kg — ideal for business travel and campus life.Long-Lasting Battery – Smart power management for up to 6-8 hours of use on a single charge.Windows 11 Pre-Installed – Ready to use out-of-the-box with security updates and modern UI.Connectivity Ready – Dual-band Wi-Fi, Bluetooth, HDMI, USB 3.0, SD slot, and headphone jack for versatile connections.Ideal For: Students, business professionals, home users, and first-time laptop owners seeking performance at great value.Key FeaturesModel: AMA E157 LaptopCPU: Intel Celeron N5095 Quad-Core 2.0GHz–2.9GHzScreen: 15.6&#8243; 1920×1080 FHD IPSRAM / Storage: 8GB + 256GBGPU: Intel Integrated GraphicsBattery: 7.6V / 5000mAhBluetooth: BT 4.2WIFI: YesCamera: Front 2.0MPBody Material: Plastic, slim designKeyboard: English layoutPorts: USB 3.0, HDMI, Headphone JackOperating System: Windows 10 / Windows 11Dimensions: ~15.6&#8243; (approx. 357×229×19 mm typical)</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 3135,
+      "name": "Samsung Galaxy A07 4G 6.7",
+      "slug": "samsung-galaxy-a07-4g-6-7",
+      "permalink": "https://www.cyberdynamictech.com/product/samsung-galaxy-a07-4g-6-7/",
+      "sku": "SKU-3135",
+      "barcode": "CDT003135",
+      "price": 450000,
+      "regular_price": 450000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "Cyber Dynamic Technologies",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 22,
+          "name": "PHONES",
+          "slug": "phones"
+        }
+      ],
+      "images": [
+        {
+          "id": 3133,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/239266.jpg",
+          "name": "2025/11/239266.jpg",
+          "alt": "Samsung Galaxy A07 4G 6.7"
+        },
+        {
+          "id": 3132,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/239267.jpg",
+          "name": "2025/11/239267.jpg",
+          "alt": "Samsung Galaxy A07 4G 6.7"
+        },
+        {
+          "id": 3134,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/239268.jpg",
+          "name": "2025/11/239268.jpg",
+          "alt": "Samsung Galaxy A07 4G 6.7"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Samsung Galaxy A07 4G 6.7&#8243; 4GB RAM 128GB ROM 50MP 5000mAh &#8211; Black",
+      "description": "<p>Key Features<br />\nNetwork Technology: GSM / HSPA / LTE<br />\nSIM: Nano-SIM + Nano-SIM<br />\nSize: 6.7 inches, 108.4 cm2 (~85.2% screen-to-body ratio)<br />\nPlatform: OS Android 15, up to 6 major Android upgrades, One UI 7<br />\nInternal: 128GB 4GB RAM<br />\nMain Camera: Dual 50 MP<br />\nComms: WLAN: Wi-Fi 802.11 a/b/g/n/ac, dual-band, Wi-Fi Direct<br />\nBluetooth: 5.3, A2DP, LE<br />\nUSB: USB Type-C 2.0<br />\nFeatures: Sensors Fingerprint (side-mounted), accelerometer, proximity<br />\nBattery Type: 5000 mAh</p>",
+      "average_rating": 5,
+      "rating_count": 0
+    }
+  ],
+  "categories": [
+    {
+      "id": 296,
+      "name": "EPSON",
+      "slug": "epson",
+      "description": "EPSON hardware and electronics",
+      "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80",
+      "count": 1
+    },
+    {
+      "id": 23,
+      "name": "PRINTERS",
+      "slug": "printers",
+      "description": "Get exclusive access to every printer of your choice suitable for your work at affordable rates only on the cyber market.",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2025/01/1000058835.png",
+      "count": 22
+    },
+    {
+      "id": 26,
+      "name": "ELECTRONICS",
+      "slug": "electronics",
+      "description": "ELECTRONICS hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/hdmi-to-vga3.jpg",
+      "count": 80
+    },
+    {
+      "id": 19,
+      "name": "DESKTOPS",
+      "slug": "desktops",
+      "description": "DESKTOPS hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/CE_Holiday24_1791_BRS-2UP2-TL-MOB__371x506_EN.jpg",
+      "count": 13
+    },
+    {
+      "id": 17,
+      "name": "OTHERS",
+      "slug": "others",
+      "description": "OTHERS hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/IMG_20241021_122714_063.webp",
+      "count": 16
+    },
+    {
+      "id": 24,
+      "name": "SOFTWARE",
+      "slug": "software",
+      "description": "SOFTWARE hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/1-9.jpg",
+      "count": 17
+    },
+    {
+      "id": 21,
+      "name": "LAPTOPS",
+      "slug": "laptops",
+      "description": "LAPTOPS hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/1-2.jpg",
+      "count": 40
+    },
+    {
+      "id": 22,
+      "name": "PHONES",
+      "slug": "phones",
+      "description": "PHONES hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/samsung-a043.jpg",
+      "count": 31
+    },
+    {
+      "id": 27,
+      "name": "TVS",
+      "slug": "tvs",
+      "description": "TVS hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/smartech1-3.jpg",
+      "count": 23
+    },
+    {
+      "id": 32,
+      "name": "TABLETS",
+      "slug": "tablets",
+      "description": "TABLETS hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/1000041057.jpg",
+      "count": 5
+    },
+    {
+      "id": 210,
+      "name": "PC &amp; LAPTOP",
+      "slug": "pc-laptop",
+      "description": "PC &amp; LAPTOP hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562685.jpg",
+      "count": 5
+    },
+    {
+      "id": 18,
+      "name": "COMPUTERS",
+      "slug": "computers",
+      "description": "<strong>Find the Best Computers &#038; Laptops for Every Need!</strong>\r\nExplore our wide range of high-performance computers, laptops, desktops, and accessories designed to meet your personal, business, and gaming needs. Whether you&#039;re looking for powerful processors, sleek designs, or budget-friendly options, we have something for everyone. Shop with confidence and enjoy great deals today\r\n✅ Laptops, Desktops, and Accessories\r\n✅ Trusted Brands &#038; High-Quality Products\r\n✅ Affordable Prices &#038; Exclusive Discounts\r\n✅ Fast Delivery &#038; Secure Payments",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/31hqkoNqvTL._SR420420_.jpg",
+      "count": 63
+    },
+    {
+      "id": 29,
+      "name": "WATCHES",
+      "slug": "watches",
+      "description": "WATCHES hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/1-48.jpg",
+      "count": 6
+    },
+    {
+      "id": 112,
+      "name": "NETWORKING",
+      "slug": "networking",
+      "description": "NETWORKING hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/192716.jpg",
+      "count": 8
+    },
+    {
+      "id": 16,
+      "name": "ACCESSORIES",
+      "slug": "accessories",
+      "description": "ACCESSORIES hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/5.jpg",
+      "count": 62
+    },
+    {
+      "id": 47,
+      "name": "Laptop Chargers",
+      "slug": "laptop-chargers",
+      "description": "Laptop Chargers hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/1000041994.jpg",
+      "count": 5
+    },
+    {
+      "id": 30,
+      "name": "CATRIDGES",
+      "slug": "catridges",
+      "description": "CATRIDGES hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/194788.png",
+      "count": 2
+    },
+    {
+      "id": 44,
+      "name": "CHRISTMAS 🎄",
+      "slug": "christmas-%f0%9f%8e%84",
+      "description": "Get amazing products on special for Christmas and enjoy the festive season with great discounts",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/1000040012-1.jpg",
+      "count": 4
+    },
+    {
+      "id": 62,
+      "name": "FRIDGES",
+      "slug": "www-cyberdynamictech-com",
+      "description": "Get fridges at amazing prices",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2025/01/1-2025-01-24T105926.982.jpg",
+      "count": 4
+    },
+    {
+      "id": 25,
+      "name": "MONITORS",
+      "slug": "monitors",
+      "description": "MONITORS hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2025/01/1000050014.jpg",
+      "count": 7
+    },
+    {
+      "id": 15,
+      "name": "NEW OFFERS",
+      "slug": "latest-offers",
+      "description": "NEW OFFERS hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2025/01/D7.jpg",
+      "count": 78
+    },
+    {
+      "id": 31,
+      "name": "Phone cases",
+      "slug": "phone-cases",
+      "description": "Phone cases hardware and electronics",
+      "image": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80",
+      "count": 1
+    },
+    {
+      "id": 20,
+      "name": "SERVICES",
+      "slug": "services",
+      "description": "SERVICES hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/5-3.jpg",
+      "count": 9
+    },
+    {
+      "id": 46,
+      "name": "SPARES",
+      "slug": "spares",
+      "description": "Get all kinds of computer spares",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/1000041254.jpg",
+      "count": 7
+    }
+  ],
+  "orders": [],
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@cyberdynamictech.com",
+      "password_hash": "e755d69fe654ed9ea47bf25c62a47565:b55443ad74b035c76f4ede6d4c15abaee5b9ebb00563d4087f6a4bc3b63a6b2ae21d4f3fbe26ef5d8ca04494b0959312f4168df0da3f02e6df7e31bdb7ec3767",
+      "first_name": "Store",
+      "last_name": "Administrator",
+      "phone": "+256779743101",
+      "role": "admin",
+      "status": "active",
+      "admin_notes": "Primary Super Administrator for Cyber Dynamic Technologies Marketplace and WooCommerce API configuration.",
+      "is_email_verified": true,
+      "two_factor_enabled": false,
+      "created_at": "2026-08-21T19:10:03.737Z",
+      "addresses": [
+        {
+          "id": "addr_superadmin",
+          "type": "shipping",
+          "first_name": "Store",
+          "last_name": "Administrator",
+          "phone": "+256779743101",
+          "email": "admin@cyberdynamictech.com",
+          "district": "Kampala",
+          "city": "Kampala Central",
+          "address_1": "Kampala",
+          "landmark": "Cyber Dynamic Technologies Headquarters",
+          "is_default": true
+        }
+      ],
+      "wishlist": []
+    },
+    {
+      "id": 2,
+      "email": "operations@cyberdynamictech.com",
+      "password_hash": "a036ca271a61ab69313426f698ca0397:b9f1203f4a91b32a3bbe4b37d94d66264c0589869739b801bf0af80ffe116abe550ed439f358d6ccee797f908ae90f4aa52921ed1698b05928f468ba83eda476",
+      "first_name": "Cyber",
+      "last_name": "Administrator",
+      "phone": "+256779743101",
+      "role": "admin",
+      "status": "active",
+      "admin_notes": "Secondary backup admin account for Cyber Dynamic Technologies system maintenance.",
+      "is_email_verified": true,
+      "two_factor_enabled": false,
+      "created_at": "2026-08-21T19:10:03.791Z",
+      "addresses": [],
+      "wishlist": []
+    },
+    {
+      "id": 3,
+      "email": "grace.akello@kumi-tech.ug",
+      "password_hash": "28f3ca15161b375fc7cc19a07ce11267:c98c3fe0ce69f190d5ea66f4994aecf99b22709e00cfc56ee8f253cf26208a633c984628609940592f62ceeb4c2397297d12992a0438bbc94f05073aa4c4246a",
+      "first_name": "Grace",
+      "last_name": "Akello",
+      "phone": "+256701234567",
+      "role": "manager",
+      "status": "active",
+      "admin_notes": "Regional Operations Manager for Eastern Uganda hub in Kumi.",
+      "is_email_verified": true,
+      "two_factor_enabled": false,
+      "created_at": "2026-08-31T19:10:03.827Z",
+      "addresses": [],
+      "wishlist": []
+    },
+    {
+      "id": 4,
+      "email": "content.editor@cyberdynamictech.com",
+      "password_hash": "e5ac3ca82b7375849cc9031314dd5bff:3986b524af9a7a12da53e402abe28fdd81506652b0f219d2dd4e198b05d6c712a49b315e413547cdd4ef9d86a8bad3001172c1f5ac899260dd9952719b3b49e5",
+      "first_name": "Sarah",
+      "last_name": "Editor",
+      "phone": "+256752000111",
+      "role": "editor",
+      "status": "active",
+      "admin_notes": "Product catalog curator & banner copywriter.",
+      "is_email_verified": true,
+      "two_factor_enabled": false,
+      "created_at": "2026-09-10T19:10:03.862Z",
+      "addresses": [],
+      "wishlist": []
+    }
+  ],
+  "deliveryZones": [
+    {
+      "id": "kampala_central",
+      "name": "Kampala Central (Nakasero, Kololo, CBD, Kamwokya, Old Kampala)",
+      "districts": [
+        "Nakasero",
+        "Kololo",
+        "Central Business District (CBD)",
+        "Kamwokya",
+        "Old Kampala",
+        "Industrial Area",
+        "Civic Centre",
+        "Nakivubo"
+      ],
+      "fee": 5000,
+      "free_threshold": 200000,
+      "estimated_delivery": "1 - 2 Hours (Express Boda / Courier)",
+      "description": "Ultra-fast doorstep dispatch from our Kampala showroom. Delivered within 2 hours."
+    },
+    {
+      "id": "kampala_nakawa",
+      "name": "Nakawa & East Kampala (Ntinda, Naguru, Bugolobi, Kyambogo, Luzira)",
+      "districts": [
+        "Ntinda",
+        "Naguru",
+        "Bugolobi",
+        "Kyambogo",
+        "Luzira",
+        "Banda",
+        "Mutungo",
+        "Kitintale",
+        "Mbuya",
+        "Bukoto",
+        "Kyanja"
+      ],
+      "fee": 7000,
+      "free_threshold": 250000,
+      "estimated_delivery": "Same Day Delivery (2 - 4 Hours)",
+      "description": "Direct courier delivery to offices, residences, and universities across Nakawa division and East Kampala."
+    },
+    {
+      "id": "kampala_makindye",
+      "name": "Makindye & South Kampala (Kabalagala, Kansanga, Munyonyo, Nsambya, Ggaba)",
+      "districts": [
+        "Kabalagala",
+        "Kansanga",
+        "Nsambya",
+        "Ggaba",
+        "Munyonyo",
+        "Katwe",
+        "Makindye Hill",
+        "Bunga",
+        "Kibuli",
+        "Buziga",
+        "Salaama"
+      ],
+      "fee": 7000,
+      "free_threshold": 250000,
+      "estimated_delivery": "Same Day Delivery (2 - 4 Hours)",
+      "description": "Express motorcycle and van delivery across Southern Kampala and Lake Victoria corridor."
+    },
+    {
+      "id": "kampala_kawempe",
+      "name": "Kawempe & North Kampala (Kisaasi, Komamboga, Kalerwe, Bwaise, Kawempe)",
+      "districts": [
+        "Kisaasi",
+        "Komamboga",
+        "Kalerwe",
+        "Kawempe",
+        "Bwaise",
+        "Kikoni",
+        "Makerere",
+        "Kyebando",
+        "Mawanda Road",
+        "Mpererwe"
+      ],
+      "fee": 7000,
+      "free_threshold": 250000,
+      "estimated_delivery": "Same Day Delivery (2 - 4 Hours)",
+      "description": "Doorstep tech dispatch to northern residential areas and universities in Kawempe division."
+    },
+    {
+      "id": "kampala_rubaga",
+      "name": "Rubaga & West Kampala (Mengo, Namirembe, Lubaga, Nateete, Busega, Kasubi)",
+      "districts": [
+        "Mengo",
+        "Namirembe",
+        "Lubaga",
+        "Nateete",
+        "Busega",
+        "Kasubi",
+        "Lungujja",
+        "Mutundwe",
+        "Nankulabye"
+      ],
+      "fee": 7000,
+      "free_threshold": 250000,
+      "estimated_delivery": "Same Day Delivery (2 - 4 Hours)",
+      "description": "Fast delivery across historical Rubaga division, Mengo, and western commercial hubs."
+    },
+    {
+      "id": "greater_kampala_wakiso",
+      "name": "Greater Kampala & Wakiso (Kira, Nansana, Namugongo, Gayaza, Kasangati)",
+      "districts": [
+        "Kira Municipality",
+        "Nansana",
+        "Namugongo",
+        "Gayaza",
+        "Kasangati",
+        "Bulindo",
+        "Sonde",
+        "Matugga",
+        "Wakiso Town"
+      ],
+      "fee": 10000,
+      "free_threshold": 350000,
+      "estimated_delivery": "Same Day or Next Morning",
+      "description": "Courier delivery to outer metropolitan residential estates and growing commercial hubs."
+    },
+    {
+      "id": "entebbe_corridor",
+      "name": "Entebbe Road & Airport Corridor (Lubowa, Seguku, Kajjansi, Entebbe Town)",
+      "districts": [
+        "Lubowa",
+        "Seguku",
+        "Kajjansi",
+        "Akright City",
+        "Zana",
+        "Lweza",
+        "Abayita Ababiri",
+        "Entebbe Town",
+        "Entebbe International Airport"
+      ],
+      "fee": 15000,
+      "free_threshold": 500000,
+      "estimated_delivery": "Same Day Express Courier",
+      "description": "Dedicated courier transit along Entebbe Expressway and Entebbe Road to hotels, offices, and homes."
+    },
+    {
+      "id": "mukono_corridor",
+      "name": "Mukono & Jinja Road Corridor (Bweyogerere, Namanve, Seeta, Mukono Town)",
+      "districts": [
+        "Bweyogerere",
+        "Namanve Industrial Park",
+        "Kirinya",
+        "Seeta",
+        "Mukono Town",
+        "Kyambogo University",
+        "Mbalala"
+      ],
+      "fee": 12000,
+      "free_threshold": 400000,
+      "estimated_delivery": "Same Day Express Delivery",
+      "description": "Direct delivery to factories in Namanve Industrial Park, university campuses, and Mukono Municipality."
+    },
+    {
+      "id": "store_pickup",
+      "name": "Free District Pickup Hub (Your District Station)",
+      "districts": [
+        "Kampala Central",
+        "Wakiso",
+        "Mukono",
+        "Jinja",
+        "Mbarara",
+        "Gulu",
+        "Arua",
+        "Mbale",
+        "Masaka",
+        "Lira",
+        "Soroti",
+        "Fort Portal",
+        "Hoima",
+        "Kabale"
+      ],
+      "fee": 0,
+      "estimated_delivery": "Kampala: 30 Mins | Upcountry: 1-2 Days",
+      "description": "Collect your order at the official Cyber Dynamic Technologies district station or showroom in your chosen district."
+    }
+  ],
+  "coupons": [
+    {
+      "id": 1,
+      "code": "CYBER10",
+      "amount": 10,
+      "discount_type": "percent",
+      "min_spend": 100000,
+      "description": "10% off your entire tech order (Min spend UGX 100,000)"
+    },
+    {
+      "id": 2,
+      "code": "WELCOME5",
+      "amount": 5,
+      "discount_type": "percent",
+      "min_spend": 50000,
+      "description": "5% welcome discount for new shoppers"
+    },
+    {
+      "id": 3,
+      "code": "MOMOFREE",
+      "amount": 15000,
+      "discount_type": "fixed_cart",
+      "min_spend": 300000,
+      "description": "UGX 15,000 off delivery for orders over UGX 300,000"
+    }
+  ],
+  "priceDropAlerts": [
+    {
+      "id": "pda_1789934928343_1vfuin",
+      "product_id": 4720,
+      "product_name": "EPSON L3110 Printer- REFURBISHED",
+      "product_slug": "epson-l3110-printer-refurbished",
+      "product_image": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/786647.jpg",
+      "current_price": 650000,
+      "notify_type": "both",
+      "email": "opwataallan@gmail.com",
+      "phone": "+256779743101",
+      "created_at": "2026-09-20T20:08:48.343Z",
+      "status": "triggered",
+      "channel_delivery_status": {
+        "sms": "simulated",
+        "email": "sent"
+      },
+      "notified_at": "2026-09-20T20:08:52.187Z",
+      "triggered_price": 590000
+    }
+  ]
+}

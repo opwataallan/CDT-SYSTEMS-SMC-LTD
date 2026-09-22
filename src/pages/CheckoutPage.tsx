@@ -20,6 +20,7 @@ import { CustomerOrder } from '../types';
 import { UGANDA_DISTRICTS, getDistrictDeliveryOptions } from '../data/ugandaDistricts';
 import { DistrictSelector } from '../components/DistrictSelector';
 import { PaymentLandingPage } from '../components/PaymentLandingPage';
+import { notificationService } from '../services/notificationService';
 
 export const CheckoutPage: React.FC = () => {
   const {
@@ -261,6 +262,16 @@ export const CheckoutPage: React.FC = () => {
       if (res.success && res.order) {
         clearCart();
         setCreatedOrder(res.order);
+
+        // Trigger browser push and in-app notification update for the confirmed order
+        notificationService.notifyOrderUpdate({
+          orderNumber: res.order.order_number,
+          status: 'confirmed',
+          totalAmount: res.order.total,
+          customerName: `${res.order.billing?.first_name || ''} ${res.order.billing?.last_name || ''}`.trim(),
+          deliveryZone: res.order.delivery_zone || district || 'Kampala',
+        }).catch(() => {});
+
         showToast(
           paymentMethod === 'cod'
             ? 'Order placed successfully (Cash on Delivery)!'

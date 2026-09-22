@@ -1,0 +1,44 @@
+# ==============================================================================
+# Cyber Dynamic Technologies - Secure Uploads Directory Configuration
+# Protects against malicious script execution on Apache/cPanel shared servers
+# ==============================================================================
+
+# Disable directory browsing
+Options -Indexes -ExecCGI
+
+# Deny execution of PHP scripts and server-side executables
+<IfModule mod_php.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+  php_flag engine off
+</IfModule>
+<IfModule mod_php8.c>
+  php_flag engine off
+</IfModule>
+
+# Remove handler for all executable scripts
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .sh .bash .bin
+AddHandler default-handler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .sh
+
+# Block direct web access to non-media executable files
+<FilesMatch "(?i)\.(php|phtml|php3|php4|php5|php7|php8|phps|cgi|pl|py|sh|bash|exe|bin|bat|cmd|env|sql|json|lock)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order Allow,Deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Allow only standard media types (images, pdfs)
+<FilesMatch "(?i)\.(jpe?g|png|gif|webp|svg|ico|pdf|avif)$">
+  <IfModule mod_authz_core.c>
+    Require all granted
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order Allow,Deny
+    Allow from all
+  </IfModule>
+</FilesMatch>

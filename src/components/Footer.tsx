@@ -12,9 +12,11 @@ import {
   MessageSquare,
   Lock,
   ArrowRight,
+  Smartphone,
 } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { useShop } from '../context/ShopContext';
+import { PWAInstallButton } from './PWAInstallButton';
 
 export const Footer: React.FC = () => {
   const { storeSettings, setCurrentView, showToast } = useShop();
@@ -286,6 +288,12 @@ export const Footer: React.FC = () => {
           <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-bold border border-emerald-500/20 text-[10px]">
             Cash on Delivery
           </span>
+        </div>
+
+        {/* Official Android App Installation */}
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-slate-400 hidden sm:inline">Mobile Experience:</span>
+          <PWAInstallButton variant="pill" />
         </div>
       </div>
 

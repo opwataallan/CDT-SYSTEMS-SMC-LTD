@@ -18,16 +18,18 @@ import {
   Plus,
   Minus,
   Layers,
+  Bell,
 } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
-import { Product, ProductVariation } from '../types';
+import { Product, ProductVariation, PriceDropAlert } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { ProductReviewsSection } from '../components/ProductReviewsSection';
 import { DistrictSelector } from '../components/DistrictSelector';
 import { getDistrictDeliveryOptions } from '../data/ugandaDistricts';
 import { WooCommerceHtml } from '../components/WooCommerceHtml';
 import { sanitizeWooCommerceHtml } from '../utils/sanitizeWooCommerceHtml';
+import { PriceDropAlertModal } from '../components/PriceDropAlertModal';
 
 interface ProductDetailPageProps {
   slugOrId: string | number;
@@ -59,10 +61,28 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
   const [relatedCategoryName, setRelatedCategoryName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [chosenDistrict, setChosenDistrict] = useState(user?.addresses?.[0]?.district || 'Kampala');
+  const [isPriceAlertModalOpen, setIsPriceAlertModalOpen] = useState(false);
+  const [userPriceAlert, setUserPriceAlert] = useState<PriceDropAlert | null>(null);
 
   const districtOptions = getDistrictDeliveryOptions(chosenDistrict);
   const doorstepOpt = districtOptions.find((o) => o.type === 'doorstep') || districtOptions[0];
   const pickupOpt = districtOptions.find((o) => o.type === 'pickup');
+
+  // Check alert subscription status for current logged-in user
+  useEffect(() => {
+    if (product?.id && (user?.email || user?.phone)) {
+      api
+        .getPriceDropAlertStatus(product.id, { email: user?.email, phone: user?.phone })
+        .then((res) => {
+          if (res.subscribed && res.alert) {
+            setUserPriceAlert(res.alert);
+          } else {
+            setUserPriceAlert(null);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [product?.id, user?.email, user?.phone]);
 
   // Load product
   useEffect(() => {
@@ -286,16 +306,34 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
           </button>
 
           {/* Price Box */}
-          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-0.5">
-            <div className="flex flex-wrap items-baseline gap-2 sm:gap-2.5">
-              <span className="text-xl sm:text-2xl font-black text-cyan-600 tracking-tight whitespace-nowrap">
-                UGX {activePrice.toLocaleString()}
-              </span>
-              {activeRegularPrice > activePrice && (
-                <span className="text-xs sm:text-sm text-slate-400 line-through whitespace-nowrap">
-                  UGX {activeRegularPrice.toLocaleString()}
+          <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 space-y-1.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-baseline gap-2 sm:gap-2.5">
+                <span className="text-xl sm:text-2xl font-black text-cyan-600 tracking-tight whitespace-nowrap">
+                  UGX {activePrice.toLocaleString()}
                 </span>
-              )}
+                {activeRegularPrice > activePrice && (
+                  <span className="text-xs sm:text-sm text-slate-400 line-through whitespace-nowrap">
+                    UGX {activeRegularPrice.toLocaleString()}
+                  </span>
+                )}
+              </div>
+
+              {/* Price Drop Tracker Quick Pill */}
+              <button
+                type="button"
+                id="quick-track-price-pill"
+                onClick={() => setIsPriceAlertModalOpen(true)}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer border shadow-2xs ${
+                  userPriceAlert
+                    ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-200 hover:border-amber-300'
+                }`}
+                title="Set SMS or Email alert when price drops in WooCommerce"
+              >
+                <Bell className={`w-3 h-3 ${userPriceAlert ? 'text-emerald-600' : 'text-amber-600 animate-pulse'}`} />
+                <span>{userPriceAlert ? 'Alert Active' : 'Track Price'}</span>
+              </button>
             </div>
             <p className="text-[10px] text-slate-500">
               Price includes official Uganda sales taxes & standard warranty.
@@ -416,6 +454,24 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
               <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
               <span>Inquire on WhatsApp</span>
             </a>
+
+            {/* Notify Me When Price Drops Button */}
+            <button
+              id="notify-me-price-drop-btn"
+              type="button"
+              onClick={() => setIsPriceAlertModalOpen(true)}
+              className={`w-full py-2.5 px-3 rounded-lg font-extrabold text-xs flex items-center justify-center gap-2 border transition-all cursor-pointer shadow-2xs ${
+                userPriceAlert
+                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border-emerald-300'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-950 border-amber-300 hover:border-amber-400'
+              }`}
+            >
+              <Bell className={`w-3.5 h-3.5 ${userPriceAlert ? 'text-emerald-600' : 'text-amber-600 animate-pulse'}`} />
+              <span>{userPriceAlert ? '✓ Price Drop Alert Active (Tap to Edit)' : 'Notify Me When Price Drops'}</span>
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-white/80 text-slate-700 border border-slate-200/80 shadow-2xs">
+                SMS / Email
+              </span>
+            </button>
           </div>
         </div>
 
@@ -648,6 +704,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          {/* Mobile Price Drop Alert Quick Button */}
+          <button
+            type="button"
+            id="mobile-track-price-btn"
+            onClick={() => setIsPriceAlertModalOpen(true)}
+            className={`p-2 rounded-lg border transition-colors cursor-pointer ${
+              userPriceAlert
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                : 'border-amber-300 bg-amber-50 text-amber-800'
+            }`}
+            title="Price Drop Alert"
+          >
+            <Bell className={`w-4 h-4 ${userPriceAlert ? 'text-emerald-600' : 'text-amber-600 animate-pulse'}`} />
+          </button>
+
           <button
             onClick={() => addToCart(product, selectedVariation, quantity, selectedAttributes)}
             className="py-2 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center gap-1 shadow-2xs transition-all cursor-pointer whitespace-nowrap"
@@ -665,6 +736,25 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
           </button>
         </div>
       </div>
+
+      {/* 6. PRICE DROP ALERT SUBSCRIPTION MODAL */}
+      {isPriceAlertModalOpen && product && (
+        <PriceDropAlertModal
+          product={product}
+          isOpen={isPriceAlertModalOpen}
+          onClose={() => setIsPriceAlertModalOpen(false)}
+          userEmail={user?.email}
+          userPhone={user?.phone}
+          onAlertUpdated={(alert) => {
+            setUserPriceAlert(alert);
+            if (alert) {
+              showToast('Price drop alert configured successfully!', 'success');
+            } else {
+              showToast('Price drop alert removed.', 'info');
+            }
+          }}
+        />
+      )}
     </div>
   );
 };

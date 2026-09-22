@@ -12,6 +12,7 @@ import {
   AuditLogEntry,
   UserRole,
   SmsLogEntry,
+  PriceDropAlert,
 } from '../types';
 import { getStoredReviewsForProduct, saveLocalProductReview } from '../data/initialReviews';
 import { INITIAL_CATEGORIES } from '../data/cyberCatalog';
@@ -963,5 +964,87 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     }, 'Failed to sync database');
+  },
+
+  // Price Drop Alerts API
+  async subscribePriceDropAlert(
+    productId: number | string,
+    data: {
+      email?: string;
+      phone?: string;
+      notify_type?: 'email' | 'phone' | 'both';
+      target_price?: number;
+    }
+  ): Promise<{
+    success: boolean;
+    message: string;
+    alert: PriceDropAlert;
+    is_existing?: boolean;
+  }> {
+    return safeFetch(`/api/products/${productId}/price-alert`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }, 'Failed to subscribe to price drop alert');
+  },
+
+  async getPriceDropAlertStatus(
+    productId: number | string,
+    params: { email?: string; phone?: string }
+  ): Promise<{
+    subscribed: boolean;
+    alert?: PriceDropAlert | null;
+    current_price?: number;
+  }> {
+    const query = new URLSearchParams();
+    if (params.email) query.set('email', params.email);
+    if (params.phone) query.set('phone', params.phone);
+    const qs = query.toString();
+    return safeFetch(`/api/products/${productId}/price-alert/status${qs ? `?${qs}` : ''}`, {
+      method: 'GET',
+    }, 'Failed to retrieve price drop alert status');
+  },
+
+  async cancelPriceDropAlert(
+    productId: number | string,
+    data: { email?: string; phone?: string; alert_id?: string }
+  ): Promise<{ success: boolean; message: string }> {
+    return safeFetch(`/api/products/${productId}/price-alert/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }, 'Failed to cancel price drop alert');
+  },
+
+  async getAdminPriceAlerts(): Promise<{
+    alerts: PriceDropAlert[];
+    count: number;
+    active_count: number;
+    triggered_count: number;
+  }> {
+    return safeFetch('/api/admin/price-alerts', {
+      method: 'GET',
+    }, 'Failed to fetch price alerts');
+  },
+
+  async testPriceAlertTrigger(data: {
+    product_id: number;
+    test_new_price?: number;
+    override_email?: string;
+    override_phone?: string;
+  }): Promise<{
+    success: boolean;
+    message: string;
+    old_price: number;
+    new_price: number;
+    drop_percentage: number;
+    alerts_triggered: number;
+    dispatched_alerts: PriceDropAlert[];
+  }> {
+    return safeFetch('/api/admin/price-alerts/test-trigger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }, 'Failed to test price alert trigger');
   },
 };

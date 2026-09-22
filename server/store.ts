@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { MarketplaceConfig, CustomerOrder, Product, Category, DeliveryZone, Coupon, SmsLogEntry } from '../src/types';
+import { MarketplaceConfig, CustomerOrder, Product, Category, DeliveryZone, Coupon, SmsLogEntry, PriceDropAlert } from '../src/types';
 import { DEFAULT_MARKETPLACE_CONFIG } from '../src/data/defaultConfig';
 import { INITIAL_DELIVERY_ZONES, INITIAL_COUPONS } from '../src/data/cyberCatalog';
 import { hashPassword, encryptField, decryptField } from './security';
@@ -35,6 +35,7 @@ export class MarketplaceStore {
   public deliveryZones: DeliveryZone[] = [...INITIAL_DELIVERY_ZONES];
   public coupons: Coupon[] = [...INITIAL_COUPONS];
   public orders: CustomerOrder[] = [];
+  public priceDropAlerts: PriceDropAlert[] = [];
 
   private dbPath: string = path.join(process.cwd(), 'data', 'database.json');
 
@@ -201,7 +202,10 @@ export class MarketplaceStore {
         if (Array.isArray(data.coupons)) {
           this.coupons = data.coupons;
         }
-        console.log(`[Database] Loaded persistent data: ${this.products.length} products, ${this.orders.length} orders, ${this.users.length} users.`);
+        if (Array.isArray(data.priceDropAlerts)) {
+          this.priceDropAlerts = data.priceDropAlerts;
+        }
+        console.log(`[Database] Loaded persistent data: ${this.products.length} products, ${this.orders.length} orders, ${this.users.length} users, ${this.priceDropAlerts.length} price drop alerts.`);
         return true;
       }
     } catch (err: any) {
@@ -226,6 +230,7 @@ export class MarketplaceStore {
         users: this.users,
         deliveryZones: this.deliveryZones,
         coupons: this.coupons,
+        priceDropAlerts: this.priceDropAlerts,
       };
 
       const tmpPath = `${this.dbPath}.tmp`;
@@ -248,6 +253,7 @@ export class MarketplaceStore {
       users: this.users.map((u) => this.getSafeUser(u)),
       deliveryZones: this.deliveryZones,
       coupons: this.coupons,
+      priceDropAlerts: this.priceDropAlerts,
     };
   }
 
@@ -259,6 +265,7 @@ export class MarketplaceStore {
     if (Array.isArray(data.orders)) this.orders = data.orders;
     if (Array.isArray(data.deliveryZones)) this.deliveryZones = data.deliveryZones;
     if (Array.isArray(data.coupons)) this.coupons = data.coupons;
+    if (Array.isArray(data.priceDropAlerts)) this.priceDropAlerts = data.priceDropAlerts;
     this.saveDatabaseToDisk();
     return true;
   }

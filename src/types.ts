@@ -490,6 +490,172 @@ export interface NotificationPreferences {
   pushPermissionStatus: 'default' | 'granted' | 'denied' | 'unsupported';
 }
 
+// ==========================================
+// FIREBASE CLOUD MESSAGING (FCM) & PUSH SCHEMA
+// ==========================================
+
+export type FCMTopic =
+  | 'all_users'
+  | 'order_updates'
+  | 'flash_sales'
+  | 'price_drops'
+  | 'kampala_express_delivery'
+  | 'promotions';
+
+export interface FCMNotificationPayload {
+  title: string;
+  body: string;
+  icon?: string;
+  image?: string;
+  badge?: string;
+  sound?: string;
+  click_action?: string;
+}
+
+export interface FCMOrderUpdateData {
+  type: 'order_update' | 'order_status';
+  order_id: string;
+  order_number: string;
+  status: 'pending' | 'processing' | 'confirmed' | 'shipped' | 'out_for_delivery' | 'completed' | 'cancelled';
+  customer_name?: string;
+  total_amount?: string;
+  delivery_zone?: string;
+  tracking_link?: string;
+  tag?: string;
+  timestamp?: string;
+}
+
+export interface FCMFlashSaleData {
+  type: 'flash_sale';
+  sale_id: string;
+  title: string;
+  discount_percentage?: string;
+  category?: string;
+  product_id?: string;
+  product_slug?: string;
+  starts_at?: string;
+  ends_at?: string;
+  countdown_ms?: string;
+  banner_image?: string;
+  target_url?: string;
+  tag?: string;
+}
+
+export interface FCMPriceDropData {
+  type: 'price_drop';
+  product_id: string;
+  product_name: string;
+  product_slug: string;
+  product_image?: string;
+  old_price: string;
+  new_price: string;
+  drop_amount: string;
+  currency: string;
+}
+
+export type FCMDataPayload =
+  | FCMOrderUpdateData
+  | FCMFlashSaleData
+  | FCMPriceDropData
+  | ({
+      type: 'store_announcement' | 'system' | 'promotion';
+      [key: string]: string | undefined;
+    });
+
+export interface FCMWebpushConfig {
+  headers?: Record<string, string>;
+  data?: Record<string, string>;
+  notification?: {
+    title?: string;
+    body?: string;
+    icon?: string;
+    badge?: string;
+    image?: string;
+    vibrate?: number[];
+    tag?: string;
+    renotify?: boolean;
+    requireInteraction?: boolean;
+    actions?: Array<{
+      action: string;
+      title: string;
+      icon?: string;
+    }>;
+    data?: any;
+  };
+  fcm_options?: {
+    link?: string;
+  };
+}
+
+export interface FCMAndroidConfig {
+  collapse_key?: string;
+  priority?: 'normal' | 'high';
+  ttl?: string;
+  restricted_package_name?: string;
+  data?: Record<string, string>;
+  notification?: {
+    title?: string;
+    body?: string;
+    icon?: string;
+    color?: string;
+    sound?: string;
+    tag?: string;
+    click_action?: string;
+    channel_id?: string;
+  };
+}
+
+export interface FCMMessage {
+  messageId?: string;
+  from?: string;
+  to?: string;
+  collapseKey?: string;
+  priority?: 'normal' | 'high';
+  notification?: FCMNotificationPayload;
+  data?: Record<string, string> | FCMDataPayload;
+  webpush?: FCMWebpushConfig;
+  android?: FCMAndroidConfig;
+  fcmOptions?: {
+    link?: string;
+    analyticsLabel?: string;
+  };
+}
+
+export interface FCMDeviceRegistration {
+  token: string;
+  platform: 'android_webapk' | 'android_browser' | 'ios_pwa' | 'desktop_browser';
+  userAgent: string;
+  subscribedTopics: FCMTopic[];
+  registeredAt: string;
+  lastActiveAt: string;
+  fcmEnabled: boolean;
+  vapidPublicKey?: string;
+  authSecret?: string;
+  endpoint?: string;
+}
+
+export interface BrowserNotificationAction {
+  action: string;
+  title: string;
+  icon?: string;
+}
+
+export interface PushNotificationPayload {
+  title: string;
+  body: string;
+  icon?: string;
+  badge?: string;
+  image?: string;
+  tag?: string;
+  data?: Record<string, any>;
+  actions?: BrowserNotificationAction[];
+  vibrate?: number[];
+  requireInteraction?: boolean;
+  silent?: boolean;
+  renotify?: boolean;
+}
+
+
 export interface EmailSettings {
   sender_name: string;
   sender_email: string;
@@ -800,3 +966,26 @@ export interface StoreSettings {
     link?: string;
   };
 }
+
+// Price Drop Notification Alert Subscription
+export interface PriceDropAlert {
+  id: string;
+  product_id: number;
+  product_name: string;
+  product_slug: string;
+  product_image?: string;
+  current_price: number;
+  target_price?: number;
+  notify_type: 'email' | 'phone' | 'both';
+  email?: string;
+  phone?: string;
+  created_at: string;
+  status: 'active' | 'triggered' | 'cancelled';
+  notified_at?: string;
+  triggered_price?: number;
+  channel_delivery_status?: {
+    sms?: 'sent' | 'simulated' | 'failed' | 'not_requested';
+    email?: 'sent' | 'simulated' | 'failed' | 'not_requested';
+  };
+}
+

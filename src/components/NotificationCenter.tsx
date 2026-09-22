@@ -17,9 +17,13 @@ import {
   AlertCircle,
   Clock,
   ArrowRight,
+  Radio,
+  Zap,
 } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
+import { notificationService } from '../services/notificationService';
+import { FCMSchemaModal } from './FCMSchemaModal';
 
 export interface InAppNotification {
   id: string;
@@ -68,6 +72,10 @@ export const NotificationCenter: React.FC = () => {
   const { setCurrentView, config, orders } = useShop();
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'orders' | 'promos'>('all');
+  const [isFCMModalOpen, setIsFCMModalOpen] = useState(false);
+  const [pushPermission, setPushPermission] = useState<NotificationPermission | 'unsupported'>(() => {
+    return notificationService.getPermissionStatus();
+  });
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem(SOUND_STORAGE_KEY);
@@ -89,6 +97,16 @@ export const NotificationCenter: React.FC = () => {
 
     // Default seed notifications for fresh sessions
     return [
+      {
+        id: 'seed_app_download',
+        type: 'store_announcement',
+        title: '📥 Download Cyber Dynamic Android App',
+        message: 'Install our fast mobile app for instant order push alerts, offline browsing & quick MoMo checkout.',
+        timestamp: new Date().toISOString(),
+        read: false,
+        priority: 'high',
+        linkView: 'download_app',
+      },
       {
         id: 'seed_welcome',
         type: 'store_announcement',
@@ -243,6 +261,66 @@ export const NotificationCenter: React.FC = () => {
     };
   }, [isOpen]);
 
+  // Real-time listener for programmatic and FCM notifications dispatched across the app
+  useEffect(() => {
+    const handleNewNotif = (e: Event) => {
+      const custom = e as CustomEvent<any>;
+      if (custom.detail) {
+        const item = custom.detail;
+        setNotifications((prev) => {
+          if (prev.some((n) => n.id === item.id)) return prev;
+          return [
+            {
+              id: item.id,
+              type: item.type,
+              title: item.title,
+              message: item.message,
+              timestamp: item.timestamp,
+              read: false,
+              priority: item.priority || 'high',
+              linkView: item.link?.view || item.linkView || 'shop',
+              linkParams: item.link?.params || item.linkParams,
+              orderId: item.orderId || item.link?.params?.orderNumber,
+            },
+            ...prev,
+          ];
+        });
+      }
+    };
+    window.addEventListener('cdt_new_notification', handleNewNotif);
+    return () => window.removeEventListener('cdt_new_notification', handleNewNotif);
+  }, []);
+
+  const handleRequestPushPermission = async () => {
+    const status = await notificationService.requestPermission();
+    setPushPermission(status);
+    if (status === 'granted') {
+      await notificationService.showBrowserNotification({
+        title: 'Browser Push Notifications Active! 🔔',
+        body: 'You are now set up to receive real-time order tracking and flash sale alerts.',
+      });
+    }
+  };
+
+  const handleTriggerOrderPush = async () => {
+    await notificationService.notifyOrderUpdate({
+      orderNumber: 'CDT-9041',
+      status: 'shipped',
+      customerName: 'Valued Client',
+      totalAmount: 2450000,
+      deliveryZone: 'Kampala Central (Nakasero & Kololo)',
+    });
+  };
+
+  const handleTriggerFlashSalePush = async () => {
+    await notificationService.notifyFlashSale({
+      title: 'Weekend Tech Surge Deals',
+      discountPercentage: '35%',
+      category: 'Gaming Laptops & Printers',
+      productSlug: 'hp-victus-15-core-i7',
+    });
+  };
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAllAsRead = () => {
@@ -266,7 +344,9 @@ export const NotificationCenter: React.FC = () => {
     markItemAsRead(item.id);
     setIsOpen(false);
 
-    if (item.linkView) {
+    if (item.linkView === 'download_app') {
+      window.dispatchEvent(new CustomEvent('cdt_open_android_modal'));
+    } else if (item.linkView) {
       setCurrentView(item.linkView as any, item.linkParams);
     } else if (item.orderId) {
       setCurrentView('track-order', { orderNumber: item.orderId });
@@ -385,6 +465,51 @@ export const NotificationCenter: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Push Permission Status Banner */}
+          {pushPermission === 'default' && (
+            <div className="p-3 bg-cyan-50 border-b border-cyan-100 flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center shrink-0">
+                  <Radio className="w-3.5 h-3.5 animate-pulse" />
+                </div>
+                <div>
+                  <p className="font-bold text-slate-800 text-[11px] leading-tight">Enable Browser Push Alerts</p>
+                  <p className="text-[10px] text-slate-500">Get order tracking and flash deals even when browser is closed</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleRequestPushPermission}
+                className="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-bold text-[11px] shrink-0 transition-colors shadow-xs cursor-pointer"
+              >
+                Enable
+              </button>
+            </div>
+          )}
+
+          {pushPermission === 'granted' && (
+            <div className="px-3 py-1.5 bg-emerald-50/80 border-b border-emerald-100 flex items-center justify-between text-[10px] text-emerald-800 font-medium">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Browser Push Notifications Active</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFCMModalOpen(true)}
+                className="text-emerald-700 hover:text-emerald-900 font-bold underline cursor-pointer"
+              >
+                FCM Schema Ready
+              </button>
+            </div>
+          )}
+
+          {pushPermission === 'denied' && (
+            <div className="px-3 py-1.5 bg-rose-50 border-b border-rose-100 text-[10px] text-rose-700 flex items-center justify-between">
+              <span>Push alerts blocked by browser</span>
+              <span className="text-[9px] text-rose-500">Enable in browser settings</span>
+            </div>
+          )}
 
           {/* Filter Pills & Actions Bar */}
           <div className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs gap-2">
@@ -528,30 +653,62 @@ export const NotificationCenter: React.FC = () => {
             )}
           </div>
 
-          {/* Footer with Push Permission & Quick Test */}
-          <div className="p-2.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-[11px]">
-            <button
-              type="button"
-              onClick={triggerSampleAlert}
-              className="text-slate-600 hover:text-cyan-700 font-semibold flex items-center gap-1 cursor-pointer"
-            >
-              <Sparkles className="w-3 h-3 text-cyan-600" />
-              <span>Simulate Alert</span>
-            </button>
+          {/* Footer with Push Permission, FCM Schema & Quick Test */}
+          <div className="p-2.5 bg-slate-50 border-t border-slate-200 flex flex-col gap-2 text-[11px]">
+            <div className="flex items-center justify-between gap-1 overflow-x-auto pb-0.5">
+              <button
+                type="button"
+                onClick={handleTriggerOrderPush}
+                title="Dispatch a test Order Delivery push notification"
+                className="px-2 py-1 rounded bg-white hover:bg-cyan-50 border border-slate-200 text-slate-700 hover:text-cyan-700 font-bold flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
+              >
+                <Truck className="w-3 h-3 text-cyan-600" />
+                <span>Test Order Push</span>
+              </button>
 
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                setCurrentView('store-policies', { policy: 'privacy' });
-              }}
-              className="text-slate-400 hover:text-slate-600 text-[10px] cursor-pointer"
-            >
-              Notification Privacy
-            </button>
+              <button
+                type="button"
+                onClick={handleTriggerFlashSalePush}
+                title="Dispatch a test Flash Sale push notification"
+                className="px-2 py-1 rounded bg-white hover:bg-amber-50 border border-slate-200 text-slate-700 hover:text-amber-700 font-bold flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
+              >
+                <Sparkles className="w-3 h-3 text-amber-500" />
+                <span>Test Flash Sale</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsFCMModalOpen(true)}
+                title="View Firebase Cloud Messaging (FCM) Integration Schema"
+                className="px-2 py-1 rounded bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-800 font-bold flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
+              >
+                <Zap className="w-3 h-3 text-orange-600" />
+                <span>FCM Schema</span>
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between pt-1 border-t border-slate-200/60 text-[10px] text-slate-400">
+              <span className="truncate">Web Push & FCM Data Service</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  setCurrentView('store-policies', { policy: 'privacy' });
+                }}
+                className="hover:text-slate-600 cursor-pointer underline"
+              >
+                Privacy
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Firebase Cloud Messaging Schema Viewer Modal */}
+      <FCMSchemaModal
+        isOpen={isFCMModalOpen}
+        onClose={() => setIsFCMModalOpen(false)}
+      />
     </div>
   );
 };

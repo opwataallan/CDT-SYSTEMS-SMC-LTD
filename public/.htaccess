@@ -1,27 +1,62 @@
 # ==============================================================================
 # Cyber Dynamic Tech Marketplace - cPanel Production Apache Configuration
+# Optimized for cPanel "Setup Node.js App", Phusion Passenger & Static Apache Hosting
 # ==============================================================================
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
 
-  # Proxy /api requests to Node.js backend if mod_proxy is active on cPanel
+  # ----------------------------------------------------------------------------
+  # 1. HTTPS Redirection (Cloudflare, cPanel Proxy & Direct SSL aware)
+  # ----------------------------------------------------------------------------
+  RewriteCond %{HTTPS} off
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # ----------------------------------------------------------------------------
+  # 2. WordPress / WooCommerce Coexistence: Do not intercept WordPress paths
+  # ----------------------------------------------------------------------------
+  RewriteCond %{REQUEST_URI} ^/(wp-admin|wp-content|wp-includes|wp-json|xmlrpc\.php) [NC]
+  RewriteRule ^ - [L]
+
+  # ----------------------------------------------------------------------------
+  # 3. Proxy /api requests to local Node.js backend if mod_proxy is active on cPanel
+  # ----------------------------------------------------------------------------
   <IfModule mod_proxy.c>
     RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/$1 [P,L]
   </IfModule>
 
-  # Security: Block access to hidden files and directories (e.g. .git, .env)
+  # ----------------------------------------------------------------------------
+  # 4. Security: Block access to hidden files and directories (e.g. .git, .env)
+  # ----------------------------------------------------------------------------
   RewriteRule "(^|/)\.(?!well-known)" - [F]
 
-  # Existing files and directories are served directly
+  # ----------------------------------------------------------------------------
+  # 5. Existing files, directories and uploads are served directly
+  # ----------------------------------------------------------------------------
   RewriteCond %{REQUEST_FILENAME} -f [OR]
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # Route all other SPA routes to index.html for client-side routing
+  # ----------------------------------------------------------------------------
+  # 6. Single Page Application (SPA) Routing: Fallback to index.html
+  # ----------------------------------------------------------------------------
   RewriteRule ^ index.html [L]
 </IfModule>
+
+# ------------------------------------------------------------------------------
+# Security: Block sensitive application files
+# ------------------------------------------------------------------------------
+<FilesMatch "(^\.env|\.git|\.lock|package\.json|package-lock\.json|tsconfig\.json|vite\.config\.ts|server\.ts|database\.json|\.sql|\.log|\.sh)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order Allow,Deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
 
 # ------------------------------------------------------------------------------
 # Security Headers
@@ -42,7 +77,7 @@
   # Permissions policy
   Header always set Permissions-Policy "geolocation=(self), camera=(self)"
 
-  # Cache Control for static assets (hashes in filenames)
+  # Cache Control for immutable hashed assets
   <FilesMatch "\.(js|mjs|css|woff|woff2|ttf|eot|png|jpg|jpeg|gif|webp|svg|ico)$">
     Header set Cache-Control "max-age=31536000, public, immutable"
   </FilesMatch>

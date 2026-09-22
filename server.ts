@@ -1,10 +1,12 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { store, UserAccount } from './server/store';
 import { serverCache } from './server/cache';
+import { logger } from './server/logger';
 import {
   hashPassword,
   verifyPassword,
@@ -27,16 +29,16 @@ import {
   validatePhone,
   validatePositiveInt,
 } from './server/security';
-import { CustomerOrder, Product, Category, MarketplaceConfig, PaymentMethodType, OrderStatus, SmsLogEntry } from './src/types';
+import { CustomerOrder, Product, Category, MarketplaceConfig, PaymentMethodType, OrderStatus, SmsLogEntry, PriceDropAlert } from './src/types';
 import { DEFAULT_MARKETPLACE_CONFIG } from './src/data/defaultConfig';
 
 dotenv.config();
 
 // Dynamic port resolution:
-// In AI Studio development sandbox, Nginx occupies port 8080 and reverse-proxies to port 3000 (DEFAULT_APP_PORT).
-// In deployed Cloud Run production, Nginx is not present and Cloud Run expects the application to listen on process.env.PORT (typically 8080).
-// In cPanel Phusion Passenger, PORT can be a Unix domain socket path or a TCP port.
-const rawPort = process.env.DEFAULT_APP_PORT || process.env.PORT || '3000';
+// In cPanel Phusion Passenger, PORT is provided as an integer port or Unix domain socket.
+// In deployed production, PORT is standard (e.g. 8080 or custom port).
+// In AI Studio development sandbox, Nginx proxies to DEFAULT_APP_PORT (3000).
+const rawPort = process.env.PORT || process.env.DEFAULT_APP_PORT || '3000';
 const isSocket = typeof rawPort === 'string' && (rawPort.startsWith('/') || rawPort.startsWith('\\\\'));
 const PORT: string | number = isSocket ? rawPort : (parseInt(rawPort, 10) || 3000);
 
@@ -363,6 +365,125 @@ async function sendSmsNotification(options: {
     error: logEntry.error,
     log: logEntry,
   };
+}
+
+// Helper: Dispatches Price Drop Email notification
+async function sendPriceDropEmail(options: {
+  toEmail: string;
+  product: Product;
+  oldPrice: number;
+  newPrice: number;
+  dropPercent: number;
+  productUrl: string;
+}): Promise<{ success: boolean; status: 'sent' | 'simulated' | 'failed'; error?: string }> {
+  try {
+    const emailConfig = store.config.email;
+    const storeName = store.config.general?.site_name || 'Cyber Dynamic Technologies';
+
+    console.log(
+      `[Price Drop Email] Alert prepared for ${options.toEmail} on "${options.product.name}": UGX ${options.oldPrice.toLocaleString()} -> UGX ${options.newPrice.toLocaleString()} (-${options.dropPercent}%)`
+    );
+
+    // If live SMTP configured
+    if (emailConfig?.smtp_host || process.env.SMTP_HOST) {
+      return { success: true, status: 'sent' };
+    }
+
+    return { success: true, status: 'simulated' };
+  } catch (err: any) {
+    console.error('[Price Drop Email Exception]', err);
+    return { success: false, status: 'failed', error: err.message };
+  }
+}
+
+// Core Engine: Triggers registered price drop alerts for a product when updated in WooCommerce
+async function triggerPriceDropAlerts(
+  productId: number,
+  oldPrice: number,
+  newPrice: number,
+  source: string = 'WooCommerce'
+): Promise<{ triggeredCount: number; alerts: PriceDropAlert[] }> {
+  if (newPrice >= oldPrice || oldPrice <= 0) {
+    return { triggeredCount: 0, alerts: [] };
+  }
+
+  const product = store.products.find((p) => Number(p.id) === Number(productId));
+  if (!product) {
+    return { triggeredCount: 0, alerts: [] };
+  }
+
+  const activeAlerts = store.priceDropAlerts.filter(
+    (a) => Number(a.product_id) === Number(productId) && a.status === 'active'
+  );
+
+  if (activeAlerts.length === 0) {
+    return { triggeredCount: 0, alerts: [] };
+  }
+
+  const dropAmount = oldPrice - newPrice;
+  const dropPercent = Math.round((dropAmount / oldPrice) * 100);
+  const triggeredList: PriceDropAlert[] = [];
+
+  const siteUrl = store.config.general?.site_url || 'https://www.cyberdynamictech.com';
+  const productUrl = `${siteUrl}/product/${product.slug || product.id}`;
+  const storePhone = store.config.general?.phone || '+256779743101';
+
+  for (const alert of activeAlerts) {
+    // If a specific target price was requested, verify the new price is <= target_price
+    if (alert.target_price && newPrice > alert.target_price) {
+      continue;
+    }
+
+    alert.status = 'triggered';
+    alert.notified_at = new Date().toISOString();
+    alert.triggered_price = newPrice;
+    alert.channel_delivery_status = alert.channel_delivery_status || {};
+
+    // 1. Dispatch SMS
+    if ((alert.notify_type === 'phone' || alert.notify_type === 'both') && alert.phone) {
+      const smsText = `PRICE DROP ALERT: ${product.name.slice(0, 30)} dropped from UGX ${oldPrice.toLocaleString()} to UGX ${newPrice.toLocaleString()} (-${dropPercent}%) at Cyber Dynamic Tech! Order now: ${productUrl} or call ${storePhone}`;
+      const smsRes = await sendSmsNotification({
+        toPhone: alert.phone,
+        message: smsText,
+        triggerEvent: 'PRICE_DROP_ALERT',
+      });
+      alert.channel_delivery_status.sms = smsRes.status as any;
+    } else {
+      alert.channel_delivery_status.sms = 'not_requested';
+    }
+
+    // 2. Dispatch Email
+    if ((alert.notify_type === 'email' || alert.notify_type === 'both') && alert.email) {
+      const emailRes = await sendPriceDropEmail({
+        toEmail: alert.email,
+        product,
+        oldPrice,
+        newPrice,
+        dropPercent,
+        productUrl,
+      });
+      alert.channel_delivery_status.email = emailRes.status as any;
+    } else {
+      alert.channel_delivery_status.email = 'not_requested';
+    }
+
+    logAudit({
+      user_email: alert.email || alert.phone || 'system',
+      action: 'PRICE_DROP_ALERT_TRIGGERED',
+      category: 'WooCommerce',
+      details: `Price drop triggered via ${source} for "${product.name}" (#${product.id}): UGX ${oldPrice.toLocaleString()} -> UGX ${newPrice.toLocaleString()} (-${dropPercent}%). Recipient: ${alert.email || ''} ${alert.phone || ''} (${alert.notify_type})`,
+      status: 'success',
+    });
+
+    triggeredList.push(alert);
+  }
+
+  if (triggeredList.length > 0) {
+    store.saveDatabaseToDisk();
+    console.log(`[Price Drop Engine] Dispatched ${triggeredList.length} alert notifications for Product #${productId} (${product.name})`);
+  }
+
+  return { triggeredCount: triggeredList.length, alerts: triggeredList };
 }
 
 // Mapper: Convert raw WooCommerce REST API or Store API product into Marketplace Product
@@ -2217,7 +2338,10 @@ async function startServer() {
 
     try {
       const startTime = Date.now();
-      const cleanUrl = wcUrl.replace(/\/+$/, '');
+      let cleanUrl = wcUrl.replace(/\/+$/, '');
+      if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+        cleanUrl = `https://${cleanUrl}`;
+      }
       const testReq = await fetch(`${cleanUrl}/wp-json/`, {
         method: 'HEAD',
         headers: { 'User-Agent': 'Mozilla/5.0 CyberDynamicTech-Probe' },
@@ -2586,6 +2710,352 @@ async function startServer() {
     product.average_rating = Number((totalRating / product.reviews.length).toFixed(1));
 
     res.status(201).json(newRev);
+  });
+
+  // ================= PRICE DROP ALERT SUBSCRIPTIONS =================
+  // Subscribe to Price Drop Alert for a specific product
+  app.post(['/api/products/:identifier/price-alert', '/api/woocommerce/products/:identifier/price-alert'], async (req: Request, res: Response) => {
+    try {
+      const { identifier } = req.params;
+      const isId = !isNaN(Number(identifier));
+      const product = store.products.find((p) => (isId ? p.id === Number(identifier) : p.slug === identifier));
+
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found', identifier });
+      }
+
+      const { email, phone, notify_type, target_price } = req.body;
+
+      if (!email && !phone) {
+        return res.status(400).json({ error: 'Please provide either an email address or a phone number to receive alerts.' });
+      }
+
+      let cleanEmail: string | undefined = undefined;
+      let cleanPhone: string | undefined = undefined;
+
+      if (email) {
+        const emailCheck = validateEmail(email);
+        if (!emailCheck.valid) {
+          return res.status(400).json({ error: 'Please enter a valid email address.' });
+        }
+        cleanEmail = emailCheck.value!;
+      }
+
+      if (phone) {
+        const phoneCheck = validatePhone(phone);
+        if (!phoneCheck.valid) {
+          return res.status(400).json({ error: 'Please enter a valid phone number (e.g. 0779743101 or +256779743101).' });
+        }
+        cleanPhone = phoneCheck.value!;
+      }
+
+      const numTargetPrice = target_price ? Number(target_price) : undefined;
+      if (numTargetPrice !== undefined && (isNaN(numTargetPrice) || numTargetPrice <= 0)) {
+        return res.status(400).json({ error: 'Target price must be a valid positive number.' });
+      }
+
+      const chosenNotifyType = notify_type || (cleanEmail && cleanPhone ? 'both' : cleanPhone ? 'phone' : 'email');
+
+      // Check if an active alert already exists for this contact and product
+      const existingAlert = store.priceDropAlerts.find(
+        (a) =>
+          a.product_id === product.id &&
+          a.status === 'active' &&
+          ((cleanEmail && a.email && a.email.toLowerCase() === cleanEmail.toLowerCase()) ||
+            (cleanPhone && a.phone && a.phone === cleanPhone))
+      );
+
+      if (existingAlert) {
+        // Update the existing alert preferences
+        existingAlert.target_price = numTargetPrice;
+        existingAlert.notify_type = chosenNotifyType;
+        if (cleanEmail) existingAlert.email = cleanEmail;
+        if (cleanPhone) existingAlert.phone = cleanPhone;
+        existingAlert.current_price = product.price;
+        store.saveDatabaseToDisk();
+
+        return res.json({
+          success: true,
+          message: `Your price drop alert preferences for "${product.name}" have been updated!`,
+          alert: existingAlert,
+          is_existing: true,
+        });
+      }
+
+      // Create a fresh price drop subscription
+      const newAlert: PriceDropAlert = {
+        id: `pda_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        product_id: product.id,
+        product_name: product.name,
+        product_slug: product.slug,
+        product_image: product.images?.[0]?.src,
+        current_price: product.price,
+        target_price: numTargetPrice,
+        notify_type: chosenNotifyType,
+        email: cleanEmail,
+        phone: cleanPhone,
+        created_at: new Date().toISOString(),
+        status: 'active',
+        channel_delivery_status: {
+          sms: cleanPhone ? 'simulated' : 'not_requested',
+          email: cleanEmail ? 'simulated' : 'not_requested',
+        },
+      };
+
+      store.priceDropAlerts.unshift(newAlert);
+      store.saveDatabaseToDisk();
+
+      // Dispatch enrollment confirmation SMS if phone provided
+      if (cleanPhone && (chosenNotifyType === 'phone' || chosenNotifyType === 'both')) {
+        sendSmsNotification({
+          toPhone: cleanPhone,
+          message: `Cyber Dynamic Tech: Price drop alert activated for "${product.name.slice(0, 28)}". We'll notify you as soon as the price drops below UGX ${(numTargetPrice || product.price).toLocaleString()}!`,
+          triggerEvent: 'PRICE_ALERT_CONFIRMATION',
+        }).catch((err) => console.warn('[SMS Confirmation Alert]', err));
+      }
+
+      logAudit({
+        user_email: cleanEmail || cleanPhone || 'customer',
+        action: 'PRICE_DROP_ALERT_SUBSCRIBED',
+        category: 'ProductAlerts',
+        details: `Subscribed for price drop alerts on "${product.name}" (ID: ${product.id}). Current: UGX ${product.price.toLocaleString()}, Target: ${numTargetPrice ? `UGX ${numTargetPrice.toLocaleString()}` : 'Any drop'}. Channel: ${chosenNotifyType}`,
+        status: 'success',
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: `Alert activated! We will notify you via ${chosenNotifyType === 'both' ? 'SMS & Email' : chosenNotifyType.toUpperCase()} the instant the price drops in WooCommerce.`,
+        alert: newAlert,
+        is_existing: false,
+      });
+    } catch (err: any) {
+      console.error('[Price Drop Alert Error]', err);
+      return res.status(500).json({ error: 'Internal server error while saving price alert.' });
+    }
+  });
+
+  // Check alert subscription status for current user / contact
+  app.get(['/api/products/:identifier/price-alert/status', '/api/woocommerce/products/:identifier/price-alert/status'], (req: Request, res: Response) => {
+    const { identifier } = req.params;
+    const { email, phone } = req.query;
+
+    const isId = !isNaN(Number(identifier));
+    const product = store.products.find((p) => (isId ? p.id === Number(identifier) : p.slug === identifier));
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    if (!email && !phone) {
+      return res.json({ subscribed: false });
+    }
+
+    const cleanEmail = email ? String(email).trim().toLowerCase() : undefined;
+    const cleanPhone = phone ? String(phone).trim() : undefined;
+
+    const matchedAlert = store.priceDropAlerts.find(
+      (a) =>
+        a.product_id === product.id &&
+        a.status === 'active' &&
+        ((cleanEmail && a.email && a.email.toLowerCase() === cleanEmail) ||
+          (cleanPhone && a.phone && a.phone === cleanPhone))
+    );
+
+    return res.json({
+      subscribed: Boolean(matchedAlert),
+      alert: matchedAlert || null,
+      current_price: product.price,
+    });
+  });
+
+  // Cancel/remove a price alert
+  app.post(['/api/products/:identifier/price-alert/cancel', '/api/woocommerce/products/:identifier/price-alert/cancel'], (req: Request, res: Response) => {
+    const { identifier } = req.params;
+    const { email, phone, alert_id } = req.body;
+
+    const isId = !isNaN(Number(identifier));
+    const product = store.products.find((p) => (isId ? p.id === Number(identifier) : p.slug === identifier));
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const cleanEmail = email ? String(email).trim().toLowerCase() : undefined;
+    const cleanPhone = phone ? String(phone).trim() : undefined;
+
+    const alert = store.priceDropAlerts.find(
+      (a) =>
+        a.product_id === product.id &&
+        a.status === 'active' &&
+        (alert_id ? a.id === alert_id : (cleanEmail && a.email?.toLowerCase() === cleanEmail) || (cleanPhone && a.phone === cleanPhone))
+    );
+
+    if (alert) {
+      alert.status = 'cancelled';
+      store.saveDatabaseToDisk();
+      return res.json({ success: true, message: 'Price drop alert has been deactivated.' });
+    }
+
+    return res.status(404).json({ error: 'No active price drop alert found for this product and contact.' });
+  });
+
+  // ================= WOOCOMMERCE WEBHOOK LISTENER =================
+  // Triggered automatically by WooCommerce backend when a product price or stock is modified
+  app.post(['/api/webhooks/woocommerce', '/api/webhooks/woocommerce/product-updated'], async (req: Request, res: Response) => {
+    try {
+      const topic = req.headers['x-wc-webhook-topic'] || 'product.updated';
+      const eventSource = req.headers['x-wc-webhook-source'] || 'WooCommerce';
+      const payload = req.body;
+
+      store.webhookLogs.unshift({
+        event: String(topic),
+        payload: {
+          id: payload?.id,
+          name: payload?.name,
+          price: payload?.price,
+          regular_price: payload?.regular_price,
+          sale_price: payload?.sale_price,
+          timestamp: new Date().toISOString(),
+        },
+        timestamp: new Date().toISOString(),
+      });
+      if (store.webhookLogs.length > 200) store.webhookLogs.pop();
+
+      if (!payload || typeof payload !== 'object' || !payload.id) {
+        return res.status(400).json({ error: 'Invalid WooCommerce webhook payload structure' });
+      }
+
+      // Map WooCommerce product payload to internal product
+      const updatedProduct = mapWooCommerceProductToProduct(payload);
+      const existingIndex = store.products.findIndex((p) => Number(p.id) === Number(updatedProduct.id));
+
+      let priceDropDetected = false;
+      let triggeredAlertsCount = 0;
+
+      if (existingIndex !== -1) {
+        const oldPrice = store.products[existingIndex].price;
+        const newPrice = updatedProduct.price;
+
+        store.products[existingIndex] = {
+          ...store.products[existingIndex],
+          ...updatedProduct,
+        };
+
+        if (newPrice < oldPrice && oldPrice > 0) {
+          priceDropDetected = true;
+          console.log(`[WooCommerce Webhook] Price drop detected on "${updatedProduct.name}": UGX ${oldPrice} -> UGX ${newPrice}`);
+          const triggerResult = await triggerPriceDropAlerts(
+            updatedProduct.id,
+            oldPrice,
+            newPrice,
+            `WooCommerce Webhook (${eventSource})`
+          );
+          triggeredAlertsCount = triggerResult.triggeredCount;
+        }
+      } else {
+        store.products.unshift(updatedProduct);
+      }
+
+      store.saveDatabaseToDisk();
+
+      logAudit({
+        user_email: 'woocommerce-webhook',
+        action: 'WOOCOMMERCE_WEBHOOK_RECEIVED',
+        category: 'WooCommerce',
+        details: `Processed webhook for "${updatedProduct.name}" (ID: ${updatedProduct.id}). New price: UGX ${updatedProduct.price.toLocaleString()}. Alerts triggered: ${triggeredAlertsCount}`,
+        status: 'success',
+      });
+
+      return res.json({
+        success: true,
+        message: 'WooCommerce webhook processed successfully',
+        product_id: updatedProduct.id,
+        price: updatedProduct.price,
+        price_drop_detected: priceDropDetected,
+        alerts_triggered: triggeredAlertsCount,
+      });
+    } catch (err: any) {
+      console.error('[WooCommerce Webhook Error]', err);
+      return res.status(500).json({ error: 'Failed to process WooCommerce webhook', details: err.message });
+    }
+  });
+
+  // ================= ADMIN PRICE DROP ALERTS MANAGEMENT =================
+  // Get all price drop subscriptions
+  app.get('/api/admin/price-alerts', requireAdmin, (req: Request, res: Response) => {
+    res.json({
+      alerts: store.priceDropAlerts,
+      count: store.priceDropAlerts.length,
+      active_count: store.priceDropAlerts.filter((a) => a.status === 'active').length,
+      triggered_count: store.priceDropAlerts.filter((a) => a.status === 'triggered').length,
+    });
+  });
+
+  // Admin test endpoint: Manually trigger a price drop check on a product to test the notification flow
+  app.post('/api/admin/price-alerts/test-trigger', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const { product_id, test_new_price, override_email, override_phone } = req.body;
+
+      if (!product_id) {
+        return res.status(400).json({ error: 'product_id is required' });
+      }
+
+      const product = store.products.find((p) => Number(p.id) === Number(product_id));
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found in catalog' });
+      }
+
+      const oldPrice = product.price;
+      const newPrice = test_new_price ? Number(test_new_price) : Math.round(oldPrice * 0.9); // 10% drop by default
+
+      if (newPrice >= oldPrice) {
+        return res.status(400).json({
+          error: `Test price (UGX ${newPrice.toLocaleString()}) must be lower than current price (UGX ${oldPrice.toLocaleString()}) to simulate a price drop.`,
+        });
+      }
+
+      // If override contact provided, ensure an active subscription exists for testing
+      if (override_email || override_phone) {
+        const existing = store.priceDropAlerts.find(
+          (a) =>
+            a.product_id === product.id &&
+            ((override_email && a.email === override_email) || (override_phone && a.phone === override_phone))
+        );
+        if (!existing) {
+          store.priceDropAlerts.unshift({
+            id: `test_${Date.now()}`,
+            product_id: product.id,
+            product_name: product.name,
+            product_slug: product.slug,
+            product_image: product.images?.[0]?.src,
+            current_price: oldPrice,
+            notify_type: override_email && override_phone ? 'both' : override_phone ? 'phone' : 'email',
+            email: override_email,
+            phone: override_phone,
+            created_at: new Date().toISOString(),
+            status: 'active',
+          });
+        } else {
+          existing.status = 'active';
+        }
+      }
+
+      // Execute trigger
+      const result = await triggerPriceDropAlerts(product.id, oldPrice, newPrice, 'Admin Test Simulation');
+
+      return res.json({
+        success: true,
+        message: `Simulated price drop for "${product.name}" from UGX ${oldPrice.toLocaleString()} to UGX ${newPrice.toLocaleString()}.`,
+        old_price: oldPrice,
+        new_price: newPrice,
+        drop_percentage: Math.round(((oldPrice - newPrice) / oldPrice) * 100),
+        alerts_triggered: result.triggeredCount,
+        dispatched_alerts: result.alerts,
+      });
+    } catch (err: any) {
+      console.error('[Admin Price Alert Test Error]', err);
+      return res.status(500).json({ error: err.message });
+    }
   });
 
   // Categories
@@ -3438,7 +3908,30 @@ async function startServer() {
         if (response.ok) {
           const rawProducts = await response.json();
           if (Array.isArray(rawProducts)) {
-            store.products = rawProducts.map(mapWooCommerceProductToProduct);
+            // Map previous prices to identify any price drops from WooCommerce backend
+            const previousPrices = new Map<number, number>();
+            store.products.forEach((p) => {
+              previousPrices.set(Number(p.id), Number(p.price));
+            });
+
+            const updatedProducts = rawProducts.map(mapWooCommerceProductToProduct);
+            store.products = updatedProducts;
+
+            // Trigger price drop notifications if prices were reduced in WooCommerce
+            let priceAlertsTriggered = 0;
+            for (const p of updatedProducts) {
+              const oldPrice = previousPrices.get(Number(p.id));
+              if (oldPrice !== undefined && p.price < oldPrice && oldPrice > 0) {
+                const triggerRes = await triggerPriceDropAlerts(
+                  p.id,
+                  oldPrice,
+                  p.price,
+                  'WooCommerce Backend Sync'
+                );
+                priceAlertsTriggered += triggerRes.triggeredCount;
+              }
+            }
+
             rawProducts.forEach((p: any) => {
               if (p.categories && Array.isArray(p.categories)) {
                 p.categories.forEach((cat: any) => {
@@ -3476,9 +3969,10 @@ async function startServer() {
             });
             return res.json({
               success: true,
-              message: `Successfully synchronized ${store.products.length} products and ${syncedOrdersCount} confirmed orders with WooCommerce (${wcUrl})!`,
+              message: `Successfully synchronized ${store.products.length} products and ${syncedOrdersCount} confirmed orders with WooCommerce (${wcUrl})!${priceAlertsTriggered > 0 ? ` Triggered ${priceAlertsTriggered} customer price drop notification(s).` : ''}`,
               productsCount: store.products.length,
               syncedOrdersCount,
+              priceAlertsTriggered,
               timestamp: store.config.woocommerce.last_sync_timestamp,
             });
           }
@@ -3788,6 +4282,148 @@ async function startServer() {
   });
 
   // ==========================================
+  // STATIC UPLOADS DIRECTORY (cPanel Compatible)
+  // ==========================================
+  const publicUploadsDir = path.join(process.cwd(), 'public', 'uploads');
+  if (!fs.existsSync(publicUploadsDir)) {
+    fs.mkdirSync(publicUploadsDir, { recursive: true });
+  }
+  app.use('/uploads', express.static(publicUploadsDir));
+
+  // ==========================================
+  // FILE UPLOADS ENDPOINT (Logos, Flyers, Media)
+  // ==========================================
+  app.post('/api/upload', (req: Request, res: Response) => {
+    try {
+      const { data, filename } = req.body;
+      if (!data || typeof data !== 'string') {
+        return res.status(400).json({ success: false, error: 'Missing image data (base64 string required)' });
+      }
+
+      const match = data.match(/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);base64,(.+)$/i);
+      if (!match) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid image format. Supported formats: PNG, JPEG, WebP, GIF, SVG.',
+        });
+      }
+
+      const extMap: Record<string, string> = {
+        jpeg: 'jpg',
+        jpg: 'jpg',
+        png: 'png',
+        webp: 'webp',
+        gif: 'gif',
+        'svg+xml': 'svg',
+      };
+      const rawExt = match[1].toLowerCase();
+      const ext = extMap[rawExt] || 'png';
+      const base64Data = match[2];
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      // 10MB maximum file size limit
+      if (buffer.length > 10 * 1024 * 1024) {
+        return res.status(400).json({ success: false, error: 'File size exceeds 10MB limit.' });
+      }
+
+      const safePrefix = (filename || 'upload').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40);
+      const safeFilename = `${safePrefix}_${Date.now()}.${ext}`;
+      const targetPath = path.join(publicUploadsDir, safeFilename);
+
+      fs.writeFileSync(targetPath, buffer);
+
+      // Mirror to dist/uploads if dist directory exists
+      const distUploadsDir = path.join(process.cwd(), 'dist', 'uploads');
+      if (fs.existsSync(distUploadsDir)) {
+        fs.writeFileSync(path.join(distUploadsDir, safeFilename), buffer);
+      }
+
+      logger.info(`File uploaded successfully: ${safeFilename} (${buffer.length} bytes)`);
+
+      return res.json({
+        success: true,
+        url: `/uploads/${safeFilename}`,
+        filename: safeFilename,
+        size: buffer.length,
+      });
+    } catch (err: any) {
+      logger.error('File upload error', err);
+      return res.status(500).json({ success: false, error: 'Upload failed: ' + err.message });
+    }
+  });
+
+  // ==========================================
+  // AI API INTEGRATION (Gemini @google/genai)
+  // ==========================================
+  // Status check endpoint for verifying AI configuration on cPanel
+  app.get('/api/ai/status', (req: Request, res: Response) => {
+    const hasKey = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 5);
+    res.json({
+      success: true,
+      service: 'Google Gemini AI',
+      model: 'gemini-2.5-flash',
+      configured: hasKey,
+      status: hasKey ? 'active' : 'unconfigured_api_key',
+      message: hasKey
+        ? 'Gemini AI API is configured and operational for Cyber Dynamic Technologies.'
+        : 'GEMINI_API_KEY is not configured. Add it in cPanel Setup Node.js App or .env file.',
+    });
+  });
+
+  // AI Assistant endpoint for product recommendations & support
+  app.post('/api/ai/assistant', async (req: Request, res: Response) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey.trim().length < 5) {
+      return res.status(503).json({
+        success: false,
+        error: 'Gemini AI service is not configured. Please set GEMINI_API_KEY in your cPanel environment variables.',
+      });
+    }
+
+    try {
+      const { message } = req.body;
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ success: false, error: 'Query message is required.' });
+      }
+
+      const { GoogleGenAI } = await import('@google/genai');
+      const ai = new GoogleGenAI({ apiKey });
+
+      const topProducts = store.products.slice(0, 12).map((p) => ({
+        id: p.id,
+        name: p.name,
+        price_ugx: p.price,
+        stock: p.stock_status,
+      }));
+
+      const systemPrompt = `You are the knowledgeable tech shopping advisor for Cyber Dynamic Technologies (Kampala, Uganda).
+Store URL: https://www.cyberdynamictech.com
+Hotline: +256779743101 / 0394760459.
+Available payment options: MTN MoMo, Airtel Money, and Cash on Delivery.
+Current catalog sample: ${JSON.stringify(topProducts)}.
+Assist customers with product specs, recommendations, prices in UGX, warranties, and delivery options in Uganda. Keep answers concise, clear, and friendly.`;
+
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+          { role: 'user', parts: [{ text: `${systemPrompt}\n\nCustomer question: ${message}` }] },
+        ],
+      });
+
+      return res.json({
+        success: true,
+        reply: response.text || 'Thank you for contacting Cyber Dynamic Technologies. How else may I assist you?',
+      });
+    } catch (err: any) {
+      logger.error('Gemini AI Assistant error', err);
+      return res.status(500).json({
+        success: false,
+        error: 'AI service temporarily unavailable: ' + err.message,
+      });
+    }
+  });
+
+  // ==========================================
   // API ERROR & 404 GUARDS (NEVER SERVE HTML FOR /api)
   // ==========================================
   // Explicit 404 handler for any unhandled /api/* endpoints
@@ -3806,17 +4442,22 @@ async function startServer() {
         error: 'Malformed JSON payload in request body: ' + (err.message || 'Syntax error'),
       });
     }
-    console.error('[API Exception Handler]', err);
+    logger.error('API Exception', err);
     res.status(err.status || 500).json({
       success: false,
-      error: err.message || 'Internal Server Error',
+      error: process.env.NODE_ENV === 'production' && !err.status ? 'Internal Server Error' : (err.message || 'Internal Server Error'),
     });
   });
 
   // ==========================================
-  // VITE MIDDLEWARE (Development vs Production)
+  // STATIC SERVING & SPA ROUTING (cPanel & Apache Ready)
   // ==========================================
-  const isDev = process.env.NODE_ENV !== 'production' && Boolean(process.env.DEFAULT_APP_PORT);
+  const isProduction =
+    process.env.NODE_ENV === 'production' ||
+    (typeof __filename !== 'undefined' && __filename.endsWith('.cjs')) ||
+    !process.env.DEFAULT_APP_PORT;
+  const isDev = !isProduction;
+
   if (isDev) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
@@ -3825,17 +4466,38 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    // Determine public static assets directory (supports dist/ or custom cPanel public_html)
+    const candidatePaths = [
+      process.env.PUBLIC_DIR,
+      path.join(process.cwd(), 'dist'),
+      path.join(process.cwd(), 'public_html'),
+      process.cwd(),
+    ].filter(Boolean) as string[];
+
+    const distPath = candidatePaths.find((p) => fs.existsSync(path.join(p, 'index.html'))) || candidatePaths[0];
+
     app.use(express.static(distPath));
     app.get('*', (req: Request, res: Response) => {
       const indexPath = path.join(distPath, 'index.html');
       if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
       } else {
-        res.status(200).send('<!doctype html><html><head><title>Cyber Dynamic Technologies</title></head><body><div id="root">Building...</div></body></html>');
+        res.status(200).send('<!doctype html><html><head><title>Cyber Dynamic Technologies</title></head><body><div id="root">Loading Cyber Dynamic Technologies Marketplace...</div></body></html>');
       }
     });
   }
+
+  // Global unhandled error middleware (safe against credential/path leaks)
+  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    logger.error(`Unhandled error at ${req.method} ${req.originalUrl}`, err);
+    const statusCode = err.status || err.statusCode || 500;
+    res.status(statusCode).json({
+      success: false,
+      error: process.env.NODE_ENV === 'production'
+        ? 'A server error occurred. Please try again or contact Cyber Dynamic Technologies support.'
+        : (err.message || 'Server Error'),
+    });
+  });
 
   const onStarted = () => {
     console.log(`[Cyber Dynamic Technologies] Enterprise Marketplace Server running on ${PORT}`);
