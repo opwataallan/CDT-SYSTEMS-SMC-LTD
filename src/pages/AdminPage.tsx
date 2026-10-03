@@ -26,6 +26,7 @@ import { AdminAuditLogsTab } from '../components/admin/AdminAuditLogsTab';
 import { AdminWooCommerceTab } from '../components/admin/AdminWooCommerceTab';
 import { AdminDeliveryTab } from '../components/admin/AdminDeliveryTab';
 import { AdminStoreHeadquartersTab } from '../components/admin/AdminStoreHeadquartersTab';
+import { AdminMarketplaceTab } from '../components/admin/AdminMarketplaceTab';
 
 export const AdminPage: React.FC = () => {
   const {
@@ -325,6 +326,9 @@ export const AdminPage: React.FC = () => {
                   wcStatus={wcStatus}
                 />
               )}
+
+              {/* Multi-Vendor Marketplace Management */}
+              {activeTab === 'marketplace' && <AdminMarketplaceTab />}
 
               {/* Orders & Regional Dispatch */}
               {activeTab === 'orders' && (

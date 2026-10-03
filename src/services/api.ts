@@ -13,6 +13,13 @@ import {
   UserRole,
   SmsLogEntry,
   PriceDropAlert,
+  Store,
+  VendorOrder,
+  WalletTransaction,
+  PayoutRequest,
+  StoreReview,
+  StorePromotion,
+  VendorStaff,
 } from '../types';
 import { getStoredReviewsForProduct, saveLocalProductReview } from '../data/initialReviews';
 import { INITIAL_CATEGORIES } from '../data/cyberCatalog';
@@ -28,21 +35,6 @@ function getFullUrl(input: string): string {
   if (input.startsWith('http://') || input.startsWith('https://')) {
     return input;
   }
-
-  // Check if running inside WordPress plugin environment
-  const wpSettings = typeof window !== 'undefined' ? (window as any).cdtSettings : undefined;
-  if (wpSettings?.apiUrl) {
-    const wpBase = wpSettings.apiUrl.replace(/\/+$/, '');
-    let endpoint = input;
-    if (endpoint.startsWith('/api/woocommerce/')) {
-      endpoint = endpoint.replace('/api/woocommerce/', '/');
-    } else if (endpoint.startsWith('/api/')) {
-      endpoint = endpoint.replace('/api/', '/');
-    }
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    return `${wpBase}${cleanEndpoint}`;
-  }
-
   if (API_BASE_URL && input.startsWith('/')) {
     return `${API_BASE_URL}${input}`;
   }
@@ -55,7 +47,6 @@ function getFullUrl(input: string): string {
  * 2. Checks content-type and payload BEFORE calling res.json()
  * 3. Gracefully catches HTML fallbacks without throwing raw SyntaxError ("Unexpected token <")
  * 4. Extracts structured server errors
- * 5. Passes WordPress nonce header when embedded in WordPress
  */
 async function safeFetch<T = any>(
   input: string,
@@ -63,13 +54,11 @@ async function safeFetch<T = any>(
   fallbackError = 'Request failed'
 ): Promise<T> {
   const targetUrl = getFullUrl(input);
-  const wpNonce = typeof window !== 'undefined' ? (window as any).cdtSettings?.nonce : undefined;
   const mergedInit: RequestInit = {
     credentials: 'include',
     ...init,
     headers: {
       Accept: 'application/json',
-      ...(wpNonce ? { 'X-WP-Nonce': wpNonce } : {}),
       ...(init?.headers || {}),
     },
   };
@@ -370,6 +359,9 @@ export const api = {
       page?: number;
       limit?: number;
       stock_status?: string;
+      vendor?: string;
+      store_id?: string;
+      store_slug?: string;
     } = {},
     options: { forceRefresh?: boolean } = {}
   ): Promise<{ products: Product[]; total: number; totalPages: number }> {
@@ -383,6 +375,9 @@ export const api = {
     if (params.search) query.set('search', params.search);
     if (params.category && params.category !== 'all') query.set('category', params.category);
     if (params.brand) query.set('brand', params.brand);
+    if (params.vendor) query.set('vendor', params.vendor);
+    if (params.store_id) query.set('store_id', params.store_id);
+    if (params.store_slug) query.set('store_slug', params.store_slug);
     if (params.featured) query.set('featured', 'true');
     if (params.flash_sale) query.set('flash_sale', 'true');
     if (params.min_price) query.set('min_price', String(params.min_price));
@@ -1064,5 +1059,222 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     }, 'Failed to test price alert trigger');
+  },
+
+  // ==========================================
+  // Multi-Store / Multi-Vendor Marketplace APIs
+  // ==========================================
+
+  // Public: Get all active stores
+  async getPublicStores(params?: { district?: string; category?: string; search?: string }): Promise<{
+    success: boolean;
+    total: number;
+    stores: Array<Partial<Store> & { product_count: number }>;
+  }> {
+    const query = new URLSearchParams();
+    if (params?.district) query.set('district', params.district);
+    if (params?.category) query.set('category', params.category);
+    if (params?.search) query.set('search', params.search);
+    const qs = query.toString();
+    return safeFetch(`/api/marketplace/stores/public${qs ? `?${qs}` : ''}`, { method: 'GET' }, 'Failed to fetch stores');
+  },
+
+  // Public: Get single storefront by slug
+  async getStoreBySlug(slug: string): Promise<{
+    success: boolean;
+    store: Store;
+    products_count: number;
+    products: Product[];
+    reviews: StoreReview[];
+    promotions: StorePromotion[];
+  }> {
+    return safeFetch(`/api/marketplace/stores/${encodeURIComponent(slug)}`, { method: 'GET' }, 'Failed to load store');
+  },
+
+  // Public: Submit vendor registration
+  async registerVendorStore(data: any): Promise<{
+    success: boolean;
+    message: string;
+    store: Store;
+    status: string;
+  }> {
+    return safeFetch('/api/marketplace/stores/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }, 'Failed to register vendor store');
+  },
+
+  // Public: Get store reviews
+  async getStoreReviews(storeId: string): Promise<{ success: boolean; reviews: StoreReview[] }> {
+    return safeFetch(`/api/marketplace/stores/${encodeURIComponent(storeId)}/reviews`, { method: 'GET' }, 'Failed to fetch reviews');
+  },
+
+  // Public: Submit store review
+  async submitStoreReview(storeId: string, review: { reviewer_name: string; reviewer_email?: string; rating: number; comment: string; order_number?: string }): Promise<{
+    success: boolean;
+    message: string;
+    review: StoreReview;
+  }> {
+    return safeFetch(`/api/marketplace/stores/${encodeURIComponent(storeId)}/reviews`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(review),
+    }, 'Failed to submit review');
+  },
+
+  // Vendor: Dashboard Summary
+  async getVendorDashboard(): Promise<{
+    success: boolean;
+    store: Store;
+    metrics: {
+      today_sales: number;
+      today_orders: number;
+      monthly_sales: number;
+      monthly_orders: number;
+      total_products: number;
+      low_stock_count: number;
+      low_stock_products: Product[];
+      gross_sales: number;
+      platform_commission: number;
+      total_earnings: number;
+      available_balance: number;
+      pending_balance: number;
+      paid_balance: number;
+      pending_payouts: number;
+      currency: string;
+    };
+    recent_orders: VendorOrder[];
+    recent_transactions: WalletTransaction[];
+  }> {
+    return safeFetch('/api/marketplace/vendor/dashboard', { method: 'GET' }, 'Failed to fetch vendor dashboard');
+  },
+
+  // Vendor: Product Management
+  async getVendorProducts(): Promise<{ success: boolean; count: number; products: Product[] }> {
+    return safeFetch('/api/marketplace/vendor/products', { method: 'GET' }, 'Failed to fetch vendor products');
+  },
+
+  async createVendorProduct(product: Partial<Product>): Promise<{ success: boolean; message: string; product: Product }> {
+    return safeFetch('/api/marketplace/vendor/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(product),
+    }, 'Failed to create product');
+  },
+
+  async updateVendorProduct(id: number, product: Partial<Product>): Promise<{ success: boolean; message: string; product: Product }> {
+    return safeFetch(`/api/marketplace/vendor/products/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(product),
+    }, 'Failed to update product');
+  },
+
+  async deleteVendorProduct(id: number): Promise<{ success: boolean; message: string }> {
+    return safeFetch(`/api/marketplace/vendor/products/${id}`, {
+      method: 'DELETE',
+    }, 'Failed to delete product');
+  },
+
+  // Vendor: Orders Management
+  async getVendorOrders(): Promise<{ success: boolean; count: number; orders: VendorOrder[] }> {
+    return safeFetch('/api/marketplace/vendor/orders', { method: 'GET' }, 'Failed to fetch vendor orders');
+  },
+
+  async updateVendorOrderStatus(id: string, status: string, note?: string): Promise<{ success: boolean; message: string; order: VendorOrder }> {
+    return safeFetch(`/api/marketplace/vendor/orders/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, note }),
+    }, 'Failed to update order status');
+  },
+
+  // Vendor: Financial Wallet & Withdrawals
+  async getVendorWallet(): Promise<{ success: boolean; wallet: any }> {
+    return safeFetch('/api/marketplace/vendor/wallet', { method: 'GET' }, 'Failed to fetch vendor wallet');
+  },
+
+  async requestVendorPayout(data: { amount: number; payout_method?: string; account_number?: string; account_name?: string; bank_name?: string }): Promise<{
+    success: boolean;
+    message: string;
+    payout: PayoutRequest;
+  }> {
+    return safeFetch('/api/marketplace/vendor/payouts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }, 'Failed to request withdrawal');
+  },
+
+  async getVendorPayouts(): Promise<{ success: boolean; count: number; payouts: PayoutRequest[] }> {
+    return safeFetch('/api/marketplace/vendor/payouts', { method: 'GET' }, 'Failed to fetch payouts');
+  },
+
+  // Vendor: Profile
+  async getVendorProfile(): Promise<{ success: boolean; store: Store }> {
+    return safeFetch('/api/marketplace/vendor/profile', { method: 'GET' }, 'Failed to fetch store profile');
+  },
+
+  async updateVendorProfile(data: Partial<Store>): Promise<{ success: boolean; message: string; store: Store }> {
+    return safeFetch('/api/marketplace/vendor/profile', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }, 'Failed to update store profile');
+  },
+
+  // Vendor: Staff Management
+  async getVendorStaff(): Promise<{ success: boolean; count: number; staff: VendorStaff[] }> {
+    return safeFetch('/api/marketplace/vendor/staff', { method: 'GET' }, 'Failed to fetch staff');
+  },
+
+  async createVendorStaff(data: any): Promise<{ success: boolean; message: string; staff: VendorStaff }> {
+    return safeFetch('/api/marketplace/vendor/staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }, 'Failed to add staff member');
+  },
+
+  // Super Admin: Stores Oversight
+  async getAdminStores(): Promise<{ success: boolean; total: number; stores: any[] }> {
+    return safeFetch('/api/marketplace/admin/stores', { method: 'GET' }, 'Failed to fetch all stores');
+  },
+
+  async updateAdminStoreStatus(id: string, status: string, reason?: string): Promise<{ success: boolean; message: string; store: Store }> {
+    return safeFetch(`/api/marketplace/admin/stores/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, reason }),
+    }, 'Failed to update store status');
+  },
+
+  async updateAdminStoreCommission(id: string, commission_rate: number): Promise<{ success: boolean; message: string; store: Store }> {
+    return safeFetch(`/api/marketplace/admin/stores/${encodeURIComponent(id)}/commission`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commission_rate }),
+    }, 'Failed to update commission rate');
+  },
+
+  async getAdminMarketplaceAnalytics(): Promise<{ success: boolean; analytics: any }> {
+    return safeFetch('/api/marketplace/admin/analytics', { method: 'GET' }, 'Failed to fetch marketplace analytics');
+  },
+
+  async getAdminPayouts(): Promise<{ success: boolean; payouts: PayoutRequest[] }> {
+    return safeFetch('/api/marketplace/admin/payouts', { method: 'GET' }, 'Failed to fetch payouts');
+  },
+
+  async updateAdminPayoutStatus(id: string, status: string, notes?: string, transaction_reference?: string): Promise<{
+    success: boolean;
+    message: string;
+    payout: PayoutRequest;
+  }> {
+    return safeFetch(`/api/marketplace/admin/payouts/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, admin_notes: notes, transaction_reference }),
+    }, 'Failed to update payout status');
   },
 };

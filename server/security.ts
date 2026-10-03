@@ -36,6 +36,9 @@ export interface SessionPayload {
   userId: number;
   email: string;
   role: string;
+  vendorId?: string;
+  storeId?: string;
+  permissions?: string[];
   expiresAt: number;
 }
 

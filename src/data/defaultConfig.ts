@@ -470,4 +470,30 @@ export const DEFAULT_MARKETPLACE_CONFIG: MarketplaceConfig = {
     default_payment_method: 'cash',
     auto_print_receipt: false,
   },
+
+  marketplace: {
+    enabled: true,
+    marketplace_name: 'Cyber Dynamic Technologies Multi-Store Marketplace',
+    allow_vendor_registration: true,
+    auto_approve_vendors: false,
+    auto_approve_products: true,
+    require_review_moderation: false,
+    min_payout_amount_ugx: 50000,
+    payout_processing_days: 2,
+    enable_multi_vendor_cart: true,
+  },
+
+  commissions: {
+    commission_type: 'percentage',
+    global_percentage: 8, // 8% default platform commission
+    global_fixed_amount: 0,
+    category_rates: {
+      'laptops': 6,
+      'smartphones': 5,
+      'accessories': 10,
+    },
+    vendor_rates: {
+      'store-cyber-dynamic-tech': 0, // 0% platform fee for main Cyber Dynamic Tech store
+    },
+  },
 };

@@ -15,6 +15,10 @@ import { AdminPage } from './pages/AdminPage';
 import { PosPage } from './pages/PosPage';
 import { ContactPage, WarrantyPage } from './pages/StaticInfoPages';
 import { StorePoliciesPage } from './pages/StorePoliciesPage';
+import { StoresDirectoryPage } from './pages/StoresDirectoryPage';
+import { StoreFrontPage } from './pages/StoreFrontPage';
+import { VendorDashboardPage } from './pages/VendorDashboardPage';
+import { VendorRegisterPage } from './pages/VendorRegisterPage';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { CdtPageLoader } from './components/CdtPageLoader';
 import { TopFlashingAdsBar } from './components/TopFlashingAdsBar';
@@ -88,10 +92,37 @@ const MainLayout: React.FC = () => {
       case 'warranty':
       case 'delivery-info':
         return <WarrantyPage />;
+      case 'stores':
+        return <StoresDirectoryPage />;
+      case 'storefront':
+      case 'store':
+        return <StoreFrontPage slug={viewData?.slug} />;
+      case 'vendor-register':
+        return <VendorRegisterPage />;
+      case 'vendor-dashboard':
+        return <VendorDashboardPage />;
       default:
         return <HomePage />;
     }
   };
+
+  if (currentView === 'vendor-dashboard') {
+    return (
+      <div className="min-h-screen flex flex-col bg-slate-100 text-slate-900 font-sans selection:bg-[#920d35] selection:text-white">
+        {/* CDT Page Loader */}
+        {isPageLoading && <CdtPageLoader message={pageLoadingMessage} />}
+
+        {/* Toast Notification Alert */}
+        {toastMessage && (
+          <div className="fixed top-12 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 backdrop-blur-md text-white px-3.5 py-2 rounded-lg shadow-xl border border-slate-700 flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-top-4 duration-200 max-w-md w-11/12">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span className="flex-1">{toastMessage}</span>
+          </div>
+        )}
+        <VendorDashboardPage />
+      </div>
+    );
+  }
 
   if (currentView === 'pos') {
     return (

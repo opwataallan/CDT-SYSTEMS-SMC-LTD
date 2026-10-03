@@ -9,6 +9,7 @@ import {
   StoreSettings,
   Coupon,
   MarketplaceConfig,
+  Store,
 } from '../types';
 import { INITIAL_DELIVERY_ZONES } from '../data/cyberCatalog';
 import { api } from '../services/api';
@@ -50,10 +51,15 @@ interface ShopContextType {
 
   user: CustomerUser | null;
   isAdmin: boolean;
+  isVendor: boolean;
+  vendorStoreId?: string;
   isPosAllowed: boolean;
+  stores: Store[];
+  fetchStores: () => Promise<void>;
+  goToStorefront: (slug: string) => void;
   loginUser: (email: string, name?: string, phone?: string) => void;
   login: (credentialsOrEmail: { email: string; password: string } | string, maybePassword?: string) => Promise<{ success: boolean; user?: CustomerUser; message: string }>;
-  quickLogin: (role?: 'admin' | 'staff' | 'customer') => Promise<{ success: boolean; message: string }>;
+  quickLogin: (role?: 'admin' | 'staff' | 'customer' | 'vendor') => Promise<{ success: boolean; message: string }>;
   register: (data: { first_name: string; last_name?: string; email: string; phone?: string; password: string }) => Promise<{ success: boolean; message: string }>;
   logoutUser: () => Promise<void>;
   updateUserProfile: (data: { first_name?: string; last_name?: string; phone?: string; addresses?: any[] }) => Promise<void>;
@@ -84,9 +90,29 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Global synchronized product catalog & categories (sourced strictly from API)
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true
   );
+
+  const fetchStores = async () => {
+    try {
+      const res = await api.getPublicStores();
+      if (res && Array.isArray(res.stores)) {
+        setStores(res.stores as Store[]);
+      }
+    } catch (err) {
+      console.warn('API stores fetch notice:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchStores();
+  }, []);
+
+  const goToStorefront = (slug: string) => {
+    setCurrentView('storefront', { slug });
+  };
 
   const fetchProducts = async (limit: number = 48) => {
     try {
@@ -288,7 +314,11 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const cat = decodeURIComponent(raw.replace('category/', ''));
       return { view: 'shop', data: { category: cat } };
     }
-    if (['home', 'shop', 'checkout', 'track-order', 'account', 'login', 'register', 'admin', 'pos', 'contact', 'warranty', 'delivery-info'].includes(raw)) {
+    if (raw.startsWith('store/')) {
+      const storeSlug = decodeURIComponent(raw.replace('store/', ''));
+      return { view: 'storefront', data: { slug: storeSlug } };
+    }
+    if (['home', 'shop', 'checkout', 'track-order', 'account', 'login', 'register', 'admin', 'pos', 'contact', 'warranty', 'delivery-info', 'stores', 'storefront', 'vendor-register', 'vendor-dashboard'].includes(raw)) {
       return { view: raw };
     }
     return null;
@@ -311,6 +341,8 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         window.location.hash = `#product/${encodeURIComponent(data.slug || data.id)}`;
       } else if (view === 'shop' && data?.category) {
         window.location.hash = `#category/${encodeURIComponent(data.category)}`;
+      } else if ((view === 'storefront' || view === 'store') && data?.slug) {
+        window.location.hash = `#store/${encodeURIComponent(data.slug)}`;
       } else {
         window.location.hash = `#${view}`;
       }
@@ -353,6 +385,14 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
           ? 'Tracking Order Dispatch...'
           : view === 'account'
           ? 'Loading Account Profile...'
+          : view === 'stores'
+          ? 'Browsing Verified Ugandan Tech Stores...'
+          : view === 'storefront' || view === 'store'
+          ? 'Loading Vendor Storefront...'
+          : view === 'vendor-dashboard'
+          ? 'Launching Seller Center...'
+          : view === 'vendor-register'
+          ? 'Opening Vendor Onboarding...'
           : 'Loading Cyber Dynamic Technologies...'
       );
 
@@ -612,9 +652,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const quickLogin = async (role: 'admin' | 'staff' | 'customer' = 'admin') => {
+  const quickLogin = async (role: 'admin' | 'staff' | 'customer' | 'vendor' = 'admin') => {
     try {
-      const res = await api.quickLogin(role);
+      const res = await api.quickLogin(role as any);
       if (res.success && res.user) {
         setUser(res.user);
         showToast(`Signed in as ${res.user.first_name} (${res.user.role})`);
@@ -731,7 +771,12 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSelectedZone,
         user,
         isAdmin,
+        isVendor: Boolean(user?.role === 'vendor' || user?.role === 'vendor_staff'),
+        vendorStoreId: user?.vendor_id || user?.store_id,
         isPosAllowed,
+        stores,
+        fetchStores,
+        goToStorefront,
         loginUser,
         login,
         quickLogin,

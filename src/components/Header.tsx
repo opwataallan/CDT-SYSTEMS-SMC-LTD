@@ -38,6 +38,9 @@ export const Header: React.FC = () => {
     setIsCartOpen,
     wishlist,
     user,
+    isAdmin,
+    isVendor,
+    vendorStoreId,
     storeSettings,
     deliveryZones,
     selectedZone,
@@ -410,6 +413,41 @@ export const Header: React.FC = () => {
                         <span>Wishlist ({wishlist.length})</span>
                       </button>
                       <div className="border-t border-slate-100 my-1" />
+                      <button
+                        onClick={() => {
+                          setCurrentView('stores');
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer text-slate-700"
+                      >
+                        <Store className="w-3.5 h-3.5 text-[#920d35]" />
+                        <span>All Verified Tech Stores</span>
+                      </button>
+
+                      {isVendor ? (
+                        <button
+                          onClick={() => {
+                            setCurrentView('vendor-dashboard');
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-[#920d35] font-bold hover:bg-rose-50 flex items-center gap-2 cursor-pointer"
+                        >
+                          <Store className="w-3.5 h-3.5 text-[#920d35]" />
+                          <span>Seller Center & Dashboard</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setCurrentView('vendor-register');
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-emerald-700 font-bold hover:bg-emerald-50 flex items-center gap-2 cursor-pointer"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Register Store / Sell on CDT</span>
+                        </button>
+                      )}
+
                       {isPosAllowed && (
                         <button
                           onClick={() => {
@@ -430,7 +468,7 @@ export const Header: React.FC = () => {
                         className="w-full text-left px-3 py-2 text-cyan-600 font-bold hover:bg-cyan-50 flex items-center gap-2"
                       >
                         <Settings className="w-3.5 h-3.5" />
-                        <span>Store Management & Settings</span>
+                        <span>Platform Administration</span>
                       </button>
                     </>
                   ) : (
@@ -450,10 +488,32 @@ export const Header: React.FC = () => {
                           setCurrentView('register');
                           setIsUserMenuOpen(false);
                         }}
-                        className="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-bold text-center cursor-pointer"
+                        className="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded font-bold text-center cursor-pointer mb-2"
                       >
                         Create Account
                       </button>
+                      <div className="border-t border-slate-100 pt-2 space-y-1">
+                        <button
+                          onClick={() => {
+                            setCurrentView('stores');
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="w-full py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded text-[11px] font-semibold flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200"
+                        >
+                          <Store className="w-3.5 h-3.5 text-[#920d35]" />
+                          <span>Browse Verified Stores</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setCurrentView('vendor-register');
+                            setIsUserMenuOpen(false);
+                          }}
+                          className="w-full py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded text-[11px] font-bold flex items-center justify-center gap-1.5 cursor-pointer border border-emerald-200"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Become a Seller</span>
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -617,6 +677,31 @@ export const Header: React.FC = () => {
                 }`}
               >
                 All Products
+              </button>
+            </li>
+
+            <li>
+              <button
+                onClick={() => setCurrentView('stores')}
+                className={`cursor-pointer transition-colors pb-0.5 whitespace-nowrap flex items-center gap-1.5 ${
+                  currentView === 'stores'
+                    ? 'text-cyan-600 border-b-2 border-cyan-600 font-extrabold'
+                    : 'hover:text-cyan-600 text-slate-800'
+                }`}
+              >
+                <Store className="w-3.5 h-3.5 text-[#920d35]" />
+                <span>Stores</span>
+              </button>
+            </li>
+
+            <li>
+              <button
+                onClick={() => setCurrentView('vendor-register')}
+                className="cursor-pointer text-emerald-600 hover:text-emerald-700 pb-0.5 whitespace-nowrap font-bold flex items-center gap-1"
+                title="Register store on Cyber Dynamic Tech"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Sell on CDT</span>
               </button>
             </li>
 

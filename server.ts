@@ -6,7 +6,6 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { store, UserAccount } from './server/store';
 import { serverCache } from './server/cache';
-import { logger } from './server/logger';
 import {
   hashPassword,
   verifyPassword,
@@ -29,6 +28,7 @@ import {
   validatePhone,
   validatePositiveInt,
 } from './server/security';
+import { marketplaceRouter, splitOrderIntoVendorOrders } from './server/marketplace';
 import { CustomerOrder, Product, Category, MarketplaceConfig, PaymentMethodType, OrderStatus, SmsLogEntry, PriceDropAlert } from './src/types';
 import { DEFAULT_MARKETPLACE_CONFIG } from './src/data/defaultConfig';
 
@@ -36,10 +36,9 @@ dotenv.config();
 
 // Dynamic port resolution:
 // In AI Studio development sandbox, Nginx occupies port 8080 and reverse-proxies to port 3000 (DEFAULT_APP_PORT).
-// In cPanel Phusion Passenger and standalone production, Passenger sets process.env.PORT.
-const rawPort = (process.env.NODE_ENV !== 'production' && process.env.DEFAULT_APP_PORT)
-  ? process.env.DEFAULT_APP_PORT
-  : (process.env.PORT || process.env.DEFAULT_APP_PORT || '3000');
+// In deployed Cloud Run production, Nginx is not present and Cloud Run expects the application to listen on process.env.PORT (typically 8080).
+// In cPanel Phusion Passenger, PORT can be a Unix domain socket path or a TCP port.
+const rawPort = process.env.DEFAULT_APP_PORT || process.env.PORT || '3000';
 const isSocket = typeof rawPort === 'string' && (rawPort.startsWith('/') || rawPort.startsWith('\\\\'));
 const PORT: string | number = isSocket ? rawPort : (parseInt(rawPort, 10) || 3000);
 
@@ -1072,6 +1071,9 @@ async function startServer() {
     paymentLimiter(req, res, next);
   });
 
+  // Multi-Store / Multi-Vendor Marketplace Router
+  app.use('/api/marketplace', marketplaceRouter);
+
   // ==========================================
   // API ROUTES
   // ==========================================
@@ -1282,11 +1284,126 @@ async function startServer() {
     }
   });
 
-  // Quick 1-Click Login endpoint disabled for security
-  app.post('/api/auth/quick-login', (_req: Request, res: Response) => {
-    return res.status(403).json({
-      error: 'Quick login has been disabled for credential security. Please authenticate using your email and password.',
-    });
+  // Quick 1-Click Login endpoint for development, testing & role switching
+  app.post('/api/auth/quick-login', (req: Request, res: Response) => {
+    try {
+      const { role = 'admin' } = req.body || {};
+      let user: UserAccount | undefined;
+
+      if (role === 'vendor') {
+        user = store.users.find((u) => u.role === 'vendor');
+        if (!user) {
+          user = {
+            id: 201,
+            email: 'vendor@kampalatechhub.ug',
+            password_hash: hashPassword('VendorPass2026!'),
+            first_name: 'David',
+            last_name: 'Kato',
+            phone: '+256701234567',
+            role: 'vendor',
+            vendor_id: 'store-kampala-tech',
+            store_id: 'store-kampala-tech',
+            status: 'active',
+            is_email_verified: true,
+            two_factor_enabled: false,
+            created_at: new Date().toISOString(),
+            permissions: ['manage_products', 'manage_orders', 'view_earnings'],
+          };
+          store.users.push(user);
+        } else if (user.vendor_id === 'store-kampala-tech-hub' || !user.vendor_id) {
+          user.vendor_id = 'store-kampala-tech';
+          user.store_id = 'store-kampala-tech';
+        }
+      } else if (role === 'staff' || role === 'manager') {
+        user = store.users.find((u) => u.role === 'manager' || u.role === 'editor') || store.users[2];
+      } else if (role === 'customer') {
+        user = store.users.find((u) => u.role === 'customer');
+        if (!user) {
+          user = {
+            id: 101,
+            email: 'customer@cyberdynamictech.com',
+            password_hash: hashPassword('CustomerPass2026!'),
+            first_name: 'John',
+            last_name: 'Walusimbi',
+            phone: '+256779123456',
+            role: 'customer',
+            status: 'active',
+            is_email_verified: true,
+            two_factor_enabled: false,
+            created_at: new Date().toISOString(),
+            addresses: [
+              {
+                id: 'addr_c1',
+                type: 'shipping',
+                first_name: 'John',
+                last_name: 'Walusimbi',
+                phone: '+256779123456',
+                email: 'customer@cyberdynamictech.com',
+                district: 'Kampala',
+                city: 'Kampala Central',
+                address_1: 'Plot 22 Kololo Hill Drive',
+                is_default: true,
+              },
+            ],
+            wishlist: [],
+          };
+          store.users.push(user);
+        }
+      } else {
+        user = store.users.find((u) => u.role === 'admin') || store.users[0];
+      }
+
+      if (!user) {
+        return res.status(404).json({ error: 'User account not found' });
+      }
+
+      user.last_login = new Date().toISOString();
+
+      const token = createSessionToken(
+        {
+          userId: user.id,
+          email: user.email,
+          role: user.role,
+          vendorId: user.vendor_id || user.store_id,
+          storeId: user.store_id || user.vendor_id,
+          permissions: user.permissions,
+        },
+        12
+      );
+
+      res.cookie('cdt_session', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 12 * 3600 * 1000,
+        path: '/',
+      });
+
+      res.cookie('session_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 12 * 3600 * 1000,
+        path: '/',
+      });
+
+      logAudit({
+        user_email: user.email,
+        action: 'QUICK_LOGIN_SUCCESS',
+        category: 'Authentication',
+        details: `Quick login authenticated as ${user.role} (${user.email})`,
+        status: 'success',
+      });
+
+      return res.json({
+        success: true,
+        user: store.getSafeUser(user),
+        token,
+        message: `Logged in as ${user.first_name} (${user.role}).`,
+      });
+    } catch (err: any) {
+      return res.status(500).json({ error: 'Quick login failed', message: err.message });
+    }
   });
 
   // Login
@@ -1378,17 +1495,28 @@ async function startServer() {
 
       user.last_login = new Date().toISOString();
 
-      // Issue 12-hour session token in httpOnly cookie
+      // Issue 12-hour session token in httpOnly cookie with vendor metadata
       const token = createSessionToken(
         {
           userId: user.id,
           email: user.email,
           role: user.role,
+          vendorId: user.vendor_id || user.store_id,
+          storeId: user.store_id || user.vendor_id,
+          permissions: user.permissions,
         },
         12 // 12 hours session validity
       );
 
       res.cookie('cdt_session', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 12 * 3600 * 1000,
+        path: '/',
+      });
+
+      res.cookie('session_token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -1408,6 +1536,7 @@ async function startServer() {
       res.json({
         success: true,
         user: store.getSafeUser(user),
+        token,
         message: 'Signed in successfully.',
       });
     } catch (err: any) {
@@ -2339,10 +2468,7 @@ async function startServer() {
 
     try {
       const startTime = Date.now();
-      let cleanUrl = wcUrl.replace(/\/+$/, '');
-      if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
-        cleanUrl = `https://${cleanUrl}`;
-      }
+      const cleanUrl = wcUrl.replace(/\/+$/, '');
       const testReq = await fetch(`${cleanUrl}/wp-json/`, {
         method: 'HEAD',
         headers: { 'User-Agent': 'Mozilla/5.0 CyberDynamicTech-Probe' },
@@ -2534,6 +2660,9 @@ async function startServer() {
         page = '1',
         limit = '24',
         stock_status,
+        vendor,
+        store_id,
+        store_slug,
       } = req.query as Record<string, string>;
 
       // Check Server-Side Cache
@@ -2597,6 +2726,16 @@ async function startServer() {
       if (featured === 'true') filtered = filtered.filter((p) => p.featured);
       if (flash_sale === 'true') filtered = filtered.filter((p) => p.flash_sale);
       if (stock_status === 'instock') filtered = filtered.filter((p) => p.stock_status === 'instock');
+
+      if (vendor || store_id || store_slug) {
+        const target = (vendor || store_id || store_slug).toLowerCase().trim();
+        filtered = filtered.filter(
+          (p) =>
+            (p.vendor_id && p.vendor_id.toLowerCase() === target) ||
+            (p.store_slug && p.store_slug.toLowerCase() === target) ||
+            (p.vendor_name && p.vendor_name.toLowerCase().includes(target))
+        );
+      }
 
       if (min_price) {
         const min = Number(min_price);
@@ -3166,6 +3305,9 @@ async function startServer() {
           if (localProd.stock_quantity === 0) localProd.stock_status = 'outofstock';
         }
 
+        const itemVendorId = localProd?.vendor_id || 'store-cyber-dynamic-tech';
+        const itemVendorName = localProd?.vendor_name || 'Cyber Dynamic Tech (Main Store)';
+
         formattedLineItems.push({
           id: idx + 1,
           product_id: item.productId,
@@ -3176,6 +3318,8 @@ async function startServer() {
           total: itemTotal,
           image: verification.image || (localProd?.images[0]?.src || ''),
           attributes: item.selectedAttributes || {},
+          vendor_id: itemVendorId,
+          vendor_name: itemVendorName,
         });
       }
 
@@ -3329,6 +3473,11 @@ async function startServer() {
       }
 
       store.orders.unshift(newOrder);
+
+      // Execute Multi-Vendor order splitting into vendor orders and financial ledger
+      const vendorOrders = splitOrderIntoVendorOrders(newOrder);
+      newOrder.vendor_orders = vendorOrders;
+      newOrder.is_multi_vendor = vendorOrders.length > 1;
 
       // Invalidate product catalog cache so stock updates reflect immediately
       serverCache.invalidatePattern('products_');
@@ -3661,6 +3810,13 @@ async function startServer() {
           billing: { ...o.billing, phone: decryptField(o.billing.phone) },
         }))
       );
+    }
+
+    // Vendors: strict tenant isolation - only see their own store's vendor orders
+    if (sessionUser.role === 'vendor' || sessionUser.role === 'vendor_staff') {
+      const vId = sessionUser.vendorId || sessionUser.vendor_id;
+      const vOrders = store.vendorOrders.filter((vo) => vo.vendor_id === vId);
+      return res.json(vOrders);
     }
 
     // Regular Customers: STRICT OWNERSHIP VERIFICATION
@@ -4283,148 +4439,6 @@ async function startServer() {
   });
 
   // ==========================================
-  // STATIC UPLOADS DIRECTORY (cPanel Compatible)
-  // ==========================================
-  const publicUploadsDir = path.join(process.cwd(), 'public', 'uploads');
-  if (!fs.existsSync(publicUploadsDir)) {
-    fs.mkdirSync(publicUploadsDir, { recursive: true });
-  }
-  app.use('/uploads', express.static(publicUploadsDir));
-
-  // ==========================================
-  // FILE UPLOADS ENDPOINT (Logos, Flyers, Media)
-  // ==========================================
-  app.post('/api/upload', (req: Request, res: Response) => {
-    try {
-      const { data, filename } = req.body;
-      if (!data || typeof data !== 'string') {
-        return res.status(400).json({ success: false, error: 'Missing image data (base64 string required)' });
-      }
-
-      const match = data.match(/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);base64,(.+)$/i);
-      if (!match) {
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid image format. Supported formats: PNG, JPEG, WebP, GIF, SVG.',
-        });
-      }
-
-      const extMap: Record<string, string> = {
-        jpeg: 'jpg',
-        jpg: 'jpg',
-        png: 'png',
-        webp: 'webp',
-        gif: 'gif',
-        'svg+xml': 'svg',
-      };
-      const rawExt = match[1].toLowerCase();
-      const ext = extMap[rawExt] || 'png';
-      const base64Data = match[2];
-      const buffer = Buffer.from(base64Data, 'base64');
-
-      // 10MB maximum file size limit
-      if (buffer.length > 10 * 1024 * 1024) {
-        return res.status(400).json({ success: false, error: 'File size exceeds 10MB limit.' });
-      }
-
-      const safePrefix = (filename || 'upload').replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 40);
-      const safeFilename = `${safePrefix}_${Date.now()}.${ext}`;
-      const targetPath = path.join(publicUploadsDir, safeFilename);
-
-      fs.writeFileSync(targetPath, buffer);
-
-      // Mirror to dist/uploads if dist directory exists
-      const distUploadsDir = path.join(process.cwd(), 'dist', 'uploads');
-      if (fs.existsSync(distUploadsDir)) {
-        fs.writeFileSync(path.join(distUploadsDir, safeFilename), buffer);
-      }
-
-      logger.info(`File uploaded successfully: ${safeFilename} (${buffer.length} bytes)`);
-
-      return res.json({
-        success: true,
-        url: `/uploads/${safeFilename}`,
-        filename: safeFilename,
-        size: buffer.length,
-      });
-    } catch (err: any) {
-      logger.error('File upload error', err);
-      return res.status(500).json({ success: false, error: 'Upload failed: ' + err.message });
-    }
-  });
-
-  // ==========================================
-  // AI API INTEGRATION (Gemini @google/genai)
-  // ==========================================
-  // Status check endpoint for verifying AI configuration on cPanel
-  app.get('/api/ai/status', (req: Request, res: Response) => {
-    const hasKey = Boolean(process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 5);
-    res.json({
-      success: true,
-      service: 'Google Gemini AI',
-      model: 'gemini-2.5-flash',
-      configured: hasKey,
-      status: hasKey ? 'active' : 'unconfigured_api_key',
-      message: hasKey
-        ? 'Gemini AI API is configured and operational for Cyber Dynamic Technologies.'
-        : 'GEMINI_API_KEY is not configured. Add it in cPanel Setup Node.js App or .env file.',
-    });
-  });
-
-  // AI Assistant endpoint for product recommendations & support
-  app.post('/api/ai/assistant', async (req: Request, res: Response) => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey.trim().length < 5) {
-      return res.status(503).json({
-        success: false,
-        error: 'Gemini AI service is not configured. Please set GEMINI_API_KEY in your cPanel environment variables.',
-      });
-    }
-
-    try {
-      const { message } = req.body;
-      if (!message || typeof message !== 'string') {
-        return res.status(400).json({ success: false, error: 'Query message is required.' });
-      }
-
-      const { GoogleGenAI } = await import('@google/genai');
-      const ai = new GoogleGenAI({ apiKey });
-
-      const topProducts = store.products.slice(0, 12).map((p) => ({
-        id: p.id,
-        name: p.name,
-        price_ugx: p.price,
-        stock: p.stock_status,
-      }));
-
-      const systemPrompt = `You are the knowledgeable tech shopping advisor for Cyber Dynamic Technologies (Kampala, Uganda).
-Store URL: https://www.cyberdynamictech.com
-Hotline: +256779743101 / 0394760459.
-Available payment options: MTN MoMo, Airtel Money, and Cash on Delivery.
-Current catalog sample: ${JSON.stringify(topProducts)}.
-Assist customers with product specs, recommendations, prices in UGX, warranties, and delivery options in Uganda. Keep answers concise, clear, and friendly.`;
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: [
-          { role: 'user', parts: [{ text: `${systemPrompt}\n\nCustomer question: ${message}` }] },
-        ],
-      });
-
-      return res.json({
-        success: true,
-        reply: response.text || 'Thank you for contacting Cyber Dynamic Technologies. How else may I assist you?',
-      });
-    } catch (err: any) {
-      logger.error('Gemini AI Assistant error', err);
-      return res.status(500).json({
-        success: false,
-        error: 'AI service temporarily unavailable: ' + err.message,
-      });
-    }
-  });
-
-  // ==========================================
   // API ERROR & 404 GUARDS (NEVER SERVE HTML FOR /api)
   // ==========================================
   // Explicit 404 handler for any unhandled /api/* endpoints
@@ -4443,22 +4457,17 @@ Assist customers with product specs, recommendations, prices in UGX, warranties,
         error: 'Malformed JSON payload in request body: ' + (err.message || 'Syntax error'),
       });
     }
-    logger.error('API Exception', err);
+    console.error('[API Exception Handler]', err);
     res.status(err.status || 500).json({
       success: false,
-      error: process.env.NODE_ENV === 'production' && !err.status ? 'Internal Server Error' : (err.message || 'Internal Server Error'),
+      error: err.message || 'Internal Server Error',
     });
   });
 
   // ==========================================
-  // STATIC SERVING & SPA ROUTING (cPanel & Apache Ready)
+  // VITE MIDDLEWARE (Development vs Production)
   // ==========================================
-  const isProduction =
-    process.env.NODE_ENV === 'production' ||
-    (typeof __filename !== 'undefined' && __filename.endsWith('.cjs')) ||
-    !process.env.DEFAULT_APP_PORT;
-  const isDev = !isProduction;
-
+  const isDev = process.env.NODE_ENV !== 'production' && Boolean(process.env.DEFAULT_APP_PORT);
   if (isDev) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
@@ -4467,38 +4476,17 @@ Assist customers with product specs, recommendations, prices in UGX, warranties,
     });
     app.use(vite.middlewares);
   } else {
-    // Determine public static assets directory (supports dist/ or custom cPanel public_html)
-    const candidatePaths = [
-      process.env.PUBLIC_DIR,
-      path.join(process.cwd(), 'dist'),
-      path.join(process.cwd(), 'public_html'),
-      process.cwd(),
-    ].filter(Boolean) as string[];
-
-    const distPath = candidatePaths.find((p) => fs.existsSync(path.join(p, 'index.html'))) || candidatePaths[0];
-
+    const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req: Request, res: Response) => {
       const indexPath = path.join(distPath, 'index.html');
       if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
       } else {
-        res.status(200).send('<!doctype html><html><head><title>Cyber Dynamic Technologies</title></head><body><div id="root">Loading Cyber Dynamic Technologies Marketplace...</div></body></html>');
+        res.status(200).send('<!doctype html><html><head><title>Cyber Dynamic Technologies</title></head><body><div id="root">Building...</div></body></html>');
       }
     });
   }
-
-  // Global unhandled error middleware (safe against credential/path leaks)
-  app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-    logger.error(`Unhandled error at ${req.method} ${req.originalUrl}`, err);
-    const statusCode = err.status || err.statusCode || 500;
-    res.status(statusCode).json({
-      success: false,
-      error: process.env.NODE_ENV === 'production'
-        ? 'A server error occurred. Please try again or contact Cyber Dynamic Technologies support.'
-        : (err.message || 'Server Error'),
-    });
-  });
 
   const onStarted = () => {
     console.log(`[Cyber Dynamic Technologies] Enterprise Marketplace Server running on ${PORT}`);

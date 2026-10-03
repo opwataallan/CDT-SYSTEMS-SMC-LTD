@@ -210,8 +210,32 @@ export const Footer: React.FC = () => {
             </li>
             <li>
               <button
+                onClick={() => setCurrentView('stores')}
+                className="hover:text-cyan-400 transition-colors cursor-pointer text-cyan-300 font-bold flex items-center gap-1.5"
+              >
+                <span>🏬 Browse Verified Stores</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setCurrentView('vendor-register')}
+                className="hover:text-emerald-300 transition-colors cursor-pointer text-emerald-400 font-bold flex items-center gap-1.5"
+              >
+                <span>✨ Sell On Cyber Dynamic Tech</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={() => setCurrentView('vendor-dashboard')}
+                className="hover:text-rose-300 transition-colors cursor-pointer text-rose-300 font-medium"
+              >
+                Seller Center Portal
+              </button>
+            </li>
+            <li>
+              <button
                 onClick={() => setCurrentView('store-policies')}
-                className="hover:text-cyan-400 transition-colors cursor-pointer text-cyan-300 font-medium"
+                className="hover:text-cyan-400 transition-colors cursor-pointer text-slate-300 font-medium"
               >
                 Store Policies (9 Guarantees)
               </button>

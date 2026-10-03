@@ -100,6 +100,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
           </span>
         </div>
 
+        {/* Vendor Storefront Link */}
+        {product.vendor_name && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrentView('storefront', { slug: product.store_slug || 'cyber-dynamic-tech' });
+            }}
+            className="self-start text-[9px] sm:text-[9.5px] font-medium text-slate-500 hover:text-[#920d35] flex items-center gap-1 mb-1 truncate hover:underline text-left cursor-pointer"
+            title={`Sold by ${product.vendor_name}`}
+          >
+            <span className="text-slate-400">Store:</span>
+            <span className="font-bold text-slate-700 hover:text-[#920d35] truncate max-w-[130px]">
+              {product.vendor_name}
+            </span>
+          </button>
+        )}
+
         {/* Product Name Card Container - Distinctive matching color & gradient */}
         <div className="product-name-box rounded px-1.5 py-1 mb-1 transition-all">
           <h3 className="text-[11px] sm:text-xs font-bold leading-snug text-slate-900 group-hover:text-cyan-900 transition-colors line-clamp-2 min-h-[1.7rem] sm:min-h-[1.9rem]">

@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { X, Trash2, Plus, Minus, ArrowRight, ShoppingBag, ShieldCheck, Tag, Sparkles } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
+import { CartItem } from '../types';
+
+interface VendorCartGroup {
+  vendorId: string;
+  vendorName: string;
+  storeSlug: string;
+  items: CartItem[];
+}
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -20,6 +28,20 @@ export const CartDrawer: React.FC = () => {
 
   const [couponCode, setCouponCode] = useState('');
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
+  // Multi-Vendor grouping
+  const itemsByVendor = cart.reduce<Record<string, VendorCartGroup>>((acc, item) => {
+    const vId = item.product.vendor_id || 'store-cyber-dynamic-tech';
+    const vName = item.product.vendor_name || 'Cyber Dynamic Tech (Main Store)';
+    const vSlug = item.product.store_slug || 'cyber-dynamic-tech';
+    if (!acc[vId]) {
+      acc[vId] = { vendorId: vId, vendorName: vName, storeSlug: vSlug, items: [] };
+    }
+    acc[vId].items.push(item);
+    return acc;
+  }, {});
+
+  const vendorGroups: VendorCartGroup[] = Object.values(itemsByVendor);
 
   if (!isCartOpen) return null;
 
@@ -105,74 +127,95 @@ export const CartDrawer: React.FC = () => {
                 </button>
               </div>
             ) : (
-              cart.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex gap-2.5 p-2.5 rounded-lg border border-slate-200 bg-white hover:border-cyan-300 transition-colors shadow-2xs"
-                >
-                  {/* Thumbnail */}
-                  <img
-                    src={item.product.images[0]?.src}
-                    alt={item.product.name}
-                    className="w-16 h-16 rounded object-cover border border-slate-100 flex-shrink-0"
-                  />
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0 flex flex-col">
-                    <div className="flex items-start justify-between gap-1">
-                      <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-tight">
-                        {item.product.name}
-                      </h4>
-                      <button
-                        onClick={() => removeFromCart(item.id)}
-                        className="text-slate-400 hover:text-red-500 p-0.5 transition-colors"
-                        title="Remove item"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
+              vendorGroups.map((group) => (
+                <div key={group.vendorId} className="space-y-2 mb-4">
+                  {/* Vendor Group Header */}
+                  <div className="flex items-center justify-between bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200/80 text-[11px]">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                      <span className="w-2 h-2 rounded-full bg-[#920d35]" />
+                      <span>{group.vendorName}</span>
                     </div>
-
-                    {/* Variation Attributes */}
-                    {item.selectedAttributes && Object.keys(item.selectedAttributes).length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {Object.entries(item.selectedAttributes).map(([k, v]) => (
-                          <span
-                            key={k}
-                            className="text-[9px] px-1 py-0.5 rounded bg-slate-100 text-slate-600"
-                          >
-                            {k}: {v}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="mt-auto pt-1.5 flex items-center justify-between">
-                      <div className="text-xs font-black text-cyan-600 whitespace-nowrap">
-                        UGX {(item.unitPrice * item.quantity).toLocaleString()}
-                      </div>
-
-                      {/* Quantity Controls */}
-                      <div className="flex items-center border border-slate-200 rounded bg-slate-50 overflow-hidden shadow-2xs">
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="px-1.5 py-0.5 text-slate-600 hover:bg-slate-200 transition-colors"
-                          aria-label="Decrease quantity"
-                        >
-                          <Minus className="w-2.5 h-2.5" />
-                        </button>
-                        <span className="px-2 text-xs font-bold text-slate-800">
-                          {item.quantity}
-                        </span>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="px-1.5 py-0.5 text-slate-600 hover:bg-slate-200 transition-colors"
-                          aria-label="Increase quantity"
-                        >
-                          <Plus className="w-2.5 h-2.5" />
-                        </button>
-                      </div>
-                    </div>
+                    <button
+                      onClick={() => {
+                        setIsCartOpen(false);
+                        setCurrentView('storefront', { slug: group.storeSlug });
+                      }}
+                      className="text-[10px] text-[#920d35] hover:underline font-semibold"
+                    >
+                      Visit Store
+                    </button>
                   </div>
+
+                  {group.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex gap-2.5 p-2.5 rounded-lg border border-slate-200 bg-white hover:border-cyan-300 transition-colors shadow-2xs"
+                    >
+                      {/* Thumbnail */}
+                      <img
+                        src={item.product.images[0]?.src}
+                        alt={item.product.name}
+                        className="w-16 h-16 rounded object-cover border border-slate-100 flex-shrink-0"
+                      />
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0 flex flex-col">
+                        <div className="flex items-start justify-between gap-1">
+                          <h4 className="text-xs font-bold text-slate-900 line-clamp-2 leading-tight">
+                            {item.product.name}
+                          </h4>
+                          <button
+                            onClick={() => removeFromCart(item.id)}
+                            className="text-slate-400 hover:text-red-500 p-0.5 transition-colors"
+                            title="Remove item"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        {/* Variation Attributes */}
+                        {item.selectedAttributes && Object.keys(item.selectedAttributes).length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {Object.entries(item.selectedAttributes).map(([k, v]) => (
+                              <span
+                                key={k}
+                                className="text-[9px] px-1 py-0.5 rounded bg-slate-100 text-slate-600"
+                              >
+                                {k}: {v}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-auto pt-1.5 flex items-center justify-between">
+                          <div className="text-xs font-black text-cyan-600 whitespace-nowrap">
+                            UGX {(item.unitPrice * item.quantity).toLocaleString()}
+                          </div>
+
+                          {/* Quantity Controls */}
+                          <div className="flex items-center border border-slate-200 rounded bg-slate-50 overflow-hidden shadow-2xs">
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                              className="px-1.5 py-0.5 text-slate-600 hover:bg-slate-200 transition-colors"
+                              aria-label="Decrease quantity"
+                            >
+                              <Minus className="w-2.5 h-2.5" />
+                            </button>
+                            <span className="px-2 text-xs font-bold text-slate-800">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                              className="px-1.5 py-0.5 text-slate-600 hover:bg-slate-200 transition-colors"
+                              aria-label="Increase quantity"
+                            >
+                              <Plus className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ))
             )}

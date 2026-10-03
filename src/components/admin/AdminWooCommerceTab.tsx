@@ -19,6 +19,9 @@ import {
   Zap,
   Clock,
   ArrowDownRight,
+  Download,
+  Package,
+  FileArchive,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { PriceDropAlert, Product } from '../../types';
@@ -41,6 +44,8 @@ export const AdminWooCommerceTab: React.FC<AdminWooCommerceTabProps> = ({
   const [alerts, setAlertAlerts] = useState<PriceDropAlert[]>([]);
   const [loadingAlerts, setLoadingAlerts] = useState(false);
   const [copiedWebhook, setCopiedWebhook] = useState(false);
+  const [copiedPluginLink, setCopiedPluginLink] = useState(false);
+  const [copiedCpanelLink, setCopiedCpanelLink] = useState(false);
 
   // Test trigger state
   const [testProductId, setTestProductId] = useState<string>('');
@@ -117,6 +122,144 @@ export const AdminWooCommerceTab: React.FC<AdminWooCommerceTabProps> = ({
 
   return (
     <div className="space-y-5">
+      {/* 0. DEPLOYMENT & INSTALLATION PACKAGES (DIRECT DOWNLOADS) */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-slate-900 text-white rounded-2xl p-6 shadow-md border border-slate-700/80">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-700/60">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                <Package className="w-5 h-5" />
+              </span>
+              <div>
+                <h2 className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-2">
+                  <span>Download Deployment ZIP Packages</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    Production Ready
+                  </span>
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Pre-compiled and bundled archives ready for 1-click download and installation.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+          {/* Card 1: WordPress Plugin */}
+          <div className="bg-slate-800/80 hover:bg-slate-800 transition-all rounded-xl border border-slate-700 p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 flex-shrink-0">
+                    <FileArchive className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-white flex items-center gap-1.5">
+                      <span>WordPress & WooCommerce Plugin</span>
+                    </h3>
+                    <p className="text-[11px] font-mono text-emerald-400">cyber-dynamic-marketplace.zip (1.6 MB)</p>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-[10px] font-bold border border-blue-500/30">
+                  Recommended
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-300 mt-3 leading-relaxed">
+                Native WordPress plugin that installs straight into your WordPress admin (<strong>Plugins → Add New → Upload Plugin</strong>). Directly syncs with WooCommerce with zero Node server required.
+              </p>
+
+              <div className="mt-3 p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/50 text-[11px] text-slate-400 space-y-1">
+                <div>✓ Shortcode: <code className="text-emerald-300">[cyber_dynamic_marketplace]</code></div>
+                <div>✓ Standalone PWA at: <code className="text-cyan-300">/marketplace-app/</code></div>
+                <div>✓ Direct MTN MoMo & Airtel Money order creation</div>
+              </div>
+            </div>
+
+            <div className="mt-5 pt-4 border-t border-slate-700/60 flex items-center gap-2">
+              <a
+                href="/cyber-dynamic-marketplace.zip"
+                download="cyber-dynamic-marketplace.zip"
+                className="flex-1 py-2.5 px-4 bg-[#007f19] hover:bg-[#006013] text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download Plugin (.zip)</span>
+              </a>
+
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}/cyber-dynamic-marketplace.zip`;
+                  navigator.clipboard.writeText(url);
+                  setCopiedPluginLink(true);
+                  setTimeout(() => setCopiedPluginLink(false), 2000);
+                }}
+                className="p-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl transition-colors cursor-pointer"
+                title="Copy Direct Download Link"
+              >
+                {copiedPluginLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: cPanel Node.js App */}
+          <div className="bg-slate-800/80 hover:bg-slate-800 transition-all rounded-xl border border-slate-700 p-5 flex flex-col justify-between">
+            <div>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 flex-shrink-0">
+                    <Server className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-extrabold text-sm text-white flex items-center gap-1.5">
+                      <span>cPanel Node.js Standalone App</span>
+                    </h3>
+                    <p className="text-[11px] font-mono text-orange-400">cpanel-production.zip (3.0 MB)</p>
+                  </div>
+                </div>
+                <span className="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 text-[10px] font-bold border border-orange-500/30">
+                  Full Stack
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-300 mt-3 leading-relaxed">
+                Full-stack Node.js bundle for cPanel <strong>Setup Node.js App</strong> (e.g. running on <code>shop.cyberdynamictech.com</code> or subdomain). Includes bundled backend, client dist, and MySQL schema.
+              </p>
+
+              <div className="mt-3 p-2.5 rounded-lg bg-slate-900/60 border border-slate-700/50 text-[11px] text-slate-400 space-y-1">
+                <div>✓ Startup file: <code className="text-orange-300">app.js</code></div>
+                <div>✓ Built dist + SQLite/MySQL dual database support</div>
+                <div>✓ Real-time background sync & webhook receivers</div>
+              </div>
+            </div>
+
+            <div className="mt-5 pt-4 border-t border-slate-700/60 flex items-center gap-2">
+              <a
+                href="/cpanel-production.zip"
+                download="cpanel-production.zip"
+                className="flex-1 py-2.5 px-4 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download cPanel Bundle (.zip)</span>
+              </a>
+
+              <button
+                onClick={() => {
+                  const url = `${window.location.origin}/cpanel-production.zip`;
+                  navigator.clipboard.writeText(url);
+                  setCopiedCpanelLink(true);
+                  setTimeout(() => setCopiedCpanelLink(false), 2000);
+                }}
+                className="p-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl transition-colors cursor-pointer"
+                title="Copy Direct Download Link"
+              >
+                {copiedCpanelLink ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 1. WOOCOMMERCE REST API STATUS CARD */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">

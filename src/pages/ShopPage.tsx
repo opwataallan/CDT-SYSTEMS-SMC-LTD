@@ -18,7 +18,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   initialSearch = '',
   initialFlashSale = false,
 }) => {
-  const { setCurrentView } = useShop();
+  const { setCurrentView, stores } = useShop();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -27,6 +27,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   // Filters State
   const [search, setSearch] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
+  const [selectedVendor, setSelectedVendor] = useState<string>('all');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<{ min?: number; max?: number }>({});
   const [onlyInStock, setOnlyInStock] = useState(false);
@@ -61,6 +62,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
       const res = await api.getProducts({
         search: search.trim() || undefined,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        vendor: selectedVendor !== 'all' ? selectedVendor : undefined,
         brand: selectedBrands.length > 0 ? selectedBrands.join(',') : undefined,
         flash_sale: onlyFlashSale ? true : undefined,
         stock_status: onlyInStock ? 'instock' : undefined,
@@ -82,7 +84,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, selectedBrands, priceRange, onlyInStock, onlyFlashSale, sortBy, page, search]);
+  }, [selectedCategory, selectedVendor, selectedBrands, priceRange, onlyInStock, onlyFlashSale, sortBy, page, search]);
 
   const toggleBrand = (brand: string) => {
     setPage(1);
@@ -99,6 +101,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   const clearAllFilters = () => {
     setSearch('');
     setSelectedCategory('all');
+    setSelectedVendor('all');
     setSelectedBrands([]);
     setPriceRange({});
     setOnlyInStock(false);
@@ -110,6 +113,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   const hasActiveFilters =
     search ||
     selectedCategory !== 'all' ||
+    selectedVendor !== 'all' ||
     selectedBrands.length > 0 ||
     priceRange.min !== undefined ||
     priceRange.max !== undefined ||
@@ -186,6 +190,12 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-cyan-50 text-cyan-700 border border-cyan-200 font-bold text-xs">
               Category: {categories.find((c) => c.slug === selectedCategory)?.name}
               <X className="w-3 h-3 cursor-pointer hover:text-red-500" onClick={() => setSelectedCategory('all')} />
+            </span>
+          )}
+          {selectedVendor !== 'all' && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-rose-50 text-[#920d35] border border-rose-200 font-bold text-xs">
+              Store: {stores.find((s) => s.id === selectedVendor || s.slug === selectedVendor)?.name || selectedVendor}
+              <X className="w-3 h-3 cursor-pointer hover:text-red-500" onClick={() => setSelectedVendor('all')} />
             </span>
           )}
           {selectedBrands.map((b) => (
@@ -375,6 +385,58 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                     />
                     <span>{brand}</span>
                   </div>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Marketplace Stores & Vendors Filter */}
+          <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Verified Stores</h3>
+              <button
+                type="button"
+                onClick={() => setCurrentView('stores')}
+                className="text-[10px] text-[#920d35] font-bold hover:underline"
+              >
+                All Stores →
+              </button>
+            </div>
+            <div className="space-y-1 text-xs max-h-48 overflow-y-auto pr-1">
+              <label className="flex items-center gap-2 text-slate-700 hover:text-slate-900 cursor-pointer py-0.5 font-medium">
+                <input
+                  type="radio"
+                  name="store_filter_desktop"
+                  checked={selectedVendor === 'all'}
+                  onChange={() => {
+                    setSelectedVendor('all');
+                    setPage(1);
+                  }}
+                  className="text-[#920d35] focus:ring-0"
+                />
+                <span>All Stores (Platform)</span>
+              </label>
+              {stores.map((s) => (
+                <label
+                  key={s.id}
+                  className="flex items-center justify-between text-slate-700 hover:text-slate-900 cursor-pointer py-0.5"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <input
+                      type="radio"
+                      name="store_filter_desktop"
+                      checked={selectedVendor === s.id || selectedVendor === s.slug}
+                      onChange={() => {
+                        setSelectedVendor(s.id);
+                        setPage(1);
+                      }}
+                      className="text-[#920d35] focus:ring-0"
+                    />
+                    <span className="truncate text-xs">{s.name}</span>
+                  </div>
+                  <span className="text-[9px] text-slate-400 shrink-0 ml-1">
+                    {s.district?.split(' ')[0]}
+                  </span>
                 </label>
               ))}
             </div>
@@ -591,6 +653,58 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                         className="rounded text-cyan-600 focus:ring-0"
                       />
                       <span>{brand}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Verified Stores (Mobile) */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400">Stores & Vendors</h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMobileFiltersOpen(false);
+                      setCurrentView('stores');
+                    }}
+                    className="text-[10px] text-[#920d35] font-bold"
+                  >
+                    Directory →
+                  </button>
+                </div>
+                <div className="space-y-1 text-xs max-h-36 overflow-y-auto">
+                  <label className="flex items-center gap-2 text-slate-700 cursor-pointer py-1">
+                    <input
+                      type="radio"
+                      name="store_filter_mobile"
+                      checked={selectedVendor === 'all'}
+                      onChange={() => {
+                        setSelectedVendor('all');
+                        setPage(1);
+                      }}
+                      className="text-[#920d35] focus:ring-0"
+                    />
+                    <span>All Stores</span>
+                  </label>
+                  {stores.map((s) => (
+                    <label key={s.id} className="flex items-center justify-between text-slate-700 cursor-pointer py-1">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <input
+                          type="radio"
+                          name="store_filter_mobile"
+                          checked={selectedVendor === s.id || selectedVendor === s.slug}
+                          onChange={() => {
+                            setSelectedVendor(s.id);
+                            setPage(1);
+                          }}
+                          className="text-[#920d35] focus:ring-0"
+                        />
+                        <span className="truncate">{s.name}</span>
+                      </div>
+                      <span className="text-[9px] text-slate-400 shrink-0 ml-1">
+                        {s.district?.split(' ')[0]}
+                      </span>
                     </label>
                   ))}
                 </div>

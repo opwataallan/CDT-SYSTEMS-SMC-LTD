@@ -42,6 +42,8 @@ def sync_assets():
     dist_assets = os.path.join(DIST_DIR, "assets")
     if os.path.exists(dist_assets):
         for f in os.listdir(dist_assets):
+            if f in ["aistudio", "__MACOSX"] or f.startswith("."):
+                continue
             src = os.path.join(dist_assets, f)
             dst = os.path.join(PLUGIN_ASSETS_DIR, f)
             if os.path.isdir(src):
@@ -71,17 +73,54 @@ def create_zip():
     if os.path.exists(ZIP_OUTPUT_PATH):
         os.remove(ZIP_OUTPUT_PATH)
 
-    with zipfile.ZipFile(ZIP_OUTPUT_PATH, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as zipf:
-        # Standard WordPress plugin zip structure has top-level folder 'cyber-dynamic-marketplace/'
+    with zipfile.ZipFile(ZIP_OUTPUT_PATH, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        # Standard WordPress plugin zip structure requires top-level directory 'cyber-dynamic-marketplace/'
+        # Write root folder entry
+        root_zinfo = zipfile.ZipInfo("cyber-dynamic-marketplace/")
+        root_zinfo.external_attr = 0o040755 << 16
+        root_zinfo.create_system = 3
+        zipf.writestr(root_zinfo, "")
+
+        # Collect directories and files
         for root, dirs, files in os.walk(PLUGIN_DIR):
-            for file in files:
-                full_path = os.path.join(root, file)
-                rel_path = os.path.relpath(full_path, os.path.dirname(PLUGIN_DIR))
-                zipf.write(full_path, rel_path)
-                print(f"  Added: {rel_path}")
+            dirs.sort()
+            files.sort()
+            rel_dir = os.path.relpath(root, PLUGIN_DIR)
+
+            # Write directory entries
+            for d in dirs:
+                if d.startswith(".") or d in ["__MACOSX", "aistudio"]:
+                    continue
+                dir_path_in_zip = os.path.normpath(os.path.join("cyber-dynamic-marketplace", rel_dir, d)).replace("\\", "/") + "/"
+                zinfo = zipfile.ZipInfo(dir_path_in_zip)
+                zinfo.external_attr = 0o040755 << 16
+                zinfo.create_system = 3
+                zipf.writestr(zinfo, "")
+
+            # Write file entries
+            for f in files:
+                if f.startswith(".") or f in ["Thumbs.db", "desktop.ini"]:
+                    continue
+                file_full = os.path.join(root, f)
+                file_path_in_zip = os.path.normpath(os.path.join("cyber-dynamic-marketplace", rel_dir, f)).replace("\\", "/")
+                
+                with open(file_full, "rb") as fp:
+                    content = fp.read()
+
+                zinfo = zipfile.ZipInfo(file_path_in_zip)
+                zinfo.external_attr = 0o100644 << 16
+                zinfo.create_system = 3
+                zinfo.compress_type = zipfile.ZIP_DEFLATED
+                zipf.writestr(zinfo, content)
+                print(f"  Added: {file_path_in_zip}")
 
     size_mb = os.path.getsize(ZIP_OUTPUT_PATH) / (1024 * 1024)
     print(f"[WP Packager] SUCCESS: Generated {os.path.basename(ZIP_OUTPUT_PATH)} ({size_mb:.2f} MB)")
+
+    # Mirror to public directory for direct browser download
+    public_target = os.path.join(ROOT_DIR, "public", "cyber-dynamic-marketplace.zip")
+    shutil.copy2(ZIP_OUTPUT_PATH, public_target)
+    print(f"[WP Packager] Mirrored to public/cyber-dynamic-marketplace.zip for direct browser download")
 
 if __name__ == "__main__":
     sync_assets()

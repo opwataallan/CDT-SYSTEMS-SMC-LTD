@@ -1,5 +1,5 @@
 {
-  "saved_at": "2026-09-20T20:08:52.189Z",
+  "saved_at": "2026-09-22T21:22:41.999Z",
   "config": {
     "general": {
       "site_name": "Cyber Dynamic Technologies",
@@ -725,7 +725,7 @@
       "auto_sync_on_startup": true,
       "api_version": "wc/v3",
       "verify_ssl": true,
-      "last_sync_timestamp": "2026-09-20T20:08:50.645Z",
+      "last_sync_timestamp": "2026-09-22T21:22:41.998Z",
       "connection_status": "connected"
     },
     "maintenance": {
@@ -791,18 +791,18 @@
   },
   "products": [
     {
-      "id": 4720,
-      "name": "EPSON L3110 Printer- REFURBISHED",
-      "slug": "product-4720",
-      "permalink": "www.cyberdynamictech.com/product/4720",
-      "sku": "SKU-4720",
-      "barcode": "CDT004720",
-      "price": 590000,
-      "regular_price": 650000,
-      "sale_price": 590000,
+      "id": 4743,
+      "name": "Dell Latitude E7440",
+      "slug": "dell-latitude-e7440",
+      "permalink": "https://www.cyberdynamictech.com/product/dell-latitude-e7440/",
+      "sku": "SKU-4743",
+      "barcode": "CDT004743",
+      "price": 600000,
+      "regular_price": 730000,
+      "sale_price": 600000,
       "on_sale": true,
-      "stock_status": "outofstock",
-      "stock_quantity": 0,
+      "stock_status": "instock",
+      "stock_quantity": 20,
       "manage_stock": false,
       "brand": "Cyber Dynamic Technologies",
       "featured": false,
@@ -810,22 +810,65 @@
       "warranty": "Official Store Warranty",
       "categories": [
         {
-          "id": 1,
-          "name": "General Tech",
-          "slug": "general-tech"
+          "id": 21,
+          "name": "LAPTOPS",
+          "slug": "laptops"
         }
       ],
       "images": [
         {
-          "id": 1,
-          "src": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&auto=format&fit=crop&q=80",
-          "name": "EPSON L3110 Printer- REFURBISHED",
+          "id": 4746,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/09/IMG_0037.webp",
+          "name": "IMG_0037",
+          "alt": "Dell Latitude E7440"
+        }
+      ],
+      "attributes": [],
+      "short_description": "Specification Details Model Dell Latitude E7440 Series Latitude 7000 Series / Ultrabook Processor Intel Core 4th Generation — i3 / i5 / i7 options Common CPU Core i5-4200U / i5-4300U CPU Cores 2 cores / 4 threads on common i5 models RAM DDR3/DDR3L 1600 MHz RAM capacity Up to 16GB RAM slots 2 × SODIMM Display 14.0-inch Resolution options 1366×768 HD or 1920×1080 Full HD",
+      "description": "<table class=\"w-fit min-w-(--thread-content-width)\" dir=\"auto\" data-start=\"332\" data-end=\"1550\">\n<thead data-start=\"332\" data-end=\"359\">\n<tr data-start=\"332\" data-end=\"359\">\n<th class=\"last:pe-10\" data-start=\"332\" data-end=\"348\" data-col-size=\"sm\">Specification</th>\n<th class=\"last:pe-10\" data-start=\"348\" data-end=\"359\" data-col-size=\"md\">Details</th>\n</tr>\n</thead>\n<tbody data-start=\"370\" data-end=\"1550\">\n<tr data-start=\"370\" data-end=\"405\">\n<td data-start=\"370\" data-end=\"382\" data-col-size=\"sm\"><strong data-start=\"372\" data-end=\"381\">Model</strong></td>\n<td data-start=\"382\" data-end=\"405\" data-col-size=\"md\">Dell Latitude E7440</td>\n</tr>\n<tr data-start=\"406\" data-end=\"455\">\n<td data-start=\"406\" data-end=\"419\" data-col-size=\"sm\"><strong data-start=\"408\" data-end=\"418\">Series</strong></td>\n<td data-col-size=\"md\" data-start=\"419\" data-end=\"455\">Latitude 7000 Series / Ultrabook</td>\n</tr>\n<tr data-start=\"456\" data-end=\"528\">\n<td data-start=\"456\" data-end=\"472\" data-col-size=\"sm\"><strong data-start=\"458\" data-end=\"471\">Processor</strong></td>\n<td data-start=\"472\" data-end=\"528\" data-col-size=\"md\">Intel Core <strong data-start=\"485\" data-end=\"503\">4th Generation</strong> — i3 / i5 / i7 options</td>\n</tr>\n<tr data-start=\"529\" data-end=\"574\">\n<td data-start=\"529\" data-end=\"546\" data-col-size=\"sm\"><strong data-start=\"531\" data-end=\"545\">Common CPU</strong></td>\n<td data-col-size=\"md\" data-start=\"546\" data-end=\"574\">Core i5-4200U / i5-4300U</td>\n</tr>\n<tr data-start=\"575\" data-end=\"634\">\n<td data-start=\"575\" data-end=\"591\" data-col-size=\"sm\"><strong data-start=\"577\" data-end=\"590\">CPU Cores</strong></td>\n<td data-col-size=\"md\" data-start=\"591\" data-end=\"634\">2 cores / 4 threads on common i5 models</td>\n</tr>\n<tr data-start=\"635\" data-end=\"668\">\n<td data-start=\"635\" data-end=\"645\" data-col-size=\"sm\"><strong data-start=\"637\" data-end=\"644\">RAM</strong></td>\n<td data-start=\"645\" data-end=\"668\" data-col-size=\"md\">DDR3/DDR3L 1600 MHz</td>\n</tr>\n<tr data-start=\"669\" data-end=\"706\">\n<td data-start=\"669\" data-end=\"688\" data-col-size=\"sm\"><strong data-start=\"671\" data-end=\"687\">RAM capacity</strong></td>\n<td data-start=\"688\" data-end=\"706\" data-col-size=\"md\">Up to <strong data-start=\"696\" data-end=\"704\">16GB</strong></td>\n</tr>\n<tr data-start=\"707\" data-end=\"737\">\n<td data-start=\"707\" data-end=\"723\" data-col-size=\"sm\"><strong data-start=\"709\" data-end=\"722\">RAM slots</strong></td>\n<td data-start=\"723\" data-end=\"737\" data-col-size=\"md\">2 × SODIMM</td>\n</tr>\n<tr data-start=\"738\" data-end=\"769\">\n<td data-start=\"738\" data-end=\"752\" data-col-size=\"sm\"><strong data-start=\"740\" data-end=\"751\">Display</strong></td>\n<td data-start=\"752\" data-end=\"769\" data-col-size=\"md\"><strong data-start=\"754\" data-end=\"767\">14.0-inch</strong></td>\n</tr>\n<tr data-start=\"770\" data-end=\"831\">\n<td data-start=\"770\" data-end=\"795\" data-col-size=\"sm\"><strong data-start=\"772\" data-end=\"794\">Resolution options</strong></td>\n<td data-col-size=\"md\" data-start=\"795\" data-end=\"831\">1366×768 HD or 1920×1080 Full HD</td>\n</tr>\n</tbody>\n</table>",
+      "average_rating": 5,
+      "rating_count": 0
+    },
+    {
+      "id": 4720,
+      "name": "EPSON L3110 Printer- REFURBISHED",
+      "slug": "epson-l3110-printer-refurbished",
+      "permalink": "https://www.cyberdynamictech.com/product/epson-l3110-printer-refurbished/",
+      "sku": "SKU-4720",
+      "barcode": "CDT004720",
+      "price": 650000,
+      "regular_price": 650000,
+      "on_sale": false,
+      "stock_status": "instock",
+      "stock_quantity": 20,
+      "manage_stock": false,
+      "brand": "EPSON",
+      "featured": false,
+      "flash_sale": false,
+      "warranty": "Official Store Warranty",
+      "categories": [
+        {
+          "id": 296,
+          "name": "EPSON",
+          "slug": "epson"
+        },
+        {
+          "id": 23,
+          "name": "PRINTERS",
+          "slug": "printers"
+        }
+      ],
+      "images": [
+        {
+          "id": 4718,
+          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/786647.jpg",
+          "name": "2026/08/786647.jpg",
           "alt": "EPSON L3110 Printer- REFURBISHED"
         }
       ],
       "attributes": [],
-      "short_description": "EPSON L3110 Printer- REFURBISHED",
-      "description": "EPSON L3110 Printer- REFURBISHED",
+      "short_description": "REFURBISHED-L3110 Multifunction Color InkTank Printer",
+      "description": "<p>Save more with Epson’s economical and multifunctional printing solutions for business—the EcoTank L3110—built to bring down costs, and bring up productivity. The integrated ink tank enables spill-free, error-free refilling with individual bottles that have designated nozzles. Other features include borderless 4R printing and an ultra-high yield of 7,500 coloured and 4,500 black-and-white pages.</p>\n<p>Cost per print- 7 paise (Black) and 18 paise (Colour)<br />Compact integrated tank design<br />High yield ink bottles<br />Spill-free, error-free refilling<br />Borderless printing up to 4R</p>\n<p>Scanner Type:<br />Flatbed colour image scanner<br />Sensor Type:<br />CIS<br />Optical Resolution:<br />600 x 1200 dpi<br />Maximum Scan Area:<br />216 x 297 mm (8.5 x 11.7&#8243;)<br />Scanner Bit Depth (Colour):<br />48-bit input, 24-bit output<br />Scanner Bit Depth (Grayscale):<br />16-bit input, 8-bit output<br />Scanner Bit Depth (Black &amp; White):<br />16-bit input, 1-bit output<br />Consumables:<br />Black Ink Bottle:<br />4,500 pages *5<br />Cyan Ink Bottle:<br />7,500 (Composite Yield) *5<br />Magenta Ink Bottle:<br />7,500 (Composite Yield) *5<br />Yellow Ink Bottle:<br />7,500 (Composite Yield) *5</p>",
       "average_rating": 5,
       "rating_count": 0
     },
@@ -3012,59 +3055,17 @@
       "description": "<p>DescriptionPowerful Quad-Core Performance – Equipped with an Intel Celeron N5095 (up to 2.9GHz) for smooth multitasking, office productivity, and online learning.Ample Storage &amp; Speed – Enjoy lightning-fast boot times and app launches with 256GB SSD and 8GB DDR4 RAM.Vivid Full HD Display – 15.6&#8243; 1920×1080 resolution panel delivers sharp visuals for work, streaming, or creative tasks.Sleek &amp; Lightweight Design – Ultra-slim finish weighing less than 1.8 kg — ideal for business travel and campus life.Long-Lasting Battery – Smart power management for up to 6-8 hours of use on a single charge.Windows 11 Pre-Installed – Ready to use out-of-the-box with security updates and modern UI.Connectivity Ready – Dual-band Wi-Fi, Bluetooth, HDMI, USB 3.0, SD slot, and headphone jack for versatile connections.Ideal For: Students, business professionals, home users, and first-time laptop owners seeking performance at great value.Key FeaturesModel: AMA E157 LaptopCPU: Intel Celeron N5095 Quad-Core 2.0GHz–2.9GHzScreen: 15.6&#8243; 1920×1080 FHD IPSRAM / Storage: 8GB + 256GBGPU: Intel Integrated GraphicsBattery: 7.6V / 5000mAhBluetooth: BT 4.2WIFI: YesCamera: Front 2.0MPBody Material: Plastic, slim designKeyboard: English layoutPorts: USB 3.0, HDMI, Headphone JackOperating System: Windows 10 / Windows 11Dimensions: ~15.6&#8243; (approx. 357×229×19 mm typical)</p>",
       "average_rating": 5,
       "rating_count": 0
-    },
-    {
-      "id": 3135,
-      "name": "Samsung Galaxy A07 4G 6.7",
-      "slug": "samsung-galaxy-a07-4g-6-7",
-      "permalink": "https://www.cyberdynamictech.com/product/samsung-galaxy-a07-4g-6-7/",
-      "sku": "SKU-3135",
-      "barcode": "CDT003135",
-      "price": 450000,
-      "regular_price": 450000,
-      "on_sale": false,
-      "stock_status": "instock",
-      "stock_quantity": 20,
-      "manage_stock": false,
-      "brand": "Cyber Dynamic Technologies",
-      "featured": false,
-      "flash_sale": false,
-      "warranty": "Official Store Warranty",
-      "categories": [
-        {
-          "id": 22,
-          "name": "PHONES",
-          "slug": "phones"
-        }
-      ],
-      "images": [
-        {
-          "id": 3133,
-          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/239266.jpg",
-          "name": "2025/11/239266.jpg",
-          "alt": "Samsung Galaxy A07 4G 6.7"
-        },
-        {
-          "id": 3132,
-          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/239267.jpg",
-          "name": "2025/11/239267.jpg",
-          "alt": "Samsung Galaxy A07 4G 6.7"
-        },
-        {
-          "id": 3134,
-          "src": "https://www.cyberdynamictech.com/wp-content/uploads/2025/11/239268.jpg",
-          "name": "2025/11/239268.jpg",
-          "alt": "Samsung Galaxy A07 4G 6.7"
-        }
-      ],
-      "attributes": [],
-      "short_description": "Samsung Galaxy A07 4G 6.7&#8243; 4GB RAM 128GB ROM 50MP 5000mAh &#8211; Black",
-      "description": "<p>Key Features<br />\nNetwork Technology: GSM / HSPA / LTE<br />\nSIM: Nano-SIM + Nano-SIM<br />\nSize: 6.7 inches, 108.4 cm2 (~85.2% screen-to-body ratio)<br />\nPlatform: OS Android 15, up to 6 major Android upgrades, One UI 7<br />\nInternal: 128GB 4GB RAM<br />\nMain Camera: Dual 50 MP<br />\nComms: WLAN: Wi-Fi 802.11 a/b/g/n/ac, dual-band, Wi-Fi Direct<br />\nBluetooth: 5.3, A2DP, LE<br />\nUSB: USB Type-C 2.0<br />\nFeatures: Sensors Fingerprint (side-mounted), accelerometer, proximity<br />\nBattery Type: 5000 mAh</p>",
-      "average_rating": 5,
-      "rating_count": 0
     }
   ],
   "categories": [
+    {
+      "id": 21,
+      "name": "LAPTOPS",
+      "slug": "laptops",
+      "description": "LAPTOPS hardware and electronics",
+      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/1-2.jpg",
+      "count": 41
+    },
     {
       "id": 296,
       "name": "EPSON",
@@ -3114,14 +3115,6 @@
       "count": 17
     },
     {
-      "id": 21,
-      "name": "LAPTOPS",
-      "slug": "laptops",
-      "description": "LAPTOPS hardware and electronics",
-      "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/1-2.jpg",
-      "count": 40
-    },
-    {
       "id": 22,
       "name": "PHONES",
       "slug": "phones",
@@ -3159,7 +3152,7 @@
       "slug": "computers",
       "description": "<strong>Find the Best Computers &#038; Laptops for Every Need!</strong>\r\nExplore our wide range of high-performance computers, laptops, desktops, and accessories designed to meet your personal, business, and gaming needs. Whether you&#039;re looking for powerful processors, sleek designs, or budget-friendly options, we have something for everyone. Shop with confidence and enjoy great deals today\r\n✅ Laptops, Desktops, and Accessories\r\n✅ Trusted Brands &#038; High-Quality Products\r\n✅ Affordable Prices &#038; Exclusive Discounts\r\n✅ Fast Delivery &#038; Secure Payments",
       "image": "https://www.cyberdynamictech.com/wp-content/uploads/2024/12/31hqkoNqvTL._SR420420_.jpg",
-      "count": 63
+      "count": 64
     },
     {
       "id": 29,
@@ -3231,7 +3224,7 @@
       "slug": "latest-offers",
       "description": "NEW OFFERS hardware and electronics",
       "image": "https://www.cyberdynamictech.com/wp-content/uploads/2025/01/D7.jpg",
-      "count": 78
+      "count": 79
     },
     {
       "id": 31,

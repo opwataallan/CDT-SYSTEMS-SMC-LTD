@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Menu,
   Search,
@@ -11,7 +11,12 @@ import {
   ShieldCheck,
   ExternalLink,
   ChevronRight,
+  ChevronDown,
   Activity,
+  Download,
+  Package,
+  FileArchive,
+  Server,
 } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 import { AdminTab } from './AdminSidebar';
@@ -34,6 +39,18 @@ export const AdminTopHeader: React.FC<AdminTopHeaderProps> = ({
   isSyncing,
 }) => {
   const { user, logoutUser, setCurrentView } = useShop();
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const downloadMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
+        setShowDownloadMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const getTabTitle = (tab: AdminTab) => {
     switch (tab) {
@@ -128,6 +145,65 @@ export const AdminTopHeader: React.FC<AdminTopHeaderProps> = ({
             <span>{pendingPaymentCount} Pending</span>
           </div>
         )}
+
+        {/* Deploy ZIP Packages Dropdown */}
+        <div className="relative" ref={downloadMenuRef}>
+          <button
+            onClick={() => setShowDownloadMenu(!showDownloadMenu)}
+            className="h-9 px-3 bg-emerald-50 hover:bg-emerald-100 text-[#007f19] border border-emerald-200 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Download WordPress Plugin & cPanel Deployment Packages"
+          >
+            <Download className="w-3.5 h-3.5 text-[#007f19]" />
+            <span className="hidden lg:inline">Deploy ZIPs</span>
+            <ChevronDown className="w-3 h-3 opacity-70" />
+          </button>
+
+          {showDownloadMenu && (
+            <div className="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in zoom-in-95 duration-100 text-slate-800">
+              <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                <div className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                  <Package className="w-3.5 h-3.5 text-[#007f19]" />
+                  <span>Production Packages</span>
+                </div>
+                <div className="text-[11px] text-slate-500">Ready for 1-click download</div>
+              </div>
+
+              <a
+                href="/cyber-dynamic-marketplace.zip"
+                download="cyber-dynamic-marketplace.zip"
+                className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-emerald-50 text-slate-800 hover:text-slate-950 transition-colors group"
+              >
+                <div className="p-2 rounded-lg bg-emerald-100 text-[#007f19] group-hover:bg-[#007f19] group-hover:text-white transition-colors">
+                  <FileArchive className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-extrabold text-slate-900 group-hover:text-[#007f19]">
+                    WordPress Plugin (.zip)
+                  </div>
+                  <div className="text-[10px] text-slate-500">cyber-dynamic-marketplace.zip (1.6 MB)</div>
+                  <div className="text-[10px] text-emerald-600 font-medium mt-0.5">Upload to WP-Admin → Plugins</div>
+                </div>
+              </a>
+
+              <a
+                href="/cpanel-production.zip"
+                download="cpanel-production.zip"
+                className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-orange-50 text-slate-800 hover:text-slate-950 transition-colors group mt-1"
+              >
+                <div className="p-2 rounded-lg bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                  <Server className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-extrabold text-slate-900 group-hover:text-orange-600">
+                    cPanel Node.js Bundle (.zip)
+                  </div>
+                  <div className="text-[10px] text-slate-500">cpanel-production.zip (3.0 MB)</div>
+                  <div className="text-[10px] text-orange-600 font-medium mt-0.5">Setup Node.js App in cPanel</div>
+                </div>
+              </a>
+            </div>
+          )}
+        </div>
 
         {/* Quick Sync WooCommerce Button (Desktop & Mobile) */}
         <button

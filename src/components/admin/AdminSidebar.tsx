@@ -22,6 +22,7 @@ import { useShop } from '../../context/ShopContext';
 export type AdminTab =
   | 'overview'
   | 'analytics'
+  | 'marketplace'
   | 'orders'
   | 'settings'
   | 'homepage'
@@ -63,6 +64,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           label: 'Overview & Sales',
           icon: TrendingUp,
           active: isOverviewActive,
+        },
+        {
+          id: 'marketplace' as AdminTab,
+          label: 'Marketplace & Vendors',
+          icon: Store,
+          active: activeTab === 'marketplace',
         },
         {
           id: 'orders' as AdminTab,

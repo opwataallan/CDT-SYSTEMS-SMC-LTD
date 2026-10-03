@@ -72,6 +72,9 @@ export interface Product {
   warranty?: string;
   specifications?: Record<string, string>;
   reviews?: ProductReview[];
+  vendor_id?: string;
+  vendor_name?: string;
+  store_slug?: string;
 }
 
 export interface Category {
@@ -160,6 +163,8 @@ export interface OrderLineItem {
   total: number;
   image?: string;
   attributes?: Record<string, string>;
+  vendor_id?: string;
+  vendor_name?: string;
 }
 
 export interface CustomerOrder {
@@ -195,6 +200,8 @@ export interface CustomerOrder {
   woocommerce_order_id?: number;
   woocommerce_synced?: boolean;
   woocommerce_sync_error?: string;
+  vendor_orders?: VendorOrder[];
+  is_multi_vendor?: boolean;
 }
 
 export interface Coupon {
@@ -208,7 +215,7 @@ export interface Coupon {
   expiry_date?: string;
 }
 
-export type UserRole = 'admin' | 'manager' | 'customer' | 'editor';
+export type UserRole = 'admin' | 'manager' | 'customer' | 'editor' | 'vendor' | 'vendor_staff';
 
 export interface CustomerUser {
   id: number;
@@ -226,6 +233,9 @@ export interface CustomerUser {
   last_login?: string;
   addresses: CustomerAddress[];
   wishlist: number[]; // Product IDs
+  vendor_id?: string;
+  store_id?: string;
+  permissions?: string[];
 }
 
 export interface HeroBanner {
@@ -940,6 +950,8 @@ export interface MarketplaceConfig {
   advanced: AdvancedSettings;
   pos: PosSettings;
   badges?: ProductBadgeConfig[];
+  marketplace?: MarketplaceGeneralConfig;
+  commissions?: MarketplaceCommissionSettings;
 }
 
 // Backward-compatible StoreSettings mapping
@@ -988,4 +1000,189 @@ export interface PriceDropAlert {
     email?: 'sent' | 'simulated' | 'failed' | 'not_requested';
   };
 }
+
+// -------------------------------------------------------------
+// Multi-Store / Multi-Vendor Marketplace Core System Types
+// -------------------------------------------------------------
+
+export type StoreStatus = 'pending' | 'approved' | 'rejected' | 'suspended' | 'active';
+
+export interface StorePayoutDetails {
+  method: 'momo' | 'airtel' | 'bank' | 'other';
+  account_number: string;
+  account_name: string;
+  bank_name?: string;
+  notes?: string;
+}
+
+export interface StoreDeliverySettings {
+  type: 'vendor' | 'platform' | 'courier' | 'pickup' | 'both';
+  base_delivery_fee?: number;
+  free_delivery_threshold?: number;
+  estimated_days?: string;
+  districts_served?: string[];
+  allow_pickup?: boolean;
+  pickup_address?: string;
+}
+
+export interface Store {
+  id: string;
+  slug: string;
+  name: string;
+  owner_id: number;
+  owner_name: string;
+  email: string;
+  phone: string;
+  status: StoreStatus;
+  is_verified: boolean;
+  is_platform_store?: boolean;
+  logo_url: string;
+  banner_url: string;
+  description: string;
+  city: string;
+  district: string;
+  country: string;
+  address: string;
+  tin_number?: string;
+  registration_number?: string;
+  product_categories: string[];
+  rating: number;
+  rating_count: number;
+  commission_rate?: number; // Custom store percentage override (e.g. 8 for 8%)
+  commission_fixed?: number; // Custom store fixed amount override
+  payout_details: StorePayoutDetails;
+  delivery_settings: StoreDeliverySettings;
+  created_at: string;
+  updated_at?: string;
+  rejection_reason?: string;
+  suspended_reason?: string;
+}
+
+export interface VendorOrder {
+  id: string; // e.g. "VORD-12345-STOREA"
+  parent_order_id: number;
+  parent_order_number: string;
+  vendor_id: string;
+  vendor_name: string;
+  store_slug: string;
+  status: OrderStatus;
+  currency: string;
+  date_created: string;
+  subtotal: number;
+  shipping_fee: number;
+  platform_commission_rate: number; // e.g. 8%
+  platform_commission_amount: number;
+  vendor_net_earnings: number;
+  line_items: OrderLineItem[];
+  customer_shipping_address: CustomerAddress;
+  payment_status: 'pending' | 'paid' | 'refunded';
+  timeline: OrderTimelineEvent[];
+  payout_status?: 'unpaid' | 'requested' | 'processing' | 'paid';
+  vendor_notes?: string;
+}
+
+export interface VendorStaff {
+  id: string;
+  vendor_id: string;
+  user_id: number;
+  name: string;
+  email: string;
+  role_title: string;
+  permissions: Array<'manage_products' | 'manage_orders' | 'view_finance' | 'manage_settings' | 'manage_reviews'>;
+  status: 'active' | 'suspended';
+  created_at: string;
+}
+
+export type WalletTransactionType =
+  | 'order_credit'
+  | 'commission_deduction'
+  | 'payout_withdrawal'
+  | 'payout_refund'
+  | 'adjustment'
+  | 'delivery_fee_credit';
+
+export interface WalletTransaction {
+  id: string;
+  vendor_id: string;
+  order_id?: number | string;
+  order_number?: string;
+  amount: number; // Positive for credits, negative for debits
+  type: WalletTransactionType;
+  balance_after: number;
+  status: 'completed' | 'pending' | 'cancelled';
+  description: string;
+  created_at: string;
+}
+
+export type PayoutStatus = 'pending' | 'processing' | 'paid' | 'rejected' | 'cancelled';
+
+export interface PayoutRequest {
+  id: string;
+  vendor_id: string;
+  vendor_name: string;
+  amount: number;
+  currency: string;
+  payout_method: 'momo' | 'airtel' | 'bank';
+  account_number: string;
+  account_name: string;
+  bank_name?: string;
+  status: PayoutStatus;
+  admin_notes?: string;
+  requested_at: string;
+  processed_at?: string;
+  processed_by?: string;
+  transaction_reference?: string;
+}
+
+export interface StoreReview {
+  id: string;
+  store_id: string;
+  reviewer_name: string;
+  reviewer_email?: string;
+  rating: number; // 1 to 5
+  comment: string;
+  date_created: string;
+  verified_purchase: boolean;
+  order_number?: string;
+  status: 'approved' | 'pending' | 'flagged';
+  vendor_reply?: {
+    comment: string;
+    replied_at: string;
+  };
+}
+
+export interface StorePromotion {
+  id: string;
+  store_id: string;
+  title: string;
+  description: string;
+  banner_image?: string;
+  discount_type: 'percent' | 'fixed';
+  discount_value: number;
+  code?: string;
+  start_date: string;
+  end_date: string;
+  active: boolean;
+}
+
+export interface MarketplaceCommissionSettings {
+  commission_type: 'percentage' | 'fixed' | 'combo';
+  global_percentage: number; // e.g. 8 for 8%
+  global_fixed_amount: number; // e.g. 5000 UGX
+  category_rates: Record<string, number>; // Category name or slug -> percentage
+  vendor_rates: Record<string, number>; // Store ID -> percentage override
+}
+
+export interface MarketplaceGeneralConfig {
+  enabled: boolean;
+  marketplace_name: string;
+  allow_vendor_registration: boolean;
+  auto_approve_vendors: boolean;
+  auto_approve_products: boolean;
+  require_review_moderation: boolean;
+  min_payout_amount_ugx: number;
+  payout_processing_days: number;
+  enable_multi_vendor_cart: boolean;
+}
+
 
