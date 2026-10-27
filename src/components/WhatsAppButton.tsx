@@ -10,7 +10,7 @@ export const WhatsAppButton: React.FC = () => {
   const chatUrl = `https://wa.me/${phoneFormatted}?text=Hello%20Cyber%20Dynamic%20Technologies,%20I%20am%20inquiring%20about%20products%20on%20your%20marketplace.`;
 
   return (
-    <div className="fixed bottom-16 md:bottom-4 right-3 sm:right-4 z-40 flex flex-col items-end">
+    <div className="fixed bottom-[calc(4.25rem+env(safe-area-inset-bottom,0px))] md:bottom-5 right-3.5 sm:right-5 z-40 flex flex-col items-end">
       {/* Popover Card */}
       {isOpen && (
         <div className="mb-2.5 w-68 bg-white rounded-lg shadow-xl border border-slate-200 overflow-hidden text-slate-800 animate-in fade-in slide-in-from-bottom-5 duration-200">

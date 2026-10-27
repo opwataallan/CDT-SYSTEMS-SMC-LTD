@@ -188,7 +188,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
   )}%20for%20UGX%20${activePrice.toLocaleString()}`;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6 space-y-6 pb-28 lg:pb-12">
       {/* 1. BREADCRUMBS */}
       <div className="flex items-center gap-1.5 text-[11px] text-slate-500 overflow-x-auto whitespace-nowrap pb-0.5">
         <button onClick={() => setCurrentView('home')} className="hover:text-cyan-600 transition-colors">
@@ -389,36 +389,44 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
               <span className="text-xs font-bold text-slate-700">Quantity:</span>
               <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden shadow-2xs">
                 <button
+                  type="button"
+                  aria-label="Decrease quantity"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="px-2.5 py-1 text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors cursor-pointer touch-manipulation"
                 >
-                  <Minus className="w-3 h-3" />
+                  <Minus className="w-3.5 h-3.5" />
                 </button>
-                <span className="px-3 text-xs font-black text-slate-800">{quantity}</span>
+                <span className="px-3 text-xs font-black text-slate-800 min-w-[32px] text-center">{quantity}</span>
                 <button
+                  type="button"
+                  aria-label="Increase quantity"
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="px-2.5 py-1 text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  className="w-9 h-9 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors cursor-pointer touch-manipulation"
                 >
-                  <Plus className="w-3 h-3" />
+                  <Plus className="w-3.5 h-3.5" />
                 </button>
               </div>
 
               <button
+                type="button"
                 onClick={() => toggleWishlist(product.id)}
-                className={`p-2 rounded-lg border transition-colors cursor-pointer ${
+                className={`w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg border transition-colors cursor-pointer touch-manipulation active:scale-95 ${
                   isInWishlist(product.id)
                     ? 'border-red-300 bg-red-50 text-red-600'
                     : 'border-slate-200 text-slate-500 hover:text-red-600 hover:bg-slate-50'
                 }`}
                 title="Save to Wishlist"
+                aria-label="Save to Wishlist"
               >
                 <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-red-600' : ''}`} />
               </button>
 
               <button
+                type="button"
                 onClick={handleShare}
-                className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="w-9 h-9 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer touch-manipulation active:scale-95"
                 title="Share product link"
+                aria-label="Share product"
               >
                 <Share2 className="w-4 h-4" />
               </button>
@@ -428,18 +436,18 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
               <button
                 id="product-add-to-cart-btn"
                 onClick={() => addToCart(product, selectedVariation, quantity, selectedAttributes)}
-                className="py-2.5 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                className="min-h-[42px] py-2.5 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 active:scale-[0.98] text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer touch-manipulation"
               >
-                <ShoppingCart className="w-3.5 h-3.5" />
+                <ShoppingCart className="w-4 h-4" />
                 <span>Add to Cart</span>
               </button>
 
               <button
                 id="product-buy-now-btn"
                 onClick={() => buyNow(product, selectedVariation, quantity, selectedAttributes)}
-                className="py-2.5 px-3 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+                className="min-h-[42px] py-2.5 px-3 rounded-lg bg-orange-500 hover:bg-orange-600 active:scale-[0.98] text-white font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer touch-manipulation"
               >
-                <Zap className="w-3.5 h-3.5 fill-white" />
+                <Zap className="w-4 h-4 fill-white" />
                 <span>Buy Now</span>
               </button>
             </div>
@@ -575,7 +583,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
               )}
 
               <div className="text-[10px] text-slate-400 pt-0.5 flex items-center justify-between">
-                <span>Direct dispatch from Kampala Central Hub.</span>
+                <span>Direct delivery from Central Hub.</span>
                 <span className="text-cyan-600 font-semibold">Trackable</span>
               </div>
             </div>
@@ -729,48 +737,58 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
         )}
       </div>
 
-      {/* 5. MOBILE STICKY BUY BAR (Fixed above BottomNav on mobile) */}
-      <div className="lg:hidden fixed bottom-13 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-2.5 shadow-lg flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Unit Price</div>
-          <div className="text-sm font-black text-cyan-600 whitespace-nowrap">
-            UGX {activePrice.toLocaleString()}
+      {/* 5. MOBILE STICKY BUY BAR (Fixed cleanly above BottomNav on mobile with safe-area spacing) */}
+      <aside aria-label="Quick Purchase Actions" className="lg:hidden fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2 shadow-lg flex items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <img
+            src={product.images[0]?.src || 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=120'}
+            alt={product.name}
+            className="w-9 h-9 rounded-md object-cover border border-slate-200 shrink-0"
+          />
+          <div className="min-w-0">
+            <div className="text-[10px] text-slate-500 font-semibold line-clamp-1">{product.name}</div>
+            <div className="text-sm font-black text-cyan-600 whitespace-nowrap">
+              UGX {activePrice.toLocaleString()}
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* Mobile Price Drop Alert Quick Button */}
           <button
             type="button"
             id="mobile-track-price-btn"
             onClick={() => setIsPriceAlertModalOpen(true)}
-            className={`p-2 rounded-lg border transition-colors cursor-pointer ${
+            className={`w-9 h-9 flex items-center justify-center rounded-lg border transition-colors cursor-pointer touch-manipulation active:scale-95 ${
               userPriceAlert
                 ? 'border-emerald-300 bg-emerald-50 text-emerald-700'
                 : 'border-amber-300 bg-amber-50 text-amber-800'
             }`}
             title="Price Drop Alert"
+            aria-label="Price Drop Alert"
           >
             <Bell className={`w-4 h-4 ${userPriceAlert ? 'text-emerald-600' : 'text-amber-600 animate-pulse'}`} />
           </button>
 
           <button
+            type="button"
             onClick={() => addToCart(product, selectedVariation, quantity, selectedAttributes)}
-            className="py-2 px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center gap-1 shadow-2xs transition-all cursor-pointer whitespace-nowrap"
+            className="min-h-[38px] px-2.5 sm:px-3 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs flex items-center gap-1 shadow-2xs transition-all cursor-pointer touch-manipulation active:scale-95 whitespace-nowrap"
           >
             <ShoppingCart className="w-3.5 h-3.5 shrink-0" />
             <span>Add</span>
           </button>
 
           <button
+            type="button"
             onClick={() => buyNow(product, selectedVariation, quantity, selectedAttributes)}
-            className="py-2 px-3.5 sm:px-4 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow-2xs transition-all cursor-pointer whitespace-nowrap"
+            className="min-h-[38px] px-3 sm:px-4 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase tracking-wider flex items-center gap-1 shadow-2xs transition-all cursor-pointer touch-manipulation active:scale-95 whitespace-nowrap"
           >
             <Zap className="w-3.5 h-3.5 fill-white shrink-0" />
             <span>Buy Now</span>
           </button>
         </div>
-      </div>
+      </aside>
 
       {/* 6. PRICE DROP ALERT SUBSCRIPTION MODAL */}
       {isPriceAlertModalOpen && product && (

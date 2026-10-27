@@ -96,7 +96,7 @@ export const ContactPage: React.FC = () => {
           </ul>
 
           <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 mt-3 space-y-1 text-[11px]">
-            <h4 className="font-bold text-slate-800">Kampala Metropolitan Express Dispatch:</h4>
+            <h4 className="font-bold text-slate-800">Metropolitan Express Delivery:</h4>
             <p className="text-slate-500">
               We operate dedicated express motorcycle couriers covering all areas: Nakasero & Kololo (1 hour), Ntinda & Naguru (2 hours), Makindye & Kansanga (2 hours), Rubaga & Mengo (2 hours), and Entebbe/Mukono corridors (Same day).
             </p>

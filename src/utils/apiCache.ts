@@ -121,6 +121,13 @@ class ApiCache {
       }
     }
   }
+
+  /**
+   * Clears the entire cache.
+   */
+  public clear(): void {
+    this.invalidate();
+  }
 }
 
 export const clientCache = new ApiCache();

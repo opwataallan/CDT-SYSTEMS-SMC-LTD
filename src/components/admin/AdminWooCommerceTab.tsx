@@ -13,7 +13,6 @@ import {
   Mail,
   Phone,
   Send,
-  Sparkles,
   Copy,
   Check,
   Zap,
@@ -22,6 +21,7 @@ import {
   Download,
   Package,
   FileArchive,
+  X,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { PriceDropAlert, Product } from '../../types';
@@ -55,6 +55,21 @@ export const AdminWooCommerceTab: React.FC<AdminWooCommerceTabProps> = ({
   const [testingTrigger, setTestingTrigger] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importReport, setImportReport] = useState<{ total: number; created: number; updated: number; message: string } | null>(null);
+
+  const handleImportIntoDatabase = async () => {
+    setIsImporting(true);
+    setImportReport(null);
+    try {
+      const res = await api.importWooCommerceProducts();
+      setImportReport(res);
+    } catch (e: any) {
+      alert(`Import error: ${e.message}`);
+    } finally {
+      setIsImporting(false);
+    }
+  };
 
   const webhookUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/api/webhooks/woocommerce`
@@ -291,6 +306,15 @@ export const AdminWooCommerceTab: React.FC<AdminWooCommerceTabProps> = ({
             </button>
 
             <button
+              onClick={handleImportIntoDatabase}
+              disabled={isImporting}
+              className="h-9 px-3.5 bg-cyan-700 hover:bg-cyan-800 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              <Download className={`w-3.5 h-3.5 ${isImporting ? 'animate-spin' : ''}`} />
+              <span>{isImporting ? 'Importing...' : 'Import to Platform DB'}</span>
+            </button>
+
+            <button
               onClick={() => {
                 onTriggerSync();
                 setTimeout(fetchAlerts, 2500);
@@ -303,6 +327,21 @@ export const AdminWooCommerceTab: React.FC<AdminWooCommerceTabProps> = ({
             </button>
           </div>
         </div>
+
+        {importReport && (
+          <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#007f19] shrink-0" />
+              <span>{importReport.message} ({importReport.created} new created, {importReport.updated} refreshed, 0 duplicates)</span>
+            </div>
+            <button
+              onClick={() => setImportReport(null)}
+              className="text-emerald-700 hover:text-emerald-900 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4">
           {/* Left Column: Live Telemetry */}
@@ -485,7 +524,7 @@ export const AdminWooCommerceTab: React.FC<AdminWooCommerceTabProps> = ({
         {/* Price Drop Notification Simulator for Admin Testing */}
         <div className="p-4 rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 space-y-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-600" />
+            <Bell className="w-4 h-4 text-amber-600" />
             <h4 className="text-xs font-black text-amber-950 uppercase tracking-wider">
               Notification Trigger Simulator (Test Delivery)
             </h4>

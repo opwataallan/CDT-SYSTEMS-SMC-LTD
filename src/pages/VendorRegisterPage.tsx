@@ -16,7 +16,6 @@ import {
   ArrowRight,
   CheckCircle2,
   Lock,
-  Sparkles,
 } from 'lucide-react';
 
 export const VendorRegisterPage: React.FC = () => {
@@ -208,7 +207,7 @@ export const VendorRegisterPage: React.FC = () => {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-semibold mb-3 shadow">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <StoreIcon className="w-3.5 h-3.5 text-amber-400" />
             <span>Uganda Seller Onboarding</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-3">

@@ -8,12 +8,14 @@ import {
   Save,
   CheckCircle2,
   Image as ImageIcon,
-  Sparkles,
   Laptop,
   Plus,
   Trash2,
   ExternalLink,
   Tag,
+  Upload,
+  RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 import { HomepageSectionConfig, HeroBanner } from '../../types';
@@ -32,8 +34,46 @@ export const AdminHomepageBuilder: React.FC = () => {
   );
   const [heroTitle, setHeroTitle] = useState(homepageSettings.hero_title || 'Welcome to Cyber Dynamic Technologies');
   const [heroSubtitle, setHeroSubtitle] = useState(homepageSettings.hero_subtitle || 'Genuine Laptops, Printers & Networking in Uganda');
-  const [heroImage, setHeroImage] = useState(homepageSettings.hero_image || '');
+  const [heroBannerImage, setHeroBannerImage] = useState(
+    homepageSettings.hero_banner_image || homepageSettings.hero_image || '/assets/cdt-hero-banner.svg'
+  );
+  const [heroBannerLink, setHeroBannerLink] = useState(homepageSettings.hero_banner_link || 'shop');
+  const [heroBannerAlt, setHeroBannerAlt] = useState(
+    homepageSettings.hero_banner_alt || 'Cyber Dynamic Technologies Official Banner'
+  );
+  const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select a valid image file (PNG, JPG, WebP, SVG).');
+      return;
+    }
+
+    if (file.size > 8 * 1024 * 1024) {
+      showToast('Image file too large. Please select an image under 8MB.');
+      return;
+    }
+
+    setIsUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setHeroBannerImage(reader.result);
+        showToast('Hero banner image loaded! Remember to click "Save Homepage Layout" to persist.');
+      }
+      setIsUploading(false);
+    };
+    reader.onerror = () => {
+      showToast('Failed to read image file.');
+      setIsUploading(false);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   const moveSection = (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -89,9 +129,12 @@ export const AdminHomepageBuilder: React.FC = () => {
         banners,
         hero_title: heroTitle,
         hero_subtitle: heroSubtitle,
-        hero_image: heroImage,
+        hero_image: heroBannerImage,
+        hero_banner_image: heroBannerImage,
+        hero_banner_link: heroBannerLink,
+        hero_banner_alt: heroBannerAlt,
       });
-      showToast('Homepage product banners & layout saved successfully!');
+      showToast('Homepage hero banner & layout saved successfully!');
     } catch (err: any) {
       showToast('Failed to save homepage: ' + err.message);
     } finally {
@@ -104,18 +147,18 @@ export const AdminHomepageBuilder: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
         <div>
           <h2 className="text-sm font-black text-slate-900 flex items-center gap-2">
-            <Home className="w-4 h-4 text-cyan-600" />
+            <Home className="w-4 h-4 text-[#920d35]" />
             <span>Interactive Homepage Section Builder & Customizer</span>
           </h2>
           <p className="text-xs text-slate-500">
-            Reorder, toggle, and configure hero banners without modifying frontend code.
+            Upload new hero image banners, customize links, and reorder storefront sections with official dark red, maroon, and gold styling.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setCurrentView('home')}
-            className="px-3 py-1.5 border border-slate-200 hover:bg-slate-100 text-slate-600 font-bold text-xs rounded-lg flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-1.5 border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-lg flex items-center gap-1.5 cursor-pointer transition-colors"
           >
             <Eye className="w-3.5 h-3.5 text-slate-400" />
             <span>Preview Storefront</span>
@@ -124,19 +167,135 @@ export const AdminHomepageBuilder: React.FC = () => {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="px-4 py-1.5 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 shadow-xs cursor-pointer"
+            className="px-4 py-1.5 bg-[#920d35] hover:bg-[#770929] disabled:opacity-50 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 shadow-sm cursor-pointer transition-all border border-[#f59e0b]/40"
           >
-            <Save className="w-3.5 h-3.5" />
+            <Save className="w-3.5 h-3.5 text-[#fbbf24]" />
             <span>{isSaving ? 'Saving...' : 'Save Homepage Layout'}</span>
           </button>
         </div>
       </div>
 
-      {/* Hero Banner Details */}
+      {/* Hero Banner Image Upload & Configuration (Requested Feature) */}
+      <div className="bg-gradient-to-br from-slate-900 via-[#1e293b] to-[#0f172a] text-white border border-slate-800 rounded-2xl p-5 space-y-4 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <h3 className="text-sm font-black text-white flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-[#fbbf24]" />
+              <span>Hero Banner Image (Direct Upload & Link)</span>
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Upload your branded promotional graphic or banner photo. It is prominently displayed at the top of the homepage.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="hero-banner-upload-input"
+              className="px-3.5 py-2 bg-gradient-to-r from-[#920d35] to-[#580c1f] hover:brightness-110 text-white border border-[#f59e0b]/50 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm cursor-pointer transition-all active:scale-95"
+            >
+              <Upload className="w-3.5 h-3.5 text-[#fbbf24]" />
+              <span>{isUploading ? 'Loading...' : 'Upload Image Banner'}</span>
+            </label>
+            <input
+              id="hero-banner-upload-input"
+              type="file"
+              accept="image/*"
+              disabled={isUploading}
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+
+            <button
+              type="button"
+              onClick={() => {
+                setHeroBannerImage('/assets/cdt-hero-banner.svg');
+                showToast('Reset to official CDT Dark Red & Gold SVG banner.');
+              }}
+              className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Reset to official CDT Dark Red / Gold vector banner"
+            >
+              <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden sm:inline">Use Default CDT Banner</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Live Banner Preview Frame */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs text-slate-400">
+            <span className="font-bold flex items-center gap-1.5 text-slate-300">
+              <Sparkles className="w-3.5 h-3.5 text-[#fbbf24]" />
+              Live Storefront Hero Preview:
+            </span>
+            <span>Recommended aspect ratio: 21:9 or 16:6 (e.g. 1920x600 px)</span>
+          </div>
+
+          <div className="relative rounded-xl overflow-hidden border-2 border-[#920d35]/60 shadow-inner bg-slate-950/80 group">
+            {heroBannerImage ? (
+              <img
+                src={heroBannerImage}
+                alt={heroBannerAlt}
+                className="w-full h-44 sm:h-60 md:h-72 object-cover object-center transition-all duration-300 group-hover:scale-[1.01]"
+              />
+            ) : (
+              <div className="w-full h-48 flex flex-col items-center justify-center text-slate-500">
+                <ImageIcon className="w-10 h-10 mb-2 opacity-40 text-slate-400" />
+                <p className="text-xs font-semibold">No banner image uploaded</p>
+              </div>
+            )}
+
+            <div className="absolute bottom-2 left-2 px-2.5 py-1 bg-black/70 backdrop-blur-xs rounded-md text-[11px] font-mono text-[#fbbf24] border border-[#f59e0b]/30">
+              Links to: <span className="text-white font-bold">/{heroBannerLink || 'shop'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Link & Alt Meta Inputs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2 text-xs">
+          <div>
+            <label className="font-bold text-slate-300 block mb-1">Click Action / Target View</label>
+            <select
+              value={heroBannerLink}
+              onChange={(e) => setHeroBannerLink(e.target.value)}
+              className="w-full h-9 px-3 bg-slate-800 border border-slate-700 text-white rounded-lg focus:outline-hidden focus:border-[#920d35]"
+            >
+              <option value="shop">Catalog / Shop All Products</option>
+              <option value="category:laptops">Category: Laptops & Workstations</option>
+              <option value="category:printers">Category: Printers & Copiers</option>
+              <option value="category:networking">Category: Networking & Security</option>
+              <option value="pos">Launch Cashier POS Terminal</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="font-bold text-slate-300 block mb-1">Banner Image URL or Data</label>
+            <input
+              type="text"
+              value={heroBannerImage}
+              onChange={(e) => setHeroBannerImage(e.target.value)}
+              placeholder="https://... or uploaded base64 data"
+              className="w-full h-9 px-3 bg-slate-800 border border-slate-700 text-slate-200 rounded-lg text-xs font-mono focus:outline-hidden focus:border-[#920d35]"
+            />
+          </div>
+
+          <div>
+            <label className="font-bold text-slate-300 block mb-1">Alt / Accessibility Text</label>
+            <input
+              type="text"
+              value={heroBannerAlt}
+              onChange={(e) => setHeroBannerAlt(e.target.value)}
+              placeholder="Cyber Dynamic Tech Promotional Banner"
+              className="w-full h-9 px-3 bg-slate-800 border border-slate-700 text-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-[#920d35]"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Headline Content */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
         <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-          <span>Hero Banner Content</span>
+          <Tag className="w-3.5 h-3.5 text-[#f59e0b]" />
+          <span>Hero Banner Text Overlay (Optional)</span>
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -146,7 +305,7 @@ export const AdminHomepageBuilder: React.FC = () => {
               type="text"
               value={heroTitle}
               onChange={(e) => setHeroTitle(e.target.value)}
-              className="w-full h-8.5 px-3 bg-white border border-slate-200 rounded-lg text-xs"
+              className="w-full h-8.5 px-3 bg-white border border-slate-200 rounded-lg text-xs focus:border-[#920d35]"
             />
           </div>
 
@@ -156,18 +315,7 @@ export const AdminHomepageBuilder: React.FC = () => {
               type="text"
               value={heroSubtitle}
               onChange={(e) => setHeroSubtitle(e.target.value)}
-              className="w-full h-8.5 px-3 bg-white border border-slate-200 rounded-lg text-xs"
-            />
-          </div>
-
-          <div className="sm:col-span-2">
-            <label className="font-bold text-slate-700 block mb-1">Hero Background / Banner Image URL</label>
-            <input
-              type="url"
-              value={heroImage}
-              onChange={(e) => setHeroImage(e.target.value)}
-              placeholder="https://... optional custom hero image banner"
-              className="w-full h-8.5 px-3 bg-white border border-slate-200 rounded-lg text-xs"
+              className="w-full h-8.5 px-3 bg-white border border-slate-200 rounded-lg text-xs focus:border-[#920d35]"
             />
           </div>
         </div>

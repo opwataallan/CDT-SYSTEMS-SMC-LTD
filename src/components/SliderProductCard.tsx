@@ -67,15 +67,10 @@ export const SliderProductCard: React.FC<SliderProductCardProps> = ({
     >
       {/* Top Floating Badges */}
       <div className="absolute top-1.5 left-1.5 right-1.5 sm:top-2 sm:left-2 sm:right-2 flex items-center justify-between z-10 pointer-events-none">
-        <div className="flex flex-col gap-0.5 sm:gap-1 items-start">
+        <div>
           {discountPercent > 0 && (
-            <span className="px-1 sm:px-1.5 py-0.5 rounded-full bg-red-600 text-white font-black text-[8px] sm:text-[10px] uppercase tracking-wider shadow-xs">
+            <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white font-bold text-[8px] sm:text-[9px] shadow-xs">
               -{discountPercent}%
-            </span>
-          )}
-          {product.featured && (
-            <span className="hidden xs:inline-block px-1 sm:px-1.5 py-0.5 rounded-full bg-slate-900 text-white font-bold text-[7px] sm:text-[9px] uppercase tracking-wider shadow-xs">
-              Top
             </span>
           )}
         </div>
@@ -87,7 +82,7 @@ export const SliderProductCard: React.FC<SliderProductCardProps> = ({
             if (isDraggingRef?.current) return;
             toggleWishlist(product.id);
           }}
-          className={`pointer-events-auto p-1 sm:p-1.5 rounded-full backdrop-blur-md transition-transform duration-200 hover:scale-110 shadow-xs ${
+          className={`pointer-events-auto w-8 h-8 min-w-[32px] min-h-[32px] flex items-center justify-center rounded-full backdrop-blur-md transition-transform duration-200 hover:scale-110 active:scale-90 touch-manipulation shadow-xs ${
             isFavorited
               ? 'bg-rose-50 text-rose-600 border border-rose-200'
               : 'bg-white/90 text-slate-400 hover:text-rose-500 border border-slate-100'
@@ -95,12 +90,12 @@ export const SliderProductCard: React.FC<SliderProductCardProps> = ({
           title={isFavorited ? 'Remove from Wishlist' : 'Add to Wishlist'}
           aria-label="Wishlist"
         >
-          <Heart className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${isFavorited ? 'fill-rose-500 text-rose-500' : ''}`} />
+          <Heart className={`w-3.5 h-3.5 ${isFavorited ? 'fill-rose-500 text-rose-500' : ''}`} />
         </button>
       </div>
 
       {/* Product Image with Aspect Ratio and Lazy Loading */}
-      <div className="relative w-full aspect-[4/3] rounded-md sm:rounded-lg overflow-hidden bg-white mb-1 sm:mb-1.5 border border-slate-100 flex items-center justify-center">
+      <div className="relative w-full aspect-[4/3] rounded-md overflow-hidden bg-white mb-1.5 border border-slate-100 flex items-center justify-center">
         <OptimizedImage
           src={primaryImage}
           alt={product.name}
@@ -124,87 +119,51 @@ export const SliderProductCard: React.FC<SliderProductCardProps> = ({
       </div>
 
       {/* Brand & Stock Status */}
-      <div className="flex items-center justify-between gap-1 text-[8px] sm:text-[10px] font-bold mb-0.5">
-        <span className="text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded font-mono uppercase tracking-wider truncate max-w-[55px] sm:max-w-none">
+      <div className="flex items-center justify-between gap-1 text-[9px] text-slate-500 mb-0.5">
+        <span className="font-semibold uppercase tracking-wider truncate text-slate-600">
           {product.brand || 'CDT'}
         </span>
-        <span
-          className={`flex items-center gap-1 font-semibold whitespace-nowrap ${
-            product.stock_status === 'instock' ? 'text-emerald-700' : 'text-amber-700'
-          }`}
-        >
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              product.stock_status === 'instock' ? 'bg-emerald-500' : 'bg-amber-500'
-            }`}
-          />
-          <span className="hidden xs:inline">{product.stock_status === 'instock' ? 'In Stock' : 'Low'}</span>
+        <span className="flex items-center gap-1 font-medium text-emerald-600 text-[9px]">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          In Stock
         </span>
       </div>
 
-      {/* Product Name (Distinct Matching Card Box) */}
-      <div className="product-name-box rounded px-1.5 py-1 mb-1 transition-all">
-        <h3 className="text-[10px] sm:text-xs md:text-sm font-bold text-slate-900 line-clamp-2 leading-tight group-hover:text-cyan-900 transition-colors min-h-[1.5rem] sm:min-h-[2.05rem]">
-          {product.name}
-        </h3>
-      </div>
-
-      {/* Ratings & Reviews */}
-      <div className="flex items-center gap-1 mb-1">
-        <div className="flex items-center text-amber-400">
-          <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-400 text-amber-400" />
-        </div>
-        <span className="text-[9px] sm:text-[10px] font-bold text-slate-700">
-          {(product.average_rating || 4.8).toFixed(1)}
-        </span>
-        <span className="hidden sm:inline text-[9px] text-slate-400">({product.rating_count || 24})</span>
-      </div>
+      {/* Product Name */}
+      <h3 className="text-xs font-semibold text-slate-900 line-clamp-2 leading-tight group-hover:text-cyan-600 transition-colors mb-1">
+        {product.name}
+      </h3>
 
       {/* Pricing and Action Buttons */}
-      <div className="mt-auto pt-1 sm:pt-1.5 border-t border-slate-100 flex flex-col gap-1 sm:gap-1.5">
-        <div className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-1.5">
-          <span className="text-[10px] sm:text-xs md:text-sm font-black text-slate-900 tracking-tight leading-none">
-            USh {product.price.toLocaleString()}
+      <div className="mt-auto pt-1 border-t border-slate-100 flex items-center justify-between gap-1">
+        <div className="flex flex-col leading-tight min-w-0">
+          <span className="text-xs font-bold text-slate-900 tracking-tight whitespace-nowrap">
+            UGX {product.price.toLocaleString()}
           </span>
           {product.regular_price > product.price && (
-            <span className="text-[8px] sm:text-[10px] text-slate-400 line-through leading-none">
-              USh {product.regular_price.toLocaleString()}
+            <span className="text-[9px] text-slate-400 line-through whitespace-nowrap">
+              UGX {product.regular_price.toLocaleString()}
             </span>
           )}
         </div>
 
-        {/* Buttons: Add to Cart and View */}
-        <div className="grid grid-cols-2 gap-1">
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            className={`py-1 sm:py-1 px-1 sm:px-1.5 rounded text-[9px] sm:text-[10.5px] font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer ${
-              justAdded
-                ? 'bg-emerald-600 text-white'
-                : 'bg-slate-900 hover:bg-cyan-600 text-white shadow-2xs'
-            }`}
-          >
-            {justAdded ? (
-              <>
-                <Check className="w-3 h-3 text-white shrink-0" />
-                <span className="truncate">Done</span>
-              </>
-            ) : (
-              <>
-                <ShoppingCart className="w-3 h-3 shrink-0" />
-                <span className="truncate">Add</span>
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleQuickView}
-            className="py-1 sm:py-1 px-1 sm:px-1.5 rounded text-[9px] sm:text-[10.5px] font-bold border border-slate-200 hover:border-cyan-500 hover:bg-cyan-50 text-slate-700 hover:text-cyan-700 flex items-center justify-center gap-0.5 transition-colors cursor-pointer"
-          >
-            <span className="truncate">Info</span>
-          </button>
-        </div>
+        {/* Add to Cart Button */}
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          className={`py-1 px-2 rounded text-[10px] font-bold flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer shrink-0 ${
+            justAdded
+              ? 'bg-emerald-600 text-white'
+              : 'bg-cyan-600 hover:bg-cyan-700 text-white shadow-2xs'
+          }`}
+          title="Add to Cart"
+        >
+          {justAdded ? (
+            <Check className="w-3 h-3 text-white" />
+          ) : (
+            <ShoppingCart className="w-3 h-3" />
+          )}
+        </button>
       </div>
     </div>
   );

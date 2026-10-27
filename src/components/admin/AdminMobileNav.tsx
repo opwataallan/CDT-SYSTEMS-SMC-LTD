@@ -16,6 +16,7 @@ import {
   LogOut,
   ChevronRight,
   Clock,
+  Boxes,
 } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 import { AdminTab } from './AdminSidebar';
@@ -52,6 +53,12 @@ export const AdminMobileNav: React.FC<AdminMobileNavProps> = ({
           label: 'Executive Overview & Sales',
           icon: TrendingUp,
           active: isOverviewActive,
+        },
+        {
+          id: 'products' as AdminTab,
+          label: 'Products & Catalog',
+          icon: Boxes,
+          active: activeTab === 'products',
         },
         {
           id: 'orders' as AdminTab,

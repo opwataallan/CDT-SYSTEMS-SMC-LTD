@@ -53,6 +53,7 @@ export interface Product {
   price: number;
   regular_price: number;
   sale_price?: number;
+  discount_percent?: number;
   on_sale: boolean;
   stock_status: 'instock' | 'outofstock' | 'onbackorder';
   stock_quantity: number;
@@ -75,6 +76,21 @@ export interface Product {
   vendor_id?: string;
   vendor_name?: string;
   store_slug?: string;
+  purchase_cost?: number;
+  profit?: number;
+  profit_margin?: number;
+  status?: 'published' | 'draft' | 'archived';
+  product_type?: 'physical' | 'digital';
+  tags?: string[];
+  low_stock_threshold?: number;
+  weight?: string;
+  dimensions?: { length?: string; width?: string; height?: string };
+  shipping_required?: boolean;
+  seo_title?: string;
+  seo_description?: string;
+  created_at?: string;
+  updated_at?: string;
+  woocommerce_id?: number;
 }
 
 export interface Category {
@@ -85,6 +101,9 @@ export interface Category {
   image?: string;
   description?: string;
   icon?: string;
+  parent_id?: number;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CartItem {
@@ -168,25 +187,39 @@ export interface OrderLineItem {
 }
 
 export interface CustomerOrder {
-  id: number;
+  id: number | string;
   order_number: string;
+  orderNumber?: string;
+  userId?: string;
+  customerEmail?: string;
+  customerName?: string;
+  customerPhone?: string;
+  paymentStatus?: string;
   status: OrderStatus;
   currency: string;
   date_created: string;
+  createdAt?: string;
+  updatedAt?: string;
   total: number;
   subtotal: number;
   discount_total: number;
   shipping_total: number;
   coupon_code?: string;
   line_items: OrderLineItem[];
+  items?: any[];
   billing: CustomerAddress;
   shipping: CustomerAddress;
+  shippingAddress?: any;
+  deliveryAddress?: string;
+  deliveryDistrict?: string;
   payment_method: PaymentMethodType;
   payment_method_title: string;
+  paymentMethod?: string;
   payment_details?: PaymentDetails;
   delivery_zone: string;
   timeline: OrderTimelineEvent[];
   customer_note?: string;
+  cancelReason?: string;
   pos_receipt_details?: any;
   coordinates?: {
     latitude: number;
@@ -215,26 +248,53 @@ export interface Coupon {
   expiry_date?: string;
 }
 
-export type UserRole = 'admin' | 'manager' | 'customer' | 'editor' | 'vendor' | 'vendor_staff';
+export type UserRole =
+  | 'SUPER_ADMIN'
+  | 'ADMIN'
+  | 'VENDOR'
+  | 'STORE_MANAGER'
+  | 'CASHIER'
+  | 'WAREHOUSE_MANAGER'
+  | 'DELIVERY_AGENT'
+  | 'CUSTOMER_SUPPORT'
+  | 'FINANCE'
+  | 'MARKETING'
+  | 'CUSTOMER'
+  | 'admin'
+  | 'manager'
+  | 'customer'
+  | 'editor'
+  | 'vendor'
+  | 'vendor_staff';
 
 export interface CustomerUser {
   id: number;
+  uid?: string;
   first_name: string;
   last_name: string;
+  displayName?: string;
+  photoURL?: string;
   email: string;
   phone: string;
   role: UserRole;
-  status?: 'active' | 'suspended';
+  status?: 'ACTIVE' | 'SUSPENDED' | 'active' | 'suspended';
+  isSuperAdmin?: boolean;
+  admin?: boolean;
   admin_notes?: string;
   avatar_url?: string;
   is_email_verified?: boolean;
   two_factor_enabled?: boolean;
   created_at?: string;
+  createdAt?: string;
   last_login?: string;
+  updatedAt?: string;
   addresses: CustomerAddress[];
   wishlist: number[]; // Product IDs
+  vendorId?: string | null;
   vendor_id?: string;
+  storeId?: string | null;
   store_id?: string;
+  assignedStoreIds?: string[];
   permissions?: string[];
 }
 
@@ -369,6 +429,12 @@ export interface HomepageSettings {
   advert_fliers_row2?: AdvertFlyer[];
   advert_fliers_row4?: AdvertFlyer[];
   top_deals?: TopDealsConfig;
+  hero_title?: string;
+  hero_subtitle?: string;
+  hero_image?: string;
+  hero_banner_image?: string;
+  hero_banner_link?: string;
+  hero_banner_alt?: string;
 }
 
 export interface ProductDisplaySettings {
@@ -960,6 +1026,9 @@ export interface StoreSettings {
   site_url: string;
   tagline: string;
   logo_url?: string;
+  mobile_logo_url?: string;
+  favicon_url?: string;
+  theme_color?: string;
   phone: string;
   order_hotline: string;
   whatsapp_number: string;
@@ -977,6 +1046,8 @@ export interface StoreSettings {
     text: string;
     link?: string;
   };
+  hero_banner_image?: string;
+  hero_banner_link?: string;
 }
 
 // Price Drop Notification Alert Subscription
@@ -1060,7 +1131,7 @@ export interface Store {
 
 export interface VendorOrder {
   id: string; // e.g. "VORD-12345-STOREA"
-  parent_order_id: number;
+  parent_order_id: number | string;
   parent_order_number: string;
   vendor_id: string;
   vendor_name: string;

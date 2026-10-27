@@ -63,7 +63,7 @@ export const Footer: React.FC = () => {
             </div>
             <div>
               <h4 className="text-xs font-bold text-white">MoMo & Airtel Money</h4>
-              <p className="text-[11px] text-slate-400">Instant PIN prompt on phone or COD</p>
+              <p className="text-[11px] text-slate-400">Secure Mobile Money & COD</p>
             </div>
           </div>
 
@@ -222,14 +222,6 @@ export const Footer: React.FC = () => {
                 className="hover:text-emerald-300 transition-colors cursor-pointer text-emerald-400 font-bold flex items-center gap-1.5"
               >
                 <span>✨ Sell On Cyber Dynamic Tech</span>
-              </button>
-            </li>
-            <li>
-              <button
-                onClick={() => setCurrentView('vendor-dashboard')}
-                className="hover:text-rose-300 transition-colors cursor-pointer text-rose-300 font-medium"
-              >
-                Seller Center Portal
               </button>
             </li>
             <li>

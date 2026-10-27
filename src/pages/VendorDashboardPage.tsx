@@ -37,10 +37,25 @@ import {
   Search,
   Filter,
   X,
+  Lock,
+  Tag,
 } from 'lucide-react';
 
 export const VendorDashboardPage: React.FC = () => {
-  const { user, isVendor, setCurrentView, showToast, formatPrice } = useShop();
+  const { user, isVendor, isAdmin, setCurrentView, showToast, formatPrice } = useShop();
+
+  const isAuthorized = Boolean(
+    isVendor ||
+    isAdmin ||
+    (user && (
+      user.role === 'vendor' ||
+      user.role === 'vendor_staff' ||
+      user.role === 'seller' ||
+      user.role === 'admin' ||
+      user.role === 'manager' ||
+      user.role === 'super_admin'
+    ))
+  );
 
   const [activeTab, setActiveTab] = useState<
     'overview' | 'products' | 'orders' | 'finance' | 'profile' | 'staff' | 'reviews'
@@ -64,14 +79,68 @@ export const VendorDashboardPage: React.FC = () => {
 
   // New Product Form State
   const [newProdName, setNewProdName] = useState('');
-  const [newProdPrice, setNewProdPrice] = useState<number>(0);
-  const [newProdRegularPrice, setNewProdRegularPrice] = useState<number>(0);
+  const [newProdPrice, setNewProdPrice] = useState<number | ''>('');
+  const [newProdRegularPrice, setNewProdRegularPrice] = useState<number | ''>('');
+  const [newProdDiscountPercent, setNewProdDiscountPercent] = useState<number | ''>('');
   const [newProdStock, setNewProdStock] = useState<number>(10);
   const [newProdBrand, setNewProdBrand] = useState('');
   const [newProdCategory, setNewProdCategory] = useState('Laptops');
   const [newProdDescription, setNewProdDescription] = useState('');
   const [newProdImage, setNewProdImage] = useState('');
   const [newProdSku, setNewProdSku] = useState('');
+
+  const handleVendorRegularPriceChange = (val: number | '') => {
+    setNewProdRegularPrice(val);
+    if (val === '' || Number(val) <= 0) return;
+    const numReg = Number(val);
+    if (newProdDiscountPercent !== '' && Number(newProdDiscountPercent) > 0) {
+      setNewProdPrice(Math.round(numReg * (1 - Number(newProdDiscountPercent) / 100)));
+    } else if (newProdPrice !== '' && numReg > Number(newProdPrice)) {
+      setNewProdDiscountPercent(Math.round(((numReg - Number(newProdPrice)) / numReg) * 100));
+    }
+  };
+
+  const handleVendorDiscountPercentChange = (val: number | '') => {
+    setNewProdDiscountPercent(val);
+    if (val === '' || Number(val) <= 0) {
+      if (newProdRegularPrice !== '') setNewProdPrice(newProdRegularPrice);
+      return;
+    }
+    const cleanPct = Math.min(99, Math.max(1, Number(val)));
+    if (newProdRegularPrice !== '' && Number(newProdRegularPrice) > 0) {
+      setNewProdPrice(Math.round(Number(newProdRegularPrice) * (1 - cleanPct / 100)));
+    }
+  };
+
+  const handleVendorSellingPriceChange = (val: number | '') => {
+    setNewProdPrice(val);
+    if (val === '' || Number(val) <= 0) {
+      setNewProdDiscountPercent('');
+      return;
+    }
+    const numSale = Number(val);
+    if (newProdRegularPrice !== '' && Number(newProdRegularPrice) > numSale) {
+      setNewProdDiscountPercent(Math.round(((Number(newProdRegularPrice) - numSale) / Number(newProdRegularPrice)) * 100));
+    } else {
+      setNewProdDiscountPercent('');
+    }
+  };
+
+  const applyVendorDiscountPreset = (percent: number) => {
+    setNewProdDiscountPercent(percent);
+    const reg = newProdRegularPrice || newProdPrice;
+    if (reg && Number(reg) > 0) {
+      if (!newProdRegularPrice) setNewProdRegularPrice(reg);
+      setNewProdPrice(Math.round(Number(reg) * (1 - percent / 100)));
+    }
+  };
+
+  const clearVendorDiscount = () => {
+    setNewProdDiscountPercent('');
+    if (newProdRegularPrice !== '') {
+      setNewProdPrice(newProdRegularPrice);
+    }
+  };
 
   // Payout Form State
   const [payoutAmount, setPayoutAmount] = useState<number>(50000);
@@ -129,10 +198,20 @@ export const VendorDashboardPage: React.FC = () => {
     }
 
     try {
+      const sellPrice = Number(newProdPrice);
+      const regPrice = Number(newProdRegularPrice || newProdPrice);
+      const isOnSale = regPrice > sellPrice;
+      const discountPct = isOnSale
+        ? Math.round(((regPrice - sellPrice) / regPrice) * 100)
+        : undefined;
+
       const payload: Partial<Product> = {
         name: newProdName.trim(),
-        price: Number(newProdPrice),
-        regular_price: Number(newProdRegularPrice || newProdPrice),
+        price: sellPrice,
+        regular_price: regPrice,
+        sale_price: isOnSale ? sellPrice : undefined,
+        discount_percent: discountPct,
+        on_sale: isOnSale,
         stock_quantity: Number(newProdStock),
         brand: newProdBrand.trim() || storeData?.name || 'Generic',
         categories: [{ id: 1, name: newProdCategory, slug: newProdCategory.toLowerCase() }],
@@ -149,7 +228,9 @@ export const VendorDashboardPage: React.FC = () => {
         showToast(`Product "${res.product.name}" created successfully!`);
         setIsAddProductOpen(false);
         setNewProdName('');
-        setNewProdPrice(0);
+        setNewProdPrice('');
+        setNewProdRegularPrice('');
+        setNewProdDiscountPercent('');
         setNewProdDescription('');
         setNewProdImage('');
         loadVendorData();
@@ -236,6 +317,38 @@ export const VendorDashboardPage: React.FC = () => {
     const q = productSearch.toLowerCase();
     return p.name.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q);
   });
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 text-center text-white space-y-4 shadow-2xl">
+          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-500 flex items-center justify-center mx-auto">
+            <Lock className="w-8 h-8" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black tracking-tight text-white">Seller Center Portal</h1>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              Restricted Access: The Seller Center Portal is strictly reserved for verified sellers and store administrators. Regular customers do not have access to this portal.
+            </p>
+          </div>
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={() => setCurrentView('account', { tab: 'login' })}
+              className="w-full py-2.5 px-4 rounded-xl bg-[#920d35] hover:bg-[#a8103d] text-white font-bold text-xs shadow-md transition-colors cursor-pointer"
+            >
+              Sign In with Authorized Seller Account
+            </button>
+            <button
+              onClick={() => setCurrentView('home')}
+              className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer"
+            >
+              Return to Marketplace Storefront
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
@@ -997,30 +1110,133 @@ export const VendorDashboardPage: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Selling Price (UGX) *</label>
-                  <input
-                    type="number"
-                    required
-                    min={1000}
-                    value={newProdPrice || ''}
-                    onChange={(e) => setNewProdPrice(Number(e.target.value))}
-                    placeholder="2500000"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#920d35] focus:outline-none font-mono"
-                  />
+              {/* Price & Discount Section */}
+              <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50/60 to-rose-50/30 border border-amber-200/90 space-y-3">
+                <div className="flex items-center justify-between pb-1.5 border-b border-amber-200/60">
+                  <span className="font-extrabold text-slate-800 flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-[#920d35]" />
+                    <span>Pricing & Discount (UGX)</span>
+                  </span>
+                  {newProdDiscountPercent !== '' && Number(newProdDiscountPercent) > 0 && (
+                    <button
+                      type="button"
+                      onClick={clearVendorDiscount}
+                      className="text-[10px] font-bold text-rose-600 hover:text-rose-800 underline cursor-pointer"
+                    >
+                      Clear Discount
+                    </button>
+                  )}
                 </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Original Regular Price (UGX)</label>
-                  <input
-                    type="number"
-                    min={1000}
-                    value={newProdRegularPrice || ''}
-                    onChange={(e) => setNewProdRegularPrice(Number(e.target.value))}
-                    placeholder="2800000"
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#920d35] focus:outline-none font-mono"
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">
+                      Regular Price (UGX) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={100}
+                      value={newProdRegularPrice || ''}
+                      onChange={(e) => handleVendorRegularPriceChange(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="e.g. 2800000"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-[#920d35] focus:outline-none font-mono text-xs"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">Original catalog price</span>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1 flex items-center justify-between">
+                      <span>Discount (%)</span>
+                      {newProdDiscountPercent !== '' && Number(newProdDiscountPercent) > 0 && (
+                        <span className="text-[10px] font-bold text-rose-600">Active</span>
+                      )}
+                    </label>
+                    <div className="relative">
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-rose-500">%</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={99}
+                        value={newProdDiscountPercent}
+                        onChange={(e) => handleVendorDiscountPercentChange(e.target.value ? Number(e.target.value) : '')}
+                        placeholder="15"
+                        className="w-full pl-3 pr-7 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500 focus:outline-none font-mono text-xs text-rose-600 font-bold"
+                      />
+                    </div>
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">Percent deduction</span>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">
+                      Selling Price (UGX) *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min={100}
+                      value={newProdPrice || ''}
+                      onChange={(e) => handleVendorSellingPriceChange(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="e.g. 2500000"
+                      className={`w-full px-3 py-2 rounded-xl border focus:ring-2 focus:ring-[#920d35] focus:outline-none font-mono text-xs font-bold ${
+                        newProdPrice && newProdRegularPrice && Number(newProdRegularPrice) > Number(newProdPrice)
+                          ? 'border-emerald-400 text-emerald-700 bg-emerald-50/50'
+                          : 'border-slate-300 text-slate-800'
+                      }`}
+                    />
+                    <span className="text-[10px] text-slate-400 mt-0.5 block">Shopper price</span>
+                  </div>
                 </div>
+
+                {/* 1-Click Preset Discounts */}
+                <div>
+                  <div className="text-[10px] font-bold text-slate-500 mb-1 flex items-center gap-1">
+                    <Tag className="w-3 h-3 text-amber-500" />
+                    <span>Quick Preset Discounts:</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {[5, 10, 15, 20, 25, 30, 50].map((pct) => (
+                      <button
+                        key={pct}
+                        type="button"
+                        onClick={() => applyVendorDiscountPreset(pct)}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                          Number(newProdDiscountPercent) === pct
+                            ? 'bg-rose-600 text-white shadow-xs'
+                            : 'bg-white hover:bg-rose-50 text-slate-700 border border-slate-200'
+                        }`}
+                      >
+                        {pct}% OFF
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live Preview */}
+                {newProdRegularPrice && Number(newProdRegularPrice) > 0 ? (
+                  <div className="p-2.5 rounded-xl bg-white border border-amber-200 text-[11px] flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-extrabold text-slate-900">
+                        {formatPrice(Number(newProdPrice || newProdRegularPrice))}
+                      </span>
+                      {newProdPrice && Number(newProdRegularPrice) > Number(newProdPrice) && (
+                        <>
+                          <span className="text-slate-400 line-through">
+                            {formatPrice(Number(newProdRegularPrice))}
+                          </span>
+                          <span className="px-1.5 py-0.2 rounded bg-rose-500 text-white text-[9px] font-black">
+                            -{newProdDiscountPercent || Math.round(((Number(newProdRegularPrice) - Number(newProdPrice)) / Number(newProdRegularPrice)) * 100)}%
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {newProdPrice && Number(newProdRegularPrice) > Number(newProdPrice) && (
+                      <span className="text-[10px] font-bold text-emerald-600">
+                        Save {formatPrice(Number(newProdRegularPrice) - Number(newProdPrice))}
+                      </span>
+                    )}
+                  </div>
+                ) : null}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

@@ -44,9 +44,10 @@ function getFullUrl(input: string): string {
 /**
  * Universal safe API requester that guarantees:
  * 1. credentials: 'include' (preserves session cookies in iframes/domains)
- * 2. Checks content-type and payload BEFORE calling res.json()
- * 3. Gracefully catches HTML fallbacks without throwing raw SyntaxError ("Unexpected token <")
- * 4. Extracts structured server errors
+ * 2. Injects Authorization token from Firebase Auth or local user session
+ * 3. Checks content-type and payload BEFORE calling res.json()
+ * 4. Gracefully catches HTML responses and 403 Forbidden without cryptic JSON errors
+ * 5. Extracts structured server errors
  */
 async function safeFetch<T = any>(
   input: string,
@@ -54,13 +55,33 @@ async function safeFetch<T = any>(
   fallbackError = 'Request failed'
 ): Promise<T> {
   const targetUrl = getFullUrl(input);
+
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    ...((init?.headers as Record<string, string>) || {}),
+  };
+
+  // Automatically attach authenticated token if available (from localStorage or Firebase Auth)
+  try {
+    const storedToken = typeof localStorage !== 'undefined' ? localStorage.getItem('cdt_token') : null;
+    if (storedToken && !headers['Authorization']) {
+      headers['Authorization'] = `Bearer ${storedToken}`;
+    }
+    const { auth } = await import('../firebase');
+    if (auth?.currentUser && !headers['Authorization']) {
+      const token = await auth.currentUser.getIdToken().catch(() => null);
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+  } catch {
+    // Non-critical: Proceed with standard headers
+  }
+
   const mergedInit: RequestInit = {
     credentials: 'include',
     ...init,
-    headers: {
-      Accept: 'application/json',
-      ...(init?.headers || {}),
-    },
+    headers,
   };
 
   let res: Response;
@@ -89,7 +110,7 @@ async function safeFetch<T = any>(
         const delayMs = Math.min(Math.max(retryAfter * 1000, 800), 2500);
         await new Promise((resolve) => setTimeout(resolve, delayMs));
         try {
-          const retryRes = await fetch(input, mergedInit);
+          const retryRes = await fetch(targetUrl, mergedInit);
           if (retryRes.ok) {
             const retryContentType = retryRes.headers.get('content-type') || '';
             if (retryContentType.includes('application/json')) {
@@ -100,16 +121,56 @@ async function safeFetch<T = any>(
           // Fall through to throw standard message
         }
       }
+      if (res.status === 403) {
+        throw new Error(
+          json?.error || json?.message || 'Access denied (403 Forbidden): Administrative or authorized privileges required.'
+        );
+      }
+      if (res.status === 401) {
+        throw new Error(
+          json?.error || json?.message || 'Authentication required (401). Please sign in to continue.'
+        );
+      }
       throw new Error(json?.error || json?.message || `${fallbackError} (${res.status})`);
     }
     return json as T;
   }
 
-  // Not JSON: could be HTML from server restart, 502 proxy, or static fallback
+  // Handle non-JSON responses (HTML, plain text, proxy errors)
   const text = await res.text().catch(() => '');
+
+  // Specific handling for 403 Forbidden responses
+  if (res.status === 403) {
+    let msg = 'Access denied (403 Forbidden): You do not have permission to access this resource or perform this action.';
+    try {
+      const parsed = JSON.parse(text);
+      if (parsed?.error || parsed?.message) msg = parsed.error || parsed.message;
+    } catch {
+      const h1Match = text.match(/<h1>(.*?)<\/h1>/i);
+      const titleMatch = text.match(/<title>(.*?)<\/title>/i);
+      if (h1Match?.[1]) {
+        msg = `Access denied (403): ${h1Match[1].replace(/<[^>]*>/g, '').trim()}`;
+      } else if (titleMatch?.[1]) {
+        msg = `Access denied (403): ${titleMatch[1].replace(/<[^>]*>/g, '').trim()}`;
+      }
+    }
+    throw new Error(msg);
+  }
+
+  // Specific handling for 401 Unauthorized responses
+  if (res.status === 401) {
+    throw new Error('Authentication required (401). Please sign in to continue.');
+  }
+
+  // Not JSON: HTML from server restart, proxy error, or static fallback
   if (text.includes('<!DOCTYPE') || text.includes('<html') || contentType.includes('text/html')) {
+    let summary = res.statusText || 'Service unavailable';
+    const h1Match = text.match(/<h1>(.*?)<\/h1>/i);
+    if (h1Match?.[1]) {
+      summary = h1Match[1].replace(/<[^>]*>/g, '').trim();
+    }
     throw new Error(
-      `Server response was not in JSON format (${res.status} ${res.statusText}). The service may be starting or reloading. Please try again.`
+      `Service temporarily unavailable (${res.status} ${summary}). Please wait a moment and try again.`
     );
   }
 
@@ -161,7 +222,7 @@ export const api = {
     challenge_token?: string;
     challenge_answer?: string;
     website_url?: string;
-  }): Promise<{ success: boolean; user: CustomerUser; message: string }> {
+  }): Promise<{ success: boolean; user: CustomerUser; message: string; token?: string }> {
     let payload = { ...data };
     if (!payload.challenge_token) {
       const ch = await this.resolveBotChallenge();
@@ -557,6 +618,95 @@ export const api = {
     }
   },
 
+  async createProduct(product: Partial<Product>): Promise<Product> {
+    clientCache.clear();
+    try {
+      const { saveProductToFirestore } = await import('../firebase');
+      await saveProductToFirestore(product);
+    } catch (e) {
+      console.warn('Firestore direct write notice:', e);
+    }
+    return safeFetch<Product>('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(product),
+    }, 'Failed to create product');
+  },
+
+  async updateProduct(id: number | string, updates: Partial<Product>): Promise<Product> {
+    clientCache.clear();
+    try {
+      const { updateProductInFirestore } = await import('../firebase');
+      await updateProductInFirestore(id, updates);
+    } catch (e) {
+      console.warn('Firestore direct update notice:', e);
+    }
+    return safeFetch<Product>(`/api/products/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    }, 'Failed to update product');
+  },
+
+  async deleteProduct(id: number | string): Promise<{ success: boolean; deleted_id: number }> {
+    clientCache.clear();
+    try {
+      const { deleteProductInFirestore } = await import('../firebase');
+      await deleteProductInFirestore(id);
+    } catch (e) {
+      console.warn('Firestore direct delete notice:', e);
+    }
+    return safeFetch<{ success: boolean; deleted_id: number }>(`/api/products/${id}`, {
+      method: 'DELETE',
+    }, 'Failed to delete product');
+  },
+
+  async duplicateProduct(id: number | string): Promise<Product> {
+    clientCache.clear();
+    return safeFetch<Product>(`/api/products/${id}/duplicate`, {
+      method: 'POST',
+    }, 'Failed to duplicate product');
+  },
+
+  async createCategory(category: Partial<Category>): Promise<Category> {
+    try {
+      const { saveCategoryToFirestore } = await import('../firebase');
+      await saveCategoryToFirestore(category);
+    } catch (e) {}
+    return safeFetch<Category>('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(category),
+    }, 'Failed to create category');
+  },
+
+  async updateCategory(id: number | string, updates: Partial<Category>): Promise<Category> {
+    return safeFetch<Category>(`/api/categories/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    }, 'Failed to update category');
+  },
+
+  async deleteCategory(id: number | string): Promise<{ success: boolean }> {
+    try {
+      const { deleteCategoryFromFirestore } = await import('../firebase');
+      await deleteCategoryFromFirestore(id);
+    } catch (e) {}
+    return safeFetch<{ success: boolean }>(`/api/categories/${id}`, {
+      method: 'DELETE',
+    }, 'Failed to delete category');
+  },
+
+  async importWooCommerceProducts(): Promise<{ success: boolean; total: number; created: number; updated: number; message: string }> {
+    clientCache.clear();
+    return safeFetch('/api/woocommerce/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }, 'Failed to import WooCommerce catalog');
+  },
+
   async getReviews(productId: number): Promise<ProductReview[]> {
     try {
       const res = await safeFetch<ProductReview[]>(`/api/products/${productId}/reviews`, { method: 'GET' });
@@ -647,6 +797,17 @@ export const api = {
     // Invalidate product and category cache so updated stock levels are fetched
     clientCache.invalidate('wc_products');
     clientCache.invalidate('product_');
+
+    // Mirror to Cloud Firestore orders collection
+    if (result && result.order) {
+      try {
+        const { saveOrderToFirestore } = await import('../firebase');
+        await saveOrderToFirestore(result.order);
+      } catch (fbOrderErr) {
+        console.warn('Firestore order mirror notice:', fbOrderErr);
+      }
+    }
+
     return result;
   },
 

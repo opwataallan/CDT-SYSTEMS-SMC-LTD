@@ -269,18 +269,22 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                   Customer Information
                 </p>
                 <p className="font-bold text-slate-900">
-                  {order.billing.first_name} {order.billing.last_name}
+                  {order.billing?.first_name || order.shipping?.first_name || (typeof (order as any).customerName === 'string' ? (order as any).customerName.split(' ')[0] : '') || 'Customer'}{' '}
+                  {order.billing?.last_name || order.shipping?.last_name || (typeof (order as any).customerName === 'string' ? (order as any).customerName.split(' ').slice(1).join(' ') : '') || ''}
                 </p>
-                {order.billing.email && (
-                  <p className="text-slate-600 text-[11px]">{order.billing.email}</p>
+                {(order.billing?.email || order.shipping?.email || (order as any).customerEmail) && (
+                  <p className="text-slate-600 text-[11px]">{order.billing?.email || order.shipping?.email || (order as any).customerEmail}</p>
+                )}
+                {(order.billing?.phone || order.shipping?.phone || (order as any).customerPhone) && (
+                  <p className="text-slate-600 text-[11px] font-mono">{order.billing?.phone || order.shipping?.phone || (order as any).customerPhone}</p>
                 )}
                 <p className="text-slate-600 text-[11px]">
-                  Payment: {order.payment_method_title}
+                  Payment: {order.payment_method_title || order.payment_method || 'Standard Payment'}
                 </p>
                 <p className="text-[11px] font-bold text-slate-700 mt-0.5">
                   Status:{' '}
                   <span className="text-cyan-700 uppercase font-black">
-                    {order.status}
+                    {order.status || 'pending'}
                   </span>
                 </p>
               </div>
@@ -290,13 +294,13 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                   Destination / Delivery
                 </p>
                 <p className="font-bold text-slate-900">
-                  {order.shipping.address_1}
+                  {order.shipping?.address_1 || order.billing?.address_1 || (order as any).deliveryAddress || 'Standard Delivery'}
                 </p>
                 <p className="text-slate-600 text-[11px]">
-                  {order.shipping.district || 'Kampala'}, Uganda
+                  {order.shipping?.district || order.billing?.district || order.delivery_zone || 'Kampala'}, Uganda
                 </p>
                 <p className="text-slate-600 text-[11px]">
-                  Zone: {order.delivery_zone}
+                  Zone: {order.delivery_zone || order.shipping?.district || 'Standard Delivery Zone'}
                 </p>
                 {order.customer_note && (
                   <p className="text-[10px] text-slate-500 italic mt-0.5">

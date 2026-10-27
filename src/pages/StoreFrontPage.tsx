@@ -15,7 +15,6 @@ import {
   ArrowLeft,
   Search,
   SlidersHorizontal,
-  Sparkles,
   CheckCircle2,
   Clock,
   Send,
@@ -217,7 +216,7 @@ export const StoreFrontPage: React.FC<StoreFrontPageProps> = ({ slug: initialSlu
                   </h1>
                   {isMainStore ? (
                     <span className="bg-[#920d35] text-white text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                      <Sparkles className="w-3 h-3" />
+                      <ShieldCheck className="w-3 h-3" />
                       Platform Flagship Store
                     </span>
                   ) : (

@@ -29,6 +29,7 @@ import { CustomerOrder, Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { ThemeColorSetting } from '../components/ThemeColorSetting';
 import { OrderReceiptModal } from '../components/OrderReceiptModal';
+import { auth, subscribeToUserOrders, cancelFirestoreOrder } from '../firebase';
 
 interface AccountPageProps {
   initialTab?: 'orders' | 'profile' | 'wishlist' | 'theme';
@@ -37,8 +38,11 @@ interface AccountPageProps {
 export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' }) => {
   const {
     user,
+    firebaseUser,
+    isFirebaseReady,
     isAdmin,
     login,
+    loginWithGoogle,
     register,
     logoutUser,
     updateUserProfile,
@@ -52,6 +56,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [wishlistProducts, setWishlistProducts] = useState<Product[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
   const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<CustomerOrder | null>(null);
   const [cancellingOrder, setCancellingOrder] = useState<CustomerOrder | null>(null);
   const [cancelReason, setCancelReason] = useState('Change of delivery plans / Ordered in error');
@@ -94,16 +99,128 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
     }
   }, [user]);
 
-  // Load orders for current customer
+  // Load orders for current customer linked to authenticated Firebase UID
   useEffect(() => {
-    if (user?.email) {
-      setLoadingOrders(true);
-      api.getOrders({ email: user.email })
-        .then(setOrders)
-        .catch(() => {})
-        .finally(() => setLoadingOrders(false));
+    // 1. Wait for Firebase Authentication state to finish loading
+    if (!isFirebaseReady) {
+      return;
     }
-  }, [user]);
+
+    // 2. Get current Firebase Auth user UID
+    const currentUid = auth.currentUser?.uid || firebaseUser?.uid;
+
+    // If not authenticated in Firebase Auth, attempt fallback to WooCommerce API with email
+    if (!currentUid) {
+      if (user?.email) {
+        setLoadingOrders(true);
+        api.getOrders({ email: user.email })
+          .then((apiOrders) => {
+            if (Array.isArray(apiOrders)) {
+              setOrders(apiOrders);
+            }
+          })
+          .catch(() => {
+            setOrders([]);
+          })
+          .finally(() => {
+            setLoadingOrders(false);
+          });
+      } else {
+        setOrders([]);
+        setLoadingOrders(false);
+        setOrdersError(null);
+      }
+      return;
+    }
+
+    setLoadingOrders(true);
+    setOrdersError(null);
+
+    // 3. Query Firestore orders strictly belonging to that UID (where userId == currentUser.uid)
+    const unsubscribe = subscribeToUserOrders(
+      currentUid,
+      (firestoreOrders) => {
+        const mappedOrders: CustomerOrder[] = (firestoreOrders || []).map((ord: any) => ({
+          id: ord.id || ord.order_number || ord.orderNumber || String(Math.random()),
+          order_number: String(ord.order_number || ord.orderNumber || ord.id),
+          orderNumber: String(ord.orderNumber || ord.order_number || ord.id),
+          userId: ord.userId,
+          customerEmail: ord.customerEmail || ord.billing?.email || ord.shipping?.email || '',
+          customerName:
+            ord.customerName ||
+            `${ord.billing?.first_name || ''} ${ord.billing?.last_name || ''}`.trim() ||
+            'Customer',
+          customerPhone: ord.customerPhone || ord.billing?.phone || ord.shipping?.phone || '',
+          status: ord.status || 'pending',
+          paymentStatus:
+            ord.paymentStatus ||
+            ord.payment_details?.status ||
+            (ord.paymentMethod === 'cod' ? 'pending' : 'awaiting_confirmation'),
+          currency: ord.currency || 'UGX',
+          date_created: ord.date_created || ord.createdAt || new Date().toISOString(),
+          createdAt: ord.createdAt || ord.date_created || new Date().toISOString(),
+          updatedAt: ord.updatedAt || new Date().toISOString(),
+          total: Number(ord.total || 0),
+          subtotal: Number(ord.subtotal || ord.total || 0),
+          discount_total: Number(ord.discount_total || 0),
+          shipping_total: Number(ord.shipping_total || 0),
+          line_items: (ord.line_items || ord.items || []).map((it: any) => ({
+            id: it.id || it.productId || 1,
+            product_id: Number(it.productId || it.product_id || 0),
+            name: it.name || 'Product',
+            quantity: Number(it.quantity || 1),
+            price: Number(it.price || it.unitPrice || 0),
+            total: Number(it.total || it.subtotal || (Number(it.price || 0) * Number(it.quantity || 1))),
+            image: it.image || '',
+          })),
+          items: ord.items || ord.line_items || [],
+          billing: ord.billing || {
+            first_name: ord.customerName?.split(' ')[0] || '',
+            last_name: ord.customerName?.split(' ').slice(1).join(' ') || '',
+            email: ord.customerEmail || '',
+            phone: ord.customerPhone || '',
+            district: ord.deliveryDistrict || 'Kampala',
+            city: ord.deliveryDistrict || 'Kampala',
+            address_1: ord.deliveryAddress || '',
+          },
+          shipping: ord.shipping || {
+            first_name: ord.customerName?.split(' ')[0] || '',
+            last_name: ord.customerName?.split(' ').slice(1).join(' ') || '',
+            email: ord.customerEmail || '',
+            phone: ord.customerPhone || '',
+            district: ord.deliveryDistrict || 'Kampala',
+            city: ord.deliveryDistrict || 'Kampala',
+            address_1: ord.deliveryAddress || '',
+          },
+          delivery_zone: ord.deliveryDistrict || ord.delivery_zone || 'Kampala',
+          deliveryAddress: ord.deliveryAddress || ord.shipping?.address_1 || '',
+          deliveryDistrict: ord.deliveryDistrict || ord.shipping?.district || 'Kampala',
+          payment_method: ord.paymentMethod || ord.payment_method || 'cod',
+          paymentMethod: ord.paymentMethod || ord.payment_method || 'cod',
+          payment_method_title: ord.payment_method_title || 'Cash on Delivery',
+          payment_details: ord.payment_details || { status: ord.paymentStatus || 'pending' },
+          timeline: ord.timeline || [],
+          customer_note: ord.customer_note || '',
+          cancelReason: ord.cancelReason || '',
+        }));
+
+        setOrders(mappedOrders);
+        setLoadingOrders(false);
+        setOrdersError(null);
+      },
+      (err) => {
+        console.warn('Real-time customer orders notice:', err);
+        setOrdersError(
+          err.message?.includes('permission')
+            ? 'Access restricted: Unable to load orders. Please verify your account credentials.'
+            : 'Notice: Could not sync orders from cloud storage.'
+        );
+        setLoadingOrders(false);
+      }
+    );
+
+    return () => unsubscribe();
+  }, [isFirebaseReady, user?.uid, firebaseUser?.uid]);
 
   // Load wishlist items
   useEffect(() => {
@@ -122,6 +239,10 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
     if (!cancellingOrder) return;
     setIsCancelling(true);
     try {
+      // 1. Cancel in Firestore database
+      await cancelFirestoreOrder(cancellingOrder.order_number, cancelReason);
+
+      // 2. Cancel in API store
       const res = await api.cancelOrder(cancellingOrder.order_number, cancelReason);
       if (res.success) {
         showToast(res.message || `Order #${cancellingOrder.order_number} cancelled successfully.`, 'success');
@@ -264,8 +385,19 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
     }
   };
 
-  // If user is not logged in: show auth card
-  if (!user) {
+  // 1. Wait for Firebase Authentication state to finish loading
+  if (!isFirebaseReady) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-10 h-10 border-3 border-cyan-600 border-t-transparent rounded-full animate-spin mx-auto" />
+        <h2 className="text-sm font-bold text-slate-800">Verifying Account Authentication...</h2>
+        <p className="text-xs text-slate-500">Checking Firebase security session.</p>
+      </div>
+    );
+  }
+
+  // 2. If user is not logged in: show auth card
+  if (!user && !auth.currentUser) {
     return (
       <div className="max-w-md mx-auto px-4 py-12">
         <div className="bg-white p-6 sm:p-8 rounded-xl border border-slate-200 shadow-sm space-y-5">
@@ -323,6 +455,49 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
           {/* SIGN IN FORM */}
           {authMode === 'login' && (
             <div className="space-y-4 text-xs">
+              {/* Firebase Google Sign In */}
+              <button
+                type="button"
+                onClick={async () => {
+                  setAuthLoading(true);
+                  setAuthError(null);
+                  try {
+                    await loginWithGoogle();
+                  } catch (err: any) {
+                    setAuthError(err.message || 'Google sign-in failed');
+                  } finally {
+                    setAuthLoading(false);
+                  }
+                }}
+                disabled={authLoading}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                  />
+                </svg>
+                Continue with Google
+              </button>
+
+              <div className="relative flex items-center justify-center my-3">
+                <div className="border-t border-slate-200 w-full" />
+                <span className="bg-white px-2 text-[11px] text-slate-400 font-medium absolute">or continue with email</span>
+              </div>
+
               <form onSubmit={handleLoginSubmit} className="space-y-3.5">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">Email Address</label>
@@ -402,7 +577,51 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
 
           {/* REGISTER FORM */}
           {authMode === 'register' && (
-            <form onSubmit={handleRegisterSubmit} className="space-y-3 text-xs">
+            <div className="space-y-4 text-xs">
+              {/* Firebase Google Sign In */}
+              <button
+                type="button"
+                onClick={async () => {
+                  setAuthLoading(true);
+                  setAuthError(null);
+                  try {
+                    await loginWithGoogle();
+                  } catch (err: any) {
+                    setAuthError(err.message || 'Google sign-up failed');
+                  } finally {
+                    setAuthLoading(false);
+                  }
+                }}
+                disabled={authLoading}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                  />
+                </svg>
+                Continue with Google
+              </button>
+
+              <div className="relative flex items-center justify-center my-3">
+                <div className="border-t border-slate-200 w-full" />
+                <span className="bg-white px-2 text-[11px] text-slate-400 font-medium absolute">or register with email</span>
+              </div>
+
+              <form onSubmit={handleRegisterSubmit} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="font-bold text-slate-700 block mb-1">First Name *</label>
@@ -497,7 +716,8 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
                 </button>
               </div>
             </form>
-          )}
+          </div>
+        )}
 
           {/* FORGOT PASSWORD FORM */}
           {authMode === 'forgot' && (
@@ -621,12 +841,12 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-base shadow-xs">
-            {user.first_name[0]}{user.last_name ? user.last_name[0] : ''}
+            {user.first_name?.[0] || 'U'}{user.last_name ? user.last_name[0] : ''}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-base font-black text-slate-900">
-                {user.first_name} {user.last_name}
+                {user.first_name || 'Customer'} {user.last_name || ''}
               </h1>
               <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
                 {user.role}
@@ -699,7 +919,31 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
       {/* TAB CONTENT: ORDERS */}
       {activeTab === 'orders' && (
         <div className="space-y-3">
-          {orders.length === 0 ? (
+          {loadingOrders ? (
+            <div className="bg-white p-12 rounded-xl border border-slate-200 text-center space-y-3">
+              <div className="w-8 h-8 border-3 border-cyan-600 border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-xs font-bold text-slate-800">Loading your orders...</p>
+              <p className="text-[11px] text-slate-400">
+                Retrieving orders permanently linked to your customer account.
+              </p>
+            </div>
+          ) : ordersError ? (
+            <div className="bg-white p-8 rounded-xl border border-rose-200 text-center space-y-3">
+              <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
+              <h3 className="text-xs font-bold text-slate-800">Unable to Load Orders</h3>
+              <p className="text-[11px] text-rose-600 max-w-sm mx-auto">{ordersError}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setLoadingOrders(true);
+                  setOrdersError(null);
+                }}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg cursor-pointer"
+              >
+                Retry Loading Orders
+              </button>
+            </div>
+          ) : orders.length === 0 ? (
             <div className="bg-white p-8 rounded-xl border border-slate-200 text-center space-y-2.5">
               <Package className="w-10 h-10 text-slate-300 mx-auto" />
               <h3 className="text-xs font-bold text-slate-800">No Orders Placed Yet</h3>
@@ -721,9 +965,22 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
                   <div>
-                    <span className="text-xs font-black text-slate-900">{ord.order_number}</span>
-                    <span className="text-[11px] text-slate-400 ml-2">
-                      {new Date(ord.date_created).toLocaleDateString()}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black text-slate-900">{ord.order_number}</span>
+                      <span
+                        className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                          ord.paymentStatus === 'confirmed' || ord.paymentStatus === 'paid'
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                            : ord.paymentStatus === 'awaiting_confirmation'
+                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                            : 'bg-slate-100 text-slate-700 border border-slate-200'
+                        }`}
+                      >
+                        Payment: {ord.paymentStatus || 'Pending'}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-400">
+                      {new Date(ord.date_created).toLocaleDateString()} • {ord.delivery_zone || 'Kampala'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2.5">
@@ -731,6 +988,8 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
                       className={`px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
                         ord.status === 'delivered' || ord.status === 'completed'
                           ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : ord.status === 'cancelled'
+                          ? 'bg-rose-50 text-rose-800 border border-rose-200'
                           : 'bg-cyan-50 text-cyan-800 border border-cyan-200'
                       }`}
                     >
@@ -1082,7 +1341,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
               <h4 className="font-bold text-cyan-900">Cyber Dynamic Tech Customer Benefits</h4>
               <ul className="space-y-1.5 text-cyan-800 text-[11px]">
                 <li>• Genuine brand warranty backed directly by regional distributors</li>
-                <li>• Real-time delivery dispatch coordination across Kampala and metropolitan areas</li>
+                <li>• Real-time delivery tracking across metropolitan areas</li>
                 <li>• Save multiple shipping addresses for fast checkout</li>
               </ul>
             </div>

@@ -1,0 +1,305 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net Default-Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Security Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Super Admin: Designated by initial email or bootstrap admin record or super admin role
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email != null && request.auth.token.email.lower() == 'opwataallan@gmail.com') ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['SUPER_ADMIN', 'super_admin'])
+      );
+    }
+
+    // Admin: Super Admin or secondary designated admin email or administrative role
+    function isAdmin() {
+      return isSuperAdmin() || (
+        isSignedIn() && (
+          (request.auth.token.email != null && request.auth.token.email.lower() == 'admin@cyberdynamictech.com') ||
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+           'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['ADMIN', 'admin', 'MANAGER', 'manager'])
+        )
+      );
+    }
+
+    // Vendor Access
+    function isVendor() {
+      return isSignedIn() && (
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['VENDOR', 'vendor', 'vendor_staff'])
+      );
+    }
+
+    // Store Manager Access
+    function isStoreManager() {
+      return isSignedIn() && (
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['STORE_MANAGER', 'manager', 'store_manager'])
+      );
+    }
+
+    // Delivery Agent Access
+    function isDeliveryAgent() {
+      return isSignedIn() && (
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['DELIVERY_AGENT', 'delivery_agent'])
+      );
+    }
+
+    // User Profile Validation - CRITICAL: Zero circular lookup on create!
+    function isValidUserCreate() {
+      let data = incoming();
+      let isDesignatedSuperAdmin = request.auth.token.email != null &&
+        request.auth.token.email.lower() == 'opwataallan@gmail.com';
+      let allowedRole = isDesignatedSuperAdmin ||
+        (!('role' in data) || data.role in ['CUSTOMER', 'customer', 'customer_user']);
+
+      return data.uid == request.auth.uid &&
+             (!('email' in data) || data.email is string) &&
+             allowedRole &&
+             (!('isSuperAdmin' in data) || data.isSuperAdmin == false || isDesignatedSuperAdmin) &&
+             (!('admin' in data) || data.admin == false || isDesignatedSuperAdmin) &&
+             (!('permissions' in data) || data.permissions.size() == 0 || isDesignatedSuperAdmin) &&
+             (!('vendorId' in data) || data.vendorId == null || isDesignatedSuperAdmin) &&
+             (!('assignedStoreIds' in data) || data.assignedStoreIds.size() == 0 || isDesignatedSuperAdmin);
+    }
+
+    // Permitted Self-Update for Profile Fields (No privilege escalation)
+    function isValidUserUpdate() {
+      let changed = incoming().diff(existing()).affectedKeys();
+      return changed.hasOnly([
+        'first_name',
+        'last_name',
+        'displayName',
+        'photoURL',
+        'phone',
+        'addresses',
+        'wishlist',
+        'updatedAt'
+      ]);
+    }
+
+    // Order Validation
+    function isValidOrder(data) {
+      return data.userId is string &&
+             (data.userId == request.auth.uid || isAdmin()) &&
+             data.total is number && data.total >= 0 &&
+             data.status is string;
+    }
+
+    // -------------------------------------------------------------
+    // COLLECTION RULES
+    // -------------------------------------------------------------
+
+    // Users Collection (PII isolation enforced; self-creation allowed without circular rule)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isValidId(userId) && isOwner(userId) && isValidUserCreate();
+      allow update: if isValidId(userId) && (
+        (isOwner(userId) && isValidUserUpdate()) ||
+        isAdmin()
+      );
+      allow delete: if isSuperAdmin();
+    }
+
+    // Admins Collection (Designated Administrator Bootstrap)
+    match /admins/{adminId} {
+      allow get: if isValidId(adminId) && isSignedIn();
+      allow list: if isAdmin();
+      allow write: if isValidId(adminId) && isSuperAdmin();
+    }
+
+    // Roles Collection (RBAC Extensible Definitions)
+    match /roles/{roleId} {
+      allow read: if isValidId(roleId) && isSignedIn();
+      allow write: if isValidId(roleId) && isSuperAdmin();
+    }
+
+    // Permissions Collection (Granular System Permissions)
+    match /permissions/{permissionId} {
+      allow read: if isValidId(permissionId) && isSignedIn();
+      allow write: if isValidId(permissionId) && isSuperAdmin();
+    }
+
+    // Audit Logs (Immutable Security Audit Trail)
+    match /auditLogs/{logId} {
+      allow read: if isValidId(logId) && isAdmin();
+      allow create: if isValidId(logId) && isSignedIn();
+      allow update, delete: if false;
+    }
+
+    // Products Collection (Public Catalog, Vendor/Admin Managed)
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin() || (isVendor() && (incoming().vendorId == request.auth.uid || existing().vendorId == request.auth.uid));
+    }
+
+    // Categories Collection (Public Catalog Taxonomy)
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Carts Collection (Customer Cart Persistence)
+    match /carts/{cartId} {
+      allow get: if isValidId(cartId) && (isOwner(cartId) || isAdmin());
+      allow create, update: if isValidId(cartId) && (isOwner(cartId) || isAdmin());
+      allow delete: if isValidId(cartId) && (isOwner(cartId) || isAdmin());
+    }
+
+    // Wishlists Collection (Customer Wishlist Persistence)
+    match /wishlists/{wishlistId} {
+      allow get: if isValidId(wishlistId) && (isOwner(wishlistId) || isAdmin());
+      allow create, update: if isValidId(wishlistId) && (isOwner(wishlistId) || isAdmin());
+      allow delete: if isValidId(wishlistId) && (isOwner(wishlistId) || isAdmin());
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      allow get: if isValidId(orderId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isValidId(orderId) && isSignedIn() && isValidOrder(incoming());
+      allow update: if isValidId(orderId) && (
+        isAdmin() ||
+        (isSignedIn() && existing().userId == request.auth.uid &&
+         incoming().userId == existing().userId &&
+         !(existing().status in ['completed', 'delivered', 'cancelled']) &&
+         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'customer_note', 'cancelReason', 'updatedAt']) &&
+         incoming().status in ['cancelled'])
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Order Items Collection
+    match /orderItems/{itemId} {
+      allow get: if isValidId(itemId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isValidId(itemId) && isSignedIn() && (incoming().userId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin();
+    }
+
+    // Reviews Collection
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isValidId(reviewId) && isSignedIn() && incoming().userId == request.auth.uid;
+      allow update, delete: if isValidId(reviewId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+    }
+
+    // Vendors Collection
+    match /vendors/{vendorId} {
+      allow read: if true;
+      allow create: if isValidId(vendorId) && isSignedIn() && (incoming().userId == request.auth.uid || isAdmin());
+      allow update: if isValidId(vendorId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow delete: if isValidId(vendorId) && isSuperAdmin();
+    }
+
+    // Stores Collection
+    match /stores/{storeId} {
+      allow read: if true;
+      allow create: if isValidId(storeId) && isSignedIn() && (incoming().vendorId == request.auth.uid || isAdmin());
+      allow update: if isValidId(storeId) && (
+        isAdmin() ||
+        (isSignedIn() && (existing().vendorId == request.auth.uid || existing().managerId == request.auth.uid))
+      );
+      allow delete: if isValidId(storeId) && isSuperAdmin();
+    }
+
+    // Inventory Collection
+    match /inventory/{inventoryId} {
+      allow read: if true;
+      allow write: if isValidId(inventoryId) && (isAdmin() || isVendor() || isStoreManager());
+    }
+
+    // Payments Collection
+    match /payments/{paymentId} {
+      allow get: if isValidId(paymentId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isValidId(paymentId) && isSignedIn();
+      allow update, delete: if isValidId(paymentId) && isAdmin();
+    }
+
+    // Financial Transactions Collection
+    match /transactions/{txnId} {
+      allow get: if isValidId(txnId) && (isAdmin() || (isSignedIn() && existing().userId == request.auth.uid));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isValidId(txnId) && isAdmin();
+    }
+
+    // Coupons Collection (Public read for checkout coupon validation; Admin write)
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isValidId(couponId) && isAdmin();
+    }
+
+    // Promotions Collection (Marketing Banners & Campaigns)
+    match /promotions/{promoId} {
+      allow read: if true;
+      allow write: if isValidId(promoId) && isAdmin();
+    }
+
+    // Deliveries Collection
+    match /deliveries/{deliveryId} {
+      allow get: if isValidId(deliveryId) && (isAdmin() || (isSignedIn() && (existing().driverId == request.auth.uid || existing().userId == request.auth.uid)));
+      allow list: if isAdmin() || (isSignedIn() && resource.data.driverId == request.auth.uid);
+      allow create: if isValidId(deliveryId) && isSignedIn();
+      allow update: if isValidId(deliveryId) && (isAdmin() || (isSignedIn() && existing().driverId == request.auth.uid));
+      allow delete: if isValidId(deliveryId) && isAdmin();
+    }
+
+    // Notifications Collection
+    match /notifications/{notifId} {
+      allow get: if isValidId(notifId) && isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isValidId(notifId) && isSignedIn();
+      allow update: if isValidId(notifId) && isSignedIn() && existing().userId == request.auth.uid;
+      allow delete: if isValidId(notifId) && isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+    }
+
+    // Centralized Settings Collection (/settings/global, /settings/general, etc.)
+    match /settings/{settingId} {
+      allow get, list: if isValidId(settingId);
+      allow write: if isValidId(settingId) && isAdmin();
+    }
+
+    // Connection Health Check
+    match /test/{testId} {
+      allow read, write: if true;
+    }
+  }
+}

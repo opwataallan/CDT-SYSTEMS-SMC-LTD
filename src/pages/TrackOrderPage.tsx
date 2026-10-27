@@ -238,17 +238,20 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
                 <span>Delivery Address & Recipient</span>
               </div>
               <div className="text-[11px] space-y-0.5">
-                <p className="font-bold text-slate-900">{order.shipping.first_name} {order.shipping.last_name}</p>
-                <p className="text-slate-600">{order.shipping.phone}</p>
-                <p className="text-slate-600">{order.shipping.address_1}</p>
-                <p className="text-slate-600">{order.shipping.district} District, Uganda</p>
-                {order.shipping.landmark && (
+                <p className="font-bold text-slate-900">
+                  {order.shipping?.first_name || order.billing?.first_name || (typeof (order as any).customerName === 'string' ? (order as any).customerName.split(' ')[0] : '') || 'Customer'}{' '}
+                  {order.shipping?.last_name || order.billing?.last_name || (typeof (order as any).customerName === 'string' ? (order as any).customerName.split(' ').slice(1).join(' ') : '') || ''}
+                </p>
+                <p className="text-slate-600">{order.shipping?.phone || order.billing?.phone || (order as any).customerPhone || 'No contact phone'}</p>
+                <p className="text-slate-600">{order.shipping?.address_1 || order.billing?.address_1 || (order as any).deliveryAddress || 'Standard Delivery'}</p>
+                <p className="text-slate-600">{order.shipping?.district || order.billing?.district || order.delivery_zone || 'Kampala'} District, Uganda</p>
+                {order.shipping?.landmark && (
                   <p className="text-slate-500 italic mt-0.5">Landmark: {order.shipping.landmark}</p>
                 )}
               </div>
               <div className="pt-1.5 border-t border-slate-200 flex justify-between text-[10px]">
                 <span className="text-slate-500">Payment:</span>
-                <span className="font-bold text-slate-800">{order.payment_method_title}</span>
+                <span className="font-bold text-slate-800">{order.payment_method_title || order.payment_method || 'Standard Payment'}</span>
               </div>
             </div>
 
@@ -256,10 +259,10 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
             <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs space-y-1.5">
               <div className="font-bold text-slate-800 flex items-center gap-1.5 border-b border-slate-200 pb-1.5">
                 <Package className="w-3.5 h-3.5 text-cyan-600" />
-                <span>Items in this Order ({order.line_items.length})</span>
+                <span>Items in this Order ({order.line_items?.length || 0})</span>
               </div>
               <div className="divide-y divide-slate-200/70 max-h-36 overflow-y-auto pr-1">
-                {order.line_items.map((item) => (
+                {(order.line_items || []).map((item) => (
                   <div key={item.id} className="py-1.5 flex items-center justify-between gap-2 text-[11px]">
                     <div className="flex items-center gap-1.5">
                       <span className="font-extrabold text-slate-900">{item.quantity}x</span>
@@ -291,7 +294,7 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
               <Phone className="w-4 h-4 text-cyan-700 flex-shrink-0" />
               <div>
                 <strong className="text-slate-900">Need express courier coordinate updates?</strong>
-                <p className="text-cyan-800 text-[11px]">Call Cyber Dynamic Technologies central dispatch in Kampala: +256 779 743 101</p>
+                <p className="text-cyan-800 text-[11px]">Call Cyber Dynamic Technologies customer support: +256 779 743 101</p>
               </div>
             </div>
             <a
@@ -300,7 +303,7 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
               rel="noreferrer"
               className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs whitespace-nowrap cursor-pointer shadow-2xs"
             >
-              WhatsApp Dispatcher
+              WhatsApp Support
             </a>
           </div>
         </div>

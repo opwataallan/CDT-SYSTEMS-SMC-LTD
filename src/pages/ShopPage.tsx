@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, X, SlidersHorizontal, ChevronDown, Search, Check, Sparkles } from 'lucide-react';
+import { Filter, X, SlidersHorizontal, ChevronDown, Search, Check } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/ProductCardSkeleton';
 import { CdtPageLoader } from '../components/CdtPageLoader';
@@ -451,7 +451,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                 <div className="h-3 w-32 bg-slate-200 animate-pulse rounded"></div>
                 <div className="h-3 w-20 bg-slate-200 animate-pulse rounded"></div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 md:gap-3.5">
                 {Array.from({ length: 18 }).map((_, idx) => (
                   <ProductCardSkeleton key={idx} />
                 ))}
@@ -475,7 +475,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 md:gap-3.5">
                 {products.map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}

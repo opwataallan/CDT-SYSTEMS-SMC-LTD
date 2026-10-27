@@ -13,7 +13,6 @@ import {
   VolumeX,
   Plus,
   Layers,
-  Sparkles,
 } from 'lucide-react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { Product } from '../../types';
@@ -319,9 +318,9 @@ export const PosCameraScannerModal: React.FC<PosCameraScannerModalProps> = ({
     >
       <div className="relative w-full max-w-xl bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Modal Header */}
-        <div className="px-4 py-3 bg-slate-800/90 border-b border-slate-700/80 flex items-center justify-between text-white">
+        <div className="px-4 py-3 bg-[#0f172a] border-b border-slate-700/80 flex items-center justify-between text-white">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center border border-cyan-500/30">
+            <div className="w-8 h-8 rounded-lg bg-[#920d35]/30 text-amber-300 flex items-center justify-center border border-[#920d35]/50">
               <Camera className="w-4 h-4 animate-pulse" />
             </div>
             <div>
@@ -340,7 +339,7 @@ export const PosCameraScannerModal: React.FC<PosCameraScannerModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-700/60 transition-colors cursor-pointer"
+            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
             aria-label="Close scanner"
           >
             <X className="w-5 h-5" />
@@ -356,19 +355,19 @@ export const PosCameraScannerModal: React.FC<PosCameraScannerModalProps> = ({
           {isScanning && !cameraError && (
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
               {/* Target Aim Box */}
-              <div className="relative w-64 sm:w-72 h-36 sm:h-44 border-2 border-cyan-400/60 rounded-xl shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+              <div className="relative w-64 sm:w-72 h-36 sm:h-44 border-2 border-amber-400/70 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.25)]">
                 {/* Corner Accents */}
-                <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-cyan-400 rounded-tl-sm" />
-                <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-cyan-400 rounded-tr-sm" />
-                <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-cyan-400 rounded-bl-sm" />
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-cyan-400 rounded-br-sm" />
+                <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-amber-400 rounded-tl-sm" />
+                <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-amber-400 rounded-tr-sm" />
+                <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-amber-400 rounded-bl-sm" />
+                <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-amber-400 rounded-br-sm" />
 
                 {/* Sweeping Laser Line */}
-                <div className="absolute left-2 right-2 top-1/2 h-0.5 bg-red-500 shadow-[0_0_8px_#ef4444] animate-pulse" />
+                <div className="absolute left-2 right-2 top-1/2 h-0.5 bg-[#920d35] shadow-[0_0_8px_#920d35] animate-pulse" />
               </div>
 
-              <div className="mt-3 px-3 py-1 bg-slate-900/80 backdrop-blur-xs rounded-full border border-slate-700/80 text-[11px] font-medium text-slate-300 flex items-center gap-1.5 shadow-md">
-                <Barcode className="w-3.5 h-3.5 text-cyan-400" />
+              <div className="mt-3 px-3 py-1 bg-slate-900/90 backdrop-blur-xs rounded-full border border-slate-700/80 text-[11px] font-medium text-slate-300 flex items-center gap-1.5 shadow-md">
+                <Barcode className="w-3.5 h-3.5 text-amber-400" />
                 <span>Center product barcode inside the frame</span>
               </div>
             </div>
@@ -387,7 +386,7 @@ export const PosCameraScannerModal: React.FC<PosCameraScannerModalProps> = ({
               <div className="flex gap-2">
                 <button
                   onClick={() => startScanner(selectedCameraId)}
-                  className="px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  className="px-3.5 py-1.5 bg-[#920d35] hover:bg-[#770929] text-white rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors border border-amber-400/30"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Retry Camera</span>
@@ -542,7 +541,7 @@ export const PosCameraScannerModal: React.FC<PosCameraScannerModalProps> = ({
           <div className="pt-1">
             <div className="flex items-center justify-between text-[10px] text-slate-400 mb-1">
               <span className="flex items-center gap-1 font-semibold text-slate-300">
-                <Sparkles className="w-3 h-3 text-cyan-400" />
+                <CheckCircle2 className="w-3 h-3 text-cyan-400" />
                 Quick-test product barcodes from your catalog:
               </span>
               <span>Session Scans: <strong className="text-cyan-400">{sessionScanCount}</strong></span>

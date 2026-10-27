@@ -54,6 +54,11 @@ export const DEFAULT_MARKETPLACE_CONFIG: MarketplaceConfig = {
   },
 
   homepage: {
+    hero_title: 'Welcome to Cyber Dynamic Technologies',
+    hero_subtitle: 'Genuine Computers, Laptops, Printers & Enterprise Networking in Uganda',
+    hero_banner_image: '/assets/cdt-hero-banner.svg',
+    hero_banner_link: 'shop',
+    hero_banner_alt: 'Cyber Dynamic Technologies - Official Hardware, Laptops, Printers & Networking Store',
     banners: [...INITIAL_HERO_BANNERS],
     announcement_bar: {
       enabled: true,
@@ -69,13 +74,13 @@ export const DEFAULT_MARKETPLACE_CONFIG: MarketplaceConfig = {
       { id: 'category_grid', name: 'Featured Categories Grid', enabled: true, title: 'Explore Product Categories' },
       { id: 'featured_products', name: 'Trending Hardware & Electronics', enabled: true, title: 'Trending Tech Products', item_count: 8 },
       { id: 'printers_networking', name: 'Printers & Networking Showcase', enabled: true, title: 'Printers & Enterprise Networking', category_filter: 'printers', item_count: 4 },
-      { id: 'why_choose_us', name: 'Verified Warranty & Dispatch Hub', enabled: true, title: 'Authentic Warranty Guaranteed' },
+      { id: 'why_choose_us', name: 'Verified Warranty & Distribution Hub', enabled: true, title: 'Authentic Warranty Guaranteed' },
     ],
     advert_fliers_row2: [
       {
         id: 'flier-row2-1',
         title: 'Samsung Galaxy S24 Ultra & Fold6 Series',
-        subtitle: 'Flagship AI hardware with official Ugandan 24-Month warranty. Free Kampala doorstep delivery.',
+        subtitle: 'Flagship smartphone hardware with official Ugandan 24-Month warranty. Free Kampala doorstep delivery.',
         badge: 'FLAGSHIP PROMO',
         image_url: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80',
         button_text: 'Explore Deals',
@@ -330,7 +335,7 @@ export const DEFAULT_MARKETPLACE_CONFIG: MarketplaceConfig = {
 
   seo: {
     meta_title: 'Cyber Dynamic Technologies | Premier Electronics & Tech Marketplace Uganda',
-    meta_description: 'Buy genuine laptops, printers, routers, power backup systems, ink & computer accessories in Uganda. Same-day Kampala delivery and nationwide dispatch.',
+    meta_description: 'Buy genuine laptops, printers, routers, power backup systems, ink & computer accessories in Uganda. Same-day express delivery and nationwide shipping.',
     keywords: 'electronics uganda, buy laptop kampala, epson printer kampala, tp-link router, mtn momo shopping, cyber dynamic technologies',
     og_image_url: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=1200&auto=format&fit=crop&q=80',
     twitter_handle: '@cyberdynamictech',

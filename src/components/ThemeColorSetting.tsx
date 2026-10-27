@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Palette, Check, RotateCcw, Sparkles, Sliders } from 'lucide-react';
+import { Palette, Check, RotateCcw, Sliders } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 import { settingsService } from '../services/settingsService';
 
@@ -403,7 +403,7 @@ export const ThemeColorSetting: React.FC<ThemeColorSettingProps> = ({
       {/* Real-time preview sample bar */}
       <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-500" />
+          <Palette className="w-4 h-4 text-amber-500" />
           <span className="font-bold text-slate-700">Live Preview:</span>
           <span
             className="px-2.5 py-1 text-white font-bold rounded shadow-xs"

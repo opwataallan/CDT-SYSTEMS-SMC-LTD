@@ -9,7 +9,7 @@ import {
   Package,
   Truck,
   CheckCircle2,
-  Sparkles,
+  Flame,
   Megaphone,
   ShoppingBag,
   ExternalLink,
@@ -131,7 +131,7 @@ export const NotificationCenter: React.FC = () => {
         id: 'seed_warranty',
         type: 'system',
         title: 'Genuine Tech & Physical Warranty',
-        message: 'All laptops & equipment are inspected in Kampala dispatch hub before packaging.',
+        message: 'All laptops & equipment are inspected by certified technicians before packaging.',
         timestamp: new Date(Date.now() - 7200000).toISOString(),
         read: true,
         priority: 'normal',
@@ -396,7 +396,7 @@ export const NotificationCenter: React.FC = () => {
       case 'order_status':
         return <Truck className="w-4 h-4 text-cyan-600" />;
       case 'flash_sale':
-        return <Sparkles className="w-4 h-4 text-amber-500" />;
+        return <Flame className="w-4 h-4 text-amber-500 fill-amber-500" />;
       case 'new_product':
         return <ShoppingBag className="w-4 h-4 text-emerald-600" />;
       case 'store_announcement':
@@ -672,7 +672,7 @@ export const NotificationCenter: React.FC = () => {
                 title="Dispatch a test Flash Sale push notification"
                 className="px-2 py-1 rounded bg-white hover:bg-amber-50 border border-slate-200 text-slate-700 hover:text-amber-700 font-bold flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
               >
-                <Sparkles className="w-3 h-3 text-amber-500" />
+                <Flame className="w-3 h-3 text-amber-500 fill-amber-500" />
                 <span>Test Flash Sale</span>
               </button>
 

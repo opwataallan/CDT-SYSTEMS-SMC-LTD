@@ -5,7 +5,7 @@ import {
   Copy,
   Check,
   Send,
-  Sparkles,
+  Flame,
   Truck,
   Smartphone,
   ShieldCheck,
@@ -248,7 +248,7 @@ export const FCMSchemaModal: React.FC<FCMSchemaModalProps> = ({
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <Flame className="w-3.5 h-3.5" />
             Flash Sale Payload
           </button>
           <button

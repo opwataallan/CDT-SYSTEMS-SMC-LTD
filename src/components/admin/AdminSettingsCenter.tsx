@@ -52,7 +52,6 @@ import {
   Monitor,
   Send,
   Smartphone,
-  Sparkles,
   MessageCircle,
   Upload,
   Clock,
@@ -65,6 +64,7 @@ import { MarketplaceConfig, SmsLogEntry } from '../../types';
 import { DEFAULT_MARKETPLACE_CONFIG } from '../../data/defaultConfig';
 import { api } from '../../services/api';
 import { ThemeColorSetting } from '../ThemeColorSetting';
+import { uploadSettingImage, auth } from '../../firebase';
 
 type CategoryKey = keyof MarketplaceConfig;
 
@@ -111,13 +111,24 @@ const CATEGORIES: CategoryMeta[] = [
 ];
 
 export const AdminSettingsCenter: React.FC = () => {
-  const { config, updateCategorySettings, showToast, setCurrentView, products: allShopProducts } = useShop();
+  const {
+    config,
+    updateCategorySettings,
+    saveAllSettings,
+    loginWithGoogle,
+    showToast,
+    setCurrentView,
+    products: allShopProducts,
+  } = useShop();
 
   const [activeCategory, setActiveCategory] = useState<CategoryKey>('general');
   const [searchQuery, setSearchQuery] = useState('');
   const [localConfig, setLocalConfig] = useState<MarketplaceConfig>(config);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingAll, setIsSavingAll] = useState(false);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState<string | null>(null);
   const [newCashierEmail, setNewCashierEmail] = useState('');
 
   // WooCommerce & API Interactive Testing / Sync State
@@ -390,14 +401,113 @@ export const AdminSettingsCenter: React.FC = () => {
 
   const handleSaveCurrent = async () => {
     setIsSaving(true);
+    setSaveSuccessMsg(null);
+    setSaveErrorMsg(null);
+
     try {
-      await updateCategorySettings(activeCategory, localConfig[activeCategory]);
-      setSaveSuccessMsg(`Settings for "${CATEGORIES.find(c => c.key === activeCategory)?.label}" saved successfully.`);
-      setTimeout(() => setSaveSuccessMsg(null), 4000);
+      const categoryData = localConfig[activeCategory];
+      if (!categoryData || typeof categoryData !== 'object') {
+        throw new Error('Invalid settings object to save');
+      }
+
+      // Check if Firebase Auth session is active; if not, prompt administrator
+      if (!auth.currentUser) {
+        showToast('Connecting Administrator session with Firebase...', 'info');
+        try {
+          await loginWithGoogle();
+        } catch (authErr: any) {
+          throw new Error(
+            `Administrator Google Auth required to update settings in Cloud Firestore. Detail: ${authErr.message || authErr}`
+          );
+        }
+      }
+
+      // Persist to Cloud Firestore: settings/global
+      await updateCategorySettings(activeCategory, categoryData);
+
+      const categoryLabel = CATEGORIES.find((c) => c.key === activeCategory)?.label || activeCategory;
+      setSaveSuccessMsg(`Settings for "${categoryLabel}" successfully saved and persisted to Cloud Firestore (settings/global).`);
+      setTimeout(() => setSaveSuccessMsg(null), 5000);
     } catch (err: any) {
-      showToast(err.message || 'Failed to save settings');
+      console.error('Failed to save settings to Firestore:', err);
+      const msg = err.message || 'Failed to persist settings in Cloud Firestore';
+      setSaveErrorMsg(msg);
+      showToast(msg);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSaveAll = async () => {
+    setIsSavingAll(true);
+    setSaveSuccessMsg(null);
+    setSaveErrorMsg(null);
+
+    try {
+      if (!auth.currentUser) {
+        showToast('Connecting Administrator session with Firebase...', 'info');
+        try {
+          await loginWithGoogle();
+        } catch (authErr: any) {
+          throw new Error(
+            `Administrator Google Auth required to write to Cloud Firestore. Detail: ${authErr.message || authErr}`
+          );
+        }
+      }
+
+      await saveAllSettings(localConfig);
+      setSaveSuccessMsg('All 31 settings categories successfully persisted in Cloud Firestore (settings/global)!');
+      setTimeout(() => setSaveSuccessMsg(null), 6000);
+    } catch (err: any) {
+      console.error('Failed to save all settings to Firestore:', err);
+      const msg = err.message || 'Failed to persist complete configuration in Cloud Firestore';
+      setSaveErrorMsg(msg);
+      showToast(msg);
+    } finally {
+      setIsSavingAll(false);
+    }
+  };
+
+  // Upload an image file directly to Firebase Storage and store the resulting URL
+  const handleImageUpload = async (
+    file: File,
+    field: string,
+    folder: string,
+    mirrorField?: string
+  ) => {
+    setIsUploadingImage(field);
+    setSaveErrorMsg(null);
+    setSaveSuccessMsg(null);
+    try {
+      showToast(`Uploading ${field.replace(/_/g, ' ')} to Firebase Storage...`);
+      const downloadUrl = await uploadSettingImage(file, folder);
+
+      handleFieldChange('branding', field, downloadUrl);
+      if (mirrorField) {
+        handleFieldChange('branding', mirrorField, downloadUrl);
+      }
+
+      // Automatically persist to Cloud Firestore settings/global immediately upon upload
+      try {
+        const updatedBranding = {
+          ...localConfig.branding,
+          [field]: downloadUrl,
+          ...(mirrorField ? { [mirrorField]: downloadUrl } : {}),
+        };
+        await updateCategorySettings('branding', updatedBranding);
+        setSaveSuccessMsg(`Image uploaded to Firebase Storage and persisted to Cloud Firestore (settings/global)! URL: ${downloadUrl.slice(0, 60)}...`);
+        showToast('Image uploaded and saved to settings/global!');
+      } catch (saveErr: any) {
+        console.warn('Auto-save after Storage upload notice:', saveErr);
+        showToast(`Image uploaded to Firebase Storage! Click "Save Settings" to confirm.`);
+      }
+    } catch (err: any) {
+      console.error('Firebase Storage upload error:', err);
+      const msg = `Upload failed: ${err.message || 'Check Firebase Storage bucket permissions'}`;
+      setSaveErrorMsg(msg);
+      showToast(msg);
+    } finally {
+      setIsUploadingImage(null);
     }
   };
 
@@ -526,10 +636,68 @@ export const AdminSettingsCenter: React.FC = () => {
           </div>
         </div>
 
+        {/* Cloud Firestore Persistence Status Indicator */}
+        <div className="mx-5 mt-4 p-2.5 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-slate-50 border-slate-200">
+          <div className="flex items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${auth.currentUser ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
+            <span className="font-bold text-slate-800">
+              Cloud Firestore Persistence:
+            </span>
+            <span className="text-slate-600">
+              {auth.currentUser
+                ? `Connected (${auth.currentUser.email}) • Saves persist live to settings/global`
+                : 'Session active • Click to connect Google Admin for direct Cloud Firestore write authority'}
+            </span>
+          </div>
+          {!auth.currentUser ? (
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await loginWithGoogle();
+                } catch (e: any) {
+                  showToast(e.message || 'Google Auth failed');
+                }
+              }}
+              className="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded font-bold text-[11px] flex items-center gap-1.5 shrink-0 cursor-pointer shadow-xs"
+            >
+              <span>Connect Google Admin</span>
+            </button>
+          ) : (
+            <span className="text-[10px] text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded font-black tracking-wide shrink-0 uppercase">
+              settings/global Sync Active
+            </span>
+          )}
+        </div>
+
         {saveSuccessMsg && (
-          <div className="mx-5 mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-700 flex items-center gap-2">
+          <div className="mx-5 mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-700 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>{saveSuccessMsg}</span>
+          </div>
+        )}
+
+        {saveErrorMsg && (
+          <div className="mx-5 mt-3 p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+              <span>{saveErrorMsg}</span>
+            </div>
+            {!auth.currentUser && (
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await loginWithGoogle();
+                  } catch (e: any) {
+                    showToast(e.message || 'Google Auth failed');
+                  }
+                }}
+                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded font-bold text-[11px] shrink-0 cursor-pointer"
+              >
+                Sign in with Google
+              </button>
+            )}
           </div>
         )}
 
@@ -641,58 +809,75 @@ export const AdminSettingsCenter: React.FC = () => {
 
           {/* BRANDING CATEGORY */}
           {activeCategory === 'branding' && (
-            <div className="space-y-4 text-xs">
-              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
-                <h3 className="font-bold text-slate-900 text-xs flex items-center gap-2">
-                  <Eye className="w-4 h-4 text-cyan-600" />
-                  <span>Logo Live Preview</span>
-                </h3>
-                <div className="p-3 bg-white border border-slate-200 rounded-lg flex items-center justify-center min-h-[70px]">
-                  {currentValues.main_logo ? (
-                    <img
-                      src={currentValues.main_logo}
-                      alt="Brand Logo"
-                      className="max-h-12 object-contain"
-                    />
-                  ) : (
-                    <span className="text-slate-400 text-xs italic">No logo configured</span>
-                  )}
+            <div className="space-y-5 text-xs">
+              {/* Branding Overview Card */}
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-slate-900 text-xs flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-cyan-600" />
+                    <span>Brand Assets & Firebase Storage</span>
+                  </h3>
+                  <span className="text-[10px] bg-cyan-100 text-cyan-800 font-bold px-2 py-0.5 rounded">
+                    Firebase Storage Integrated
+                  </span>
                 </div>
+                <p className="text-[11px] text-slate-500">
+                  Files uploaded here are stored directly in Firebase Storage (<code className="font-mono text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded">settings/[folder]/</code>) and their persistent HTTPS download URLs are saved in <code className="font-mono text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded">settings/global</code> in Cloud Firestore.
+                </p>
               </div>
 
-              <div className="space-y-3">
-                <div className="p-3 bg-white border border-slate-200 rounded-xl space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="font-bold text-slate-800 block">Main Store Logo</label>
-                    <label
-                      htmlFor="store-logo-file-upload"
-                      className="px-2.5 py-1 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Upload Logo File</span>
-                    </label>
-                    <input
-                      id="store-logo-file-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            const res = event.target?.result as string;
-                            if (res) {
-                              handleFieldChange('branding', 'main_logo', res);
-                              handleFieldChange('branding', 'logo_url', res);
-                              showToast('Store logo uploaded successfully');
-                            }
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
+              <div className="space-y-4">
+                {/* 1. MAIN STORE LOGO */}
+                <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-2.5 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <label className="font-bold text-slate-800 block text-xs">1. Main Store Logo</label>
+                      <p className="text-[10px] text-slate-400">Primary desktop navbar, invoice headers, and store identity</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="store-main-logo-upload"
+                        className={`px-3 py-1.5 rounded-lg text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors ${
+                          isUploadingImage === 'main_logo'
+                            ? 'bg-slate-400 cursor-not-allowed'
+                            : 'bg-cyan-600 hover:bg-cyan-700'
+                        }`}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{isUploadingImage === 'main_logo' ? 'Uploading to Storage...' : 'Upload Logo to Firebase'}</span>
+                      </label>
+                      <input
+                        id="store-main-logo-upload"
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploadingImage === 'main_logo'}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(file, 'main_logo', 'logos', 'logo_url');
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
+
+                  {/* Logo Live Preview */}
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center min-h-[64px]">
+                    {currentValues.main_logo || currentValues.logo_url ? (
+                      <img
+                        src={currentValues.main_logo || currentValues.logo_url}
+                        alt="Store Logo"
+                        className="max-h-12 max-w-full object-contain"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="text-slate-400 text-xs italic">No main logo configured</span>
+                    )}
+                  </div>
+
                   <input
                     type="url"
                     value={currentValues.main_logo || currentValues.logo_url || ''}
@@ -700,45 +885,204 @@ export const AdminSettingsCenter: React.FC = () => {
                       handleFieldChange('branding', 'main_logo', e.target.value);
                       handleFieldChange('branding', 'logo_url', e.target.value);
                     }}
-                    placeholder="https://www.cyberdynamictech.com/wp-content/uploads/...logo.png or uploaded image"
-                    className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
+                    placeholder="https://firebasestorage.googleapis.com/... or image URL"
+                    className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
                   />
-                  <p className="text-[11px] text-slate-400">
-                    Upload your logo image directly or enter an image URL. Updates across all headers, navbar, and checkout.
-                  </p>
                 </div>
 
-                <div>
-                  <label className="font-bold text-slate-800 block mb-1">Mobile Logo URL</label>
+                {/* 2. MOBILE COMPACT LOGO */}
+                <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-2.5 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <label className="font-bold text-slate-800 block text-xs">2. Mobile Store Logo</label>
+                      <p className="text-[10px] text-slate-400">Compact mark for smartphones and narrow screens</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="store-mobile-logo-upload"
+                        className={`px-3 py-1.5 rounded-lg text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors ${
+                          isUploadingImage === 'mobile_logo'
+                            ? 'bg-slate-400 cursor-not-allowed'
+                            : 'bg-cyan-600 hover:bg-cyan-700'
+                        }`}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{isUploadingImage === 'mobile_logo' ? 'Uploading to Storage...' : 'Upload Mobile Logo'}</span>
+                      </label>
+                      <input
+                        id="store-mobile-logo-upload"
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploadingImage === 'mobile_logo'}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(file, 'mobile_logo', 'logos', 'mobileLogoUrl');
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Mobile Logo Preview */}
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center min-h-[50px]">
+                    {currentValues.mobile_logo || currentValues.mobileLogoUrl ? (
+                      <img
+                        src={currentValues.mobile_logo || currentValues.mobileLogoUrl}
+                        alt="Mobile Logo"
+                        className="max-h-9 max-w-full object-contain"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="text-slate-400 text-xs italic">Default desktop logo will be used on mobile</span>
+                    )}
+                  </div>
+
                   <input
                     type="url"
-                    value={currentValues.mobile_logo || ''}
-                    onChange={(e) => handleFieldChange('branding', 'mobile_logo', e.target.value)}
-                    placeholder="Compact icon/logo for small screens"
-                    className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
+                    value={currentValues.mobile_logo || currentValues.mobileLogoUrl || ''}
+                    onChange={(e) => {
+                      handleFieldChange('branding', 'mobile_logo', e.target.value);
+                      handleFieldChange('branding', 'mobileLogoUrl', e.target.value);
+                    }}
+                    placeholder="https://firebasestorage.googleapis.com/... or image URL"
+                    className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
                   />
                 </div>
 
-                <div>
-                  <label className="font-bold text-slate-800 block mb-1">Favicon URL</label>
+                {/* 3. FAVICON */}
+                <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-2.5 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <label className="font-bold text-slate-800 block text-xs">3. Browser Favicon</label>
+                      <p className="text-[10px] text-slate-400">Browser tab icon (ICO, PNG, or SVG)</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="store-favicon-upload"
+                        className={`px-3 py-1.5 rounded-lg text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors ${
+                          isUploadingImage === 'favicon'
+                            ? 'bg-slate-400 cursor-not-allowed'
+                            : 'bg-cyan-600 hover:bg-cyan-700'
+                        }`}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{isUploadingImage === 'favicon' ? 'Uploading to Storage...' : 'Upload Favicon'}</span>
+                      </label>
+                      <input
+                        id="store-favicon-upload"
+                        type="file"
+                        accept="image/*,.ico"
+                        disabled={isUploadingImage === 'favicon'}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(file, 'favicon', 'favicons', 'faviconUrl');
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Favicon Preview */}
+                  <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center min-h-[44px]">
+                    {currentValues.favicon || currentValues.faviconUrl ? (
+                      <div className="flex items-center gap-2">
+                        <img
+                          src={currentValues.favicon || currentValues.faviconUrl}
+                          alt="Favicon"
+                          className="w-6 h-6 object-contain"
+                          referrerPolicy="no-referrer"
+                        />
+                        <span className="text-[11px] text-slate-600 font-medium">Browser tab icon preview</span>
+                      </div>
+                    ) : (
+                      <span className="text-slate-400 text-xs italic">No custom favicon configured</span>
+                    )}
+                  </div>
+
                   <input
                     type="url"
-                    value={currentValues.favicon || ''}
-                    onChange={(e) => handleFieldChange('branding', 'favicon', e.target.value)}
-                    className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
+                    value={currentValues.favicon || currentValues.faviconUrl || ''}
+                    onChange={(e) => {
+                      handleFieldChange('branding', 'favicon', e.target.value);
+                      handleFieldChange('branding', 'faviconUrl', e.target.value);
+                    }}
+                    placeholder="https://firebasestorage.googleapis.com/... or icon URL"
+                    className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
                   />
                 </div>
 
-                <div>
-                  <label className="font-bold text-slate-800 block mb-1">Default Product Placeholder Image</label>
+                {/* 4. DEFAULT PRODUCT PLACEHOLDER */}
+                <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-2.5 shadow-2xs">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                      <label className="font-bold text-slate-800 block text-xs">4. Default Product Placeholder Image</label>
+                      <p className="text-[10px] text-slate-400">Fallback image shown when a product has no image or image fails to load</p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label
+                        htmlFor="store-placeholder-upload"
+                        className={`px-3 py-1.5 rounded-lg text-white font-bold text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors ${
+                          isUploadingImage === 'default_product_placeholder'
+                            ? 'bg-slate-400 cursor-not-allowed'
+                            : 'bg-cyan-600 hover:bg-cyan-700'
+                        }`}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{isUploadingImage === 'default_product_placeholder' ? 'Uploading to Storage...' : 'Upload Placeholder'}</span>
+                      </label>
+                      <input
+                        id="store-placeholder-upload"
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploadingImage === 'default_product_placeholder'}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleImageUpload(file, 'default_product_placeholder', 'placeholders', 'defaultProductPlaceholder');
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Placeholder Preview */}
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center min-h-[64px]">
+                    {currentValues.default_product_placeholder || currentValues.defaultProductPlaceholder ? (
+                      <img
+                        src={currentValues.default_product_placeholder || currentValues.defaultProductPlaceholder}
+                        alt="Product Placeholder"
+                        className="max-h-16 max-w-full object-contain rounded"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="text-slate-400 text-xs italic">Default CDT hardware placeholder used</span>
+                    )}
+                  </div>
+
                   <input
                     type="url"
-                    value={currentValues.default_product_placeholder || ''}
-                    onChange={(e) => handleFieldChange('branding', 'default_product_placeholder', e.target.value)}
-                    className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs"
+                    value={currentValues.default_product_placeholder || currentValues.defaultProductPlaceholder || ''}
+                    onChange={(e) => {
+                      handleFieldChange('branding', 'default_product_placeholder', e.target.value);
+                      handleFieldChange('branding', 'defaultProductPlaceholder', e.target.value);
+                    }}
+                    placeholder="https://firebasestorage.googleapis.com/... or image URL"
+                    className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
                   />
                 </div>
 
+                {/* THEME COLOR SETTING */}
                 <div className="pt-2">
                   <ThemeColorSetting mode="full" />
                 </div>
@@ -810,8 +1154,104 @@ export const AdminSettingsCenter: React.FC = () => {
           {/* HOMEPAGE CATEGORY */}
           {activeCategory === 'homepage' && (
             <div className="space-y-4 text-xs">
+              {/* HERO BANNER IMAGE UPLOAD WIDGET */}
               <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
-                <h3 className="font-bold text-slate-900 text-xs">Hero Banner Setup</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                      <ImageIcon className="w-4 h-4 text-[#920d35]" />
+                      <span>Storefront Hero Banner Image</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Upload promotional graphic or photo displayed at the top of the homepage (dark red, maroon, and gold frame).
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="settings-hero-banner-upload"
+                      className="px-3 py-1.5 bg-[#920d35] hover:bg-[#770929] text-white font-bold text-xs rounded-lg flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors border border-[#f59e0b]/40"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-[#fbbf24]" />
+                      <span>Upload Banner</span>
+                    </label>
+                    <input
+                      id="settings-hero-banner-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            if (typeof reader.result === 'string') {
+                              handleFieldChange('homepage', 'hero_banner_image', reader.result);
+                              handleFieldChange('homepage', 'hero_image', reader.result);
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleFieldChange('homepage', 'hero_banner_image', '/assets/cdt-hero-banner.svg');
+                        handleFieldChange('homepage', 'hero_image', '/assets/cdt-hero-banner.svg');
+                      }}
+                      className="px-2.5 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold text-xs rounded-lg transition-colors cursor-pointer"
+                    >
+                      Use Default SVG
+                    </button>
+                  </div>
+                </div>
+
+                {/* Live Preview */}
+                <div className="relative rounded-lg overflow-hidden border border-slate-300 bg-slate-900 min-h-[120px] max-h-[220px] flex items-center justify-center">
+                  {currentValues.hero_banner_image || currentValues.hero_image ? (
+                    <img
+                      src={currentValues.hero_banner_image || currentValues.hero_image}
+                      alt="Hero Banner Preview"
+                      className="w-full h-auto max-h-[220px] object-cover"
+                    />
+                  ) : (
+                    <span className="text-slate-400 text-xs italic">Default banner '/assets/cdt-hero-banner.svg' will be shown</span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Banner Image URL or Data</label>
+                    <input
+                      type="text"
+                      value={currentValues.hero_banner_image || currentValues.hero_image || ''}
+                      onChange={(e) => {
+                        handleFieldChange('homepage', 'hero_banner_image', e.target.value);
+                        handleFieldChange('homepage', 'hero_image', e.target.value);
+                      }}
+                      placeholder="/assets/cdt-hero-banner.svg"
+                      className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Click Destination / View</label>
+                    <input
+                      type="text"
+                      value={currentValues.hero_banner_link || 'shop'}
+                      onChange={(e) => handleFieldChange('homepage', 'hero_banner_link', e.target.value)}
+                      placeholder="shop, category:laptops, or URL"
+                      className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-slate-200 rounded-xl p-4 bg-slate-50 space-y-3">
+                <h3 className="font-bold text-slate-900 text-xs">Hero Text Overlay (Optional)</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="font-bold text-slate-700 block mb-1">Banner Title</label>
@@ -2560,7 +3000,7 @@ export const AdminSettingsCenter: React.FC = () => {
               <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
                 <div>
                   <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-indigo-600" />
+                    <Bell className="w-4 h-4 text-indigo-600" />
                     <span>Notification Channels & Event Triggers</span>
                   </h4>
                   <p className="text-[11px] text-slate-500 mt-0.5">

@@ -181,7 +181,7 @@ export const PosPage: React.FC = () => {
     async function loadProducts() {
       setLoadingProducts(true);
       try {
-        const res = await api.getProducts({ limit: 150 });
+        const res = await api.getProducts({ limit: 500 });
         if (res && res.products) {
           setProducts(res.products);
         }
@@ -192,14 +192,27 @@ export const PosPage: React.FC = () => {
       }
     }
     loadProducts();
+    // Auto-focus barcode input for retail cashier workstation
+    const timer = setTimeout(() => {
+      barcodeInputRef.current?.focus();
+    }, 300);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Keyboard shortcut listener: F2 = Camera Scanner, F9 = Complete Sale, Esc = Clear / Close
+  // Keyboard shortcut listener: F1 = Barcode Focus, F2 = Camera Scanner, F4 = Hold Order, F9 = Complete Sale, Esc = Clear / Close
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'F2') {
+      if (e.key === 'F1') {
+        e.preventDefault();
+        barcodeInputRef.current?.focus();
+      } else if (e.key === 'F2') {
         e.preventDefault();
         setShowCameraScanner((prev) => !prev);
+      } else if (e.key === 'F4') {
+        e.preventDefault();
+        if (cart.length > 0) {
+          handleHoldOrder();
+        }
       } else if (e.key === 'F9') {
         e.preventDefault();
         if (cart.length > 0 && !isProcessingSale) {
@@ -216,7 +229,7 @@ export const PosPage: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [cart, isProcessingSale, showReceiptModal, variationProduct, showCustomItemModal, showCameraScanner]);
+  }, [cart, isProcessingSale, showReceiptModal, variationProduct, showCustomItemModal, showCameraScanner, heldOrders]);
 
   // Extract unique categories from loaded products
   const categoriesList = useMemo(() => {
@@ -685,11 +698,11 @@ export const PosPage: React.FC = () => {
   // FULL AUTHORIZED POS TERMINAL INTERFACE
   // ==========================================
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col font-sans select-none">
+    <div className="h-screen max-h-screen w-full overflow-hidden flex flex-col bg-slate-100 text-slate-900 font-sans select-none">
       {/* ================= TOP POS BAR (DESKTOP >= LG) ================= */}
-      <header className="hidden lg:flex bg-slate-900 text-white px-4 py-2.5 items-center justify-between shadow-md border-b border-slate-800 shrink-0">
+      <header className="hidden lg:flex bg-[#0f172a] text-white px-4 py-2.5 items-center justify-between shadow-md border-b border-slate-800 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-cyan-500 text-slate-950 font-black rounded-lg flex items-center justify-center shadow-md">
+          <div className="w-9 h-9 bg-gradient-to-br from-[#920d35] to-[#580c1f] text-amber-300 font-black rounded-lg flex items-center justify-center shadow-md border border-amber-400/30">
             <Store className="w-5 h-5" />
           </div>
           <div>
@@ -699,7 +712,7 @@ export const PosPage: React.FC = () => {
               </span>
               <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                ONLINE REGISTER
+                ONLINE WORKSTATION
               </span>
             </div>
             <p className="text-[11px] text-slate-400 truncate max-w-xs sm:max-w-md">
@@ -709,8 +722,8 @@ export const PosPage: React.FC = () => {
         </div>
 
         {/* Center Clock */}
-        <div className="flex items-center gap-2 px-3 py-1 bg-slate-800/80 border border-slate-700 rounded-lg text-xs text-slate-300 font-mono">
-          <Clock className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="flex items-center gap-2 px-3 py-1 bg-slate-800/90 border border-slate-700 rounded-lg text-xs text-slate-300 font-mono shadow-inner">
+          <Clock className="w-3.5 h-3.5 text-amber-400" />
           <span>
             {currentTime.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} •{' '}
             {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -723,7 +736,7 @@ export const PosPage: React.FC = () => {
           {heldOrders.length > 0 && (
             <button
               onClick={() => setShowHeldOrdersModal(true)}
-              className="px-2.5 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 bg-[#580c1f]/80 hover:bg-[#580c1f] text-amber-300 border border-amber-500/50 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
             >
               <Pause className="w-3.5 h-3.5 text-amber-400" />
               <span>Held ({heldOrders.length})</span>
@@ -733,11 +746,11 @@ export const PosPage: React.FC = () => {
           {/* Camera Scanner Shortcut */}
           <button
             onClick={() => setShowCameraScanner(true)}
-            className="px-2.5 py-1.5 bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-2.5 py-1.5 bg-[#920d35] hover:bg-[#770929] text-white border border-amber-400/40 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
             title="Scan product barcode with device camera (F2)"
           >
-            <Camera className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Camera Scan</span>
+            <Camera className="w-3.5 h-3.5 text-amber-300" />
+            <span>Camera Scan (F2)</span>
           </button>
 
           {/* Drawer / Daily Summary Stats */}
@@ -747,20 +760,20 @@ export const PosPage: React.FC = () => {
             className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             title="View today's register drawer summary"
           >
-            <FileText className="w-3.5 h-3.5 text-cyan-400" />
+            <FileText className="w-3.5 h-3.5 text-amber-400" />
             <span>Register Stats</span>
           </button>
 
           {/* Cashier Badge */}
           <div className="flex items-center gap-2 px-2.5 py-1 bg-slate-800/90 border border-slate-700 rounded-lg">
-            <div className="w-6 h-6 rounded-full bg-cyan-600 text-white flex items-center justify-center text-xs font-bold">
+            <div className="w-6 h-6 rounded-full bg-[#920d35] text-white flex items-center justify-center text-xs font-bold">
               {user.first_name?.[0] || 'C'}
             </div>
             <div className="text-left">
               <p className="text-xs font-bold text-white leading-tight">
                 {user.first_name} {user.last_name || ''}
               </p>
-              <p className="text-[10px] text-cyan-400 capitalize">{user.role}</p>
+              <p className="text-[10px] text-amber-400 capitalize">{user.role}</p>
             </div>
           </div>
 
@@ -779,7 +792,7 @@ export const PosPage: React.FC = () => {
           <button
             onClick={toggleFullscreen}
             className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-            title="Toggle Fullscreen"
+            title="Toggle Fullscreen Kiosk Mode"
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
@@ -787,7 +800,7 @@ export const PosPage: React.FC = () => {
           {/* Exit POS / Back to Store */}
           <button
             onClick={() => setCurrentView('home')}
-            className="px-2.5 py-1.5 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
+            className="px-2.5 py-1.5 bg-[#580c1f]/80 hover:bg-[#580c1f] text-amber-200 border border-amber-400/30 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
             title="Exit POS register and return to online catalog"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -797,11 +810,11 @@ export const PosPage: React.FC = () => {
       </header>
 
       {/* ================= TOP POS BAR (MOBILE < LG) ================= */}
-      <header className="lg:hidden bg-slate-900 text-white px-3 py-2 border-b border-slate-800 shrink-0">
+      <header className="lg:hidden bg-[#0f172a] text-white px-3 py-2 border-b border-slate-800 shrink-0">
         <div className="flex items-center justify-between gap-2">
           {/* Brand & Register Name */}
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-lg bg-cyan-500 text-slate-950 flex items-center justify-center shrink-0 font-black shadow-xs">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#920d35] to-[#580c1f] text-amber-300 flex items-center justify-center shrink-0 font-black shadow-xs border border-amber-400/30">
               <Store className="w-4 h-4" />
             </div>
             <div className="min-w-0">
@@ -819,23 +832,21 @@ export const PosPage: React.FC = () => {
 
           {/* Quick Header Actions on Mobile */}
           <div className="flex items-center gap-1.5 shrink-0">
-            {/* Camera Scan Button (Instant Trigger for mobile device camera!) */}
             <button
               type="button"
               onClick={() => setShowCameraScanner(true)}
-              className="h-8 px-2.5 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all"
+              className="h-8 px-2.5 bg-[#920d35] hover:bg-[#770929] active:scale-95 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all border border-amber-400/30"
               title="Camera Barcode Scanner"
             >
-              <Camera className="w-3.5 h-3.5 text-cyan-200" />
+              <Camera className="w-3.5 h-3.5 text-amber-300" />
               <span>Scan</span>
             </button>
 
-            {/* Held Orders Badge (if any) */}
             {heldOrders.length > 0 && (
               <button
                 type="button"
                 onClick={() => setShowHeldOrdersModal(true)}
-                className="h-8 px-2 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"
+                className="h-8 px-2 bg-[#580c1f] text-amber-300 border border-amber-500/40 rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"
                 title={`Held orders (${heldOrders.length})`}
               >
                 <Pause className="w-3.5 h-3.5" />
@@ -843,7 +854,6 @@ export const PosPage: React.FC = () => {
               </button>
             )}
 
-            {/* Mobile More Options Menu Button */}
             <button
               type="button"
               onClick={() => setShowMobileMoreMenu(true)}
@@ -862,7 +872,7 @@ export const PosPage: React.FC = () => {
             onClick={() => setMobileTab('catalog')}
             className={`py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               mobileTab === 'catalog'
-                ? 'bg-cyan-600 text-white shadow-sm'
+                ? 'bg-[#920d35] text-white shadow-xs border border-amber-400/30'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
@@ -876,14 +886,14 @@ export const PosPage: React.FC = () => {
             onClick={() => setMobileTab('cart')}
             className={`py-1.5 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer relative ${
               mobileTab === 'cart'
-                ? 'bg-cyan-600 text-white shadow-sm'
+                ? 'bg-[#920d35] text-white shadow-xs border border-amber-400/30'
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             <CreditCard className="w-3.5 h-3.5" />
             <span>Register Cart</span>
             {totalCartQty > 0 && (
-              <span className="px-1.5 py-0.5 bg-emerald-500 text-slate-950 text-[10px] font-black rounded-full">
+              <span className="px-1.5 py-0.5 bg-amber-400 text-slate-950 text-[10px] font-black rounded-full">
                 {totalCartQty}
               </span>
             )}
@@ -906,19 +916,19 @@ export const PosPage: React.FC = () => {
               <div className="flex-1 flex gap-1.5">
                 <form onSubmit={handleBarcodeSubmit} className="flex-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Barcode className="h-4 w-4 text-cyan-600 animate-pulse" />
+                    <Barcode className="h-4 w-4 text-[#920d35] animate-pulse" />
                   </div>
                   <input
                     ref={barcodeInputRef}
                     type="text"
                     value={barcodeInput}
                     onChange={(e) => setBarcodeInput(e.target.value)}
-                    placeholder="Scan barcode or type SKU / Name & press Enter..."
-                    className="w-full pl-9 pr-20 py-2 text-xs font-mono bg-slate-50 border border-cyan-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-cyan-500 focus:bg-white"
+                    placeholder="Scan barcode or type SKU / Name & press Enter (F1)..."
+                    className="w-full pl-9 pr-20 py-2 text-xs font-mono bg-slate-50 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-[#920d35] focus:border-[#920d35] focus:bg-white"
                   />
                   <button
                     type="submit"
-                    className="absolute right-1 top-1 bottom-1 px-3 bg-cyan-600 hover:bg-cyan-700 text-white text-[11px] font-bold rounded-md transition-colors cursor-pointer"
+                    className="absolute right-1 top-1 bottom-1 px-3 bg-[#920d35] hover:bg-[#770929] text-white text-[11px] font-bold rounded-md transition-colors cursor-pointer border border-amber-400/30"
                   >
                     Scan Add
                   </button>
@@ -927,11 +937,11 @@ export const PosPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowCameraScanner(true)}
-                  className="px-3 py-2 bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-500 hover:to-cyan-600 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all shrink-0 hover:shadow-md active:scale-95"
+                  className="px-3 py-2 bg-gradient-to-r from-[#920d35] to-[#580c1f] hover:brightness-110 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all shrink-0 hover:shadow-md active:scale-95 border border-amber-400/40"
                   title="Open Camera Barcode Scanner (F2)"
                 >
-                  <Camera className="w-4 h-4 text-cyan-200 animate-pulse" />
-                  <span className="hidden sm:inline">Camera Scan</span>
+                  <Camera className="w-4 h-4 text-amber-300 animate-pulse" />
+                  <span className="hidden sm:inline">Camera (F2)</span>
                 </button>
               </div>
 
@@ -944,7 +954,7 @@ export const PosPage: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Quick filter products..."
-                    className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-hidden focus:border-cyan-500 focus:bg-white"
+                    className="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-lg focus:outline-hidden focus:border-[#920d35] focus:bg-white"
                   />
                   {searchQuery && (
                     <button
@@ -963,7 +973,7 @@ export const PosPage: React.FC = () => {
                     className="sm:hidden px-2.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 shrink-0 transition-colors cursor-pointer active:scale-95"
                     title="Add custom line item"
                   >
-                    <Plus className="w-3.5 h-3.5 text-cyan-400" />
+                    <Plus className="w-3.5 h-3.5 text-amber-400" />
                   </button>
                 )}
               </div>
@@ -972,9 +982,9 @@ export const PosPage: React.FC = () => {
               {config?.pos?.allow_custom_line_items !== false && (
                 <button
                   onClick={() => setShowCustomItemModal(true)}
-                  className="hidden sm:flex px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold items-center justify-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95"
+                  className="hidden sm:flex px-3 py-2 bg-[#0f172a] hover:bg-slate-800 text-white rounded-lg text-xs font-bold items-center justify-center gap-1.5 shrink-0 transition-colors cursor-pointer active:scale-95 border border-slate-700"
                 >
-                  <Plus className="w-3.5 h-3.5 text-cyan-400" />
+                  <Plus className="w-3.5 h-3.5 text-amber-400" />
                   <span>Custom Item</span>
                 </button>
               )}
@@ -988,7 +998,7 @@ export const PosPage: React.FC = () => {
                   onClick={() => setSelectedCategory(cat.slug)}
                   className={`px-3 py-1 rounded-full whitespace-nowrap text-xs font-semibold transition-all cursor-pointer ${
                     selectedCategory === cat.slug
-                      ? 'bg-cyan-600 text-white shadow-xs font-bold'
+                      ? 'bg-[#920d35] text-white shadow-xs font-bold border border-amber-400/40'
                       : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
                   }`}
                 >
@@ -1002,7 +1012,7 @@ export const PosPage: React.FC = () => {
           <div className="flex-1 p-3 overflow-y-auto">
             {loadingProducts ? (
               <div className="h-64 flex flex-col items-center justify-center text-slate-500">
-                <RefreshCw className="w-8 h-8 animate-spin text-cyan-600 mb-2" />
+                <RefreshCw className="w-8 h-8 animate-spin text-[#920d35] mb-2" />
                 <p className="text-xs font-semibold">Loading product catalog...</p>
               </div>
             ) : filteredProducts.length === 0 ? (
@@ -1028,7 +1038,7 @@ export const PosPage: React.FC = () => {
                           addToCart(p);
                         }
                       }}
-                      className="group bg-white rounded-xl border border-slate-200 hover:border-cyan-500 hover:shadow-md p-2.5 flex flex-col text-left transition-all relative overflow-hidden cursor-pointer"
+                      className="group bg-white rounded-xl border border-slate-200 hover:border-[#920d35] hover:shadow-md p-2.5 flex flex-col text-left transition-all relative overflow-hidden cursor-pointer"
                     >
                       {/* Image Thumbnail */}
                       <div className="w-full h-24 bg-slate-50 rounded-lg overflow-hidden mb-2 relative flex items-center justify-center">
@@ -1055,7 +1065,7 @@ export const PosPage: React.FC = () => {
                         </span>
 
                         {hasVariations && (
-                          <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-slate-900/80 text-cyan-300 rounded text-[9px] font-mono font-bold">
+                          <span className="absolute bottom-1 left-1 px-1.5 py-0.5 bg-slate-900/90 text-amber-300 border border-amber-400/30 rounded text-[9px] font-mono font-bold">
                             Variants
                           </span>
                         )}
@@ -1068,16 +1078,16 @@ export const PosPage: React.FC = () => {
                       </div>
 
                       {/* Product Name */}
-                      <h4 className="text-xs font-bold text-slate-800 line-clamp-2 leading-tight mb-1 min-h-[30px] group-hover:text-cyan-700">
+                      <h4 className="text-xs font-bold text-slate-800 line-clamp-2 leading-tight mb-1 min-h-[30px] group-hover:text-[#920d35]">
                         {p.name}
                       </h4>
 
                       {/* Price & Add Indicator */}
                       <div className="mt-auto pt-1 flex items-center justify-between border-t border-slate-100">
-                        <span className="text-xs font-black text-slate-900">
+                        <span className="text-xs font-black text-[#920d35]">
                           {formatPrice(p.price)}
                         </span>
-                        <span className="w-6 h-6 rounded-md bg-slate-100 group-hover:bg-cyan-600 group-hover:text-white text-slate-600 flex items-center justify-center transition-colors">
+                        <span className="w-6 h-6 rounded-md bg-slate-100 group-hover:bg-[#920d35] group-hover:text-white text-slate-600 flex items-center justify-center transition-colors">
                           <Plus className="w-3.5 h-3.5" />
                         </span>
                       </div>
@@ -1111,7 +1121,7 @@ export const PosPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setMobileTab('cart')}
-                className="h-10 px-4 bg-cyan-600 hover:bg-cyan-500 active:scale-95 text-white font-black text-xs rounded-xl shadow-lg flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
+                className="h-10 px-4 bg-[#920d35] hover:bg-[#770929] active:scale-95 text-white font-black text-xs rounded-xl shadow-lg flex items-center gap-1.5 cursor-pointer transition-all shrink-0 border border-amber-400/30"
               >
                 <span>Review & Charge</span>
                 <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
@@ -1120,31 +1130,32 @@ export const PosPage: React.FC = () => {
           )}
         </div>
 
-        {/* ================= RIGHT: REGISTER CART & TENDER ================= */}
+        {/* ================= RIGHT: REGISTER CART & TENDER (DESKTOP WORKSTATION) ================= */}
         <div
           className={`${
             mobileTab === 'cart' ? 'flex flex-col flex-1 h-full' : 'hidden'
-          } lg:flex lg:flex-col lg:w-[420px] xl:w-[460px] bg-white shrink-0 shadow-lg border-l border-slate-200 overflow-hidden`}
+          } lg:flex lg:flex-col lg:w-[440px] xl:w-[480px] 2xl:w-[520px] bg-white shrink-0 shadow-2xl border-l border-slate-300 overflow-hidden`}
         >
           {/* Mobile Top Bar for Cart */}
-          <div className="lg:hidden p-2.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+          <div className="lg:hidden p-2.5 bg-[#0f172a] text-white flex items-center justify-between border-b border-slate-800 shrink-0">
             <button
               type="button"
               onClick={() => setMobileTab('catalog')}
-              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-cyan-400 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 text-amber-300 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-700"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Add More Items</span>
             </button>
             <div className="text-right">
               <span className="text-[10px] text-slate-400">Total Due</span>
-              <p className="text-xs font-black text-white">{formatPrice(finalTotal)}</p>
+              <p className="text-xs font-black text-amber-300">{formatPrice(finalTotal)}</p>
             </div>
           </div>
+
           {/* Customer Selector Bar */}
-          <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#580c1f]/10 text-[#920d35] flex items-center justify-center shrink-0 border border-[#920d35]/20 font-bold">
                 <User className="w-4 h-4" />
               </div>
               <div className="min-w-0">
@@ -1163,10 +1174,10 @@ export const PosPage: React.FC = () => {
               <button
                 onClick={handleHoldOrder}
                 disabled={cart.length === 0}
-                className="px-2 py-1 text-[11px] bg-amber-50 hover:bg-amber-100 disabled:opacity-40 border border-amber-300 text-amber-800 rounded-md font-bold flex items-center gap-1 transition-colors cursor-pointer"
-                title="Hold current order to serve another customer"
+                className="px-2 py-1 text-[11px] bg-[#580c1f]/10 hover:bg-[#580c1f]/20 disabled:opacity-40 border border-[#580c1f]/30 text-[#920d35] rounded-md font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                title="Hold current order to serve another customer (F4)"
               >
-                <Pause className="w-3 h-3" />
+                <Pause className="w-3 h-3 text-[#920d35]" />
                 <span>Hold</span>
               </button>
             </div>
@@ -1174,7 +1185,7 @@ export const PosPage: React.FC = () => {
 
           {/* Customer Inline Edit Panel */}
           {isEditingCustomer && (
-            <div className="p-3 bg-cyan-50/50 border-b border-cyan-200 text-xs space-y-2">
+            <div className="p-3 bg-slate-100/80 border-b border-slate-300 text-xs space-y-2 shrink-0">
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-[10px] font-bold text-slate-700 block mb-0.5">Customer Name</label>
@@ -1182,7 +1193,7 @@ export const PosPage: React.FC = () => {
                     type="text"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs"
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs focus:border-[#920d35]"
                     placeholder="Walk-in Customer"
                   />
                 </div>
@@ -1192,7 +1203,7 @@ export const PosPage: React.FC = () => {
                     type="text"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs"
+                    className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs focus:border-[#920d35]"
                     placeholder="+256 7xx xxx xxx"
                   />
                 </div>
@@ -1203,7 +1214,7 @@ export const PosPage: React.FC = () => {
                   type="email"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs"
+                  className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded text-xs focus:border-[#920d35]"
                   placeholder="customer@domain.com"
                 />
               </div>
@@ -1211,21 +1222,21 @@ export const PosPage: React.FC = () => {
           )}
 
           {/* Cart Items List */}
-          <div className="flex-1 p-3 overflow-y-auto divide-y divide-slate-100">
+          <div className="flex-1 p-3 overflow-y-auto divide-y divide-slate-100 min-h-0">
             {cart.length === 0 ? (
               <div className="h-full min-h-[220px] flex flex-col items-center justify-center text-slate-400 text-center p-6">
                 <Barcode className="w-12 h-12 text-slate-300 mb-2" />
-                <p className="text-sm font-bold text-slate-600">Register Cart Empty</p>
+                <p className="text-sm font-bold text-slate-700">Register Cart Empty</p>
                 <p className="text-xs text-slate-400 mt-1 max-w-xs">
                   Scan a barcode or click any product from the catalog to ring up an item
                 </p>
                 <button
                   type="button"
                   onClick={() => setShowCameraScanner(true)}
-                  className="mt-3 px-3 py-1.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-700 border border-cyan-200 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  className="mt-3 px-3 py-1.5 bg-[#920d35]/10 hover:bg-[#920d35]/20 text-[#920d35] border border-[#920d35]/30 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
                 >
-                  <Camera className="w-3.5 h-3.5 text-cyan-600" />
-                  <span>Scan with Camera</span>
+                  <Camera className="w-3.5 h-3.5 text-[#920d35]" />
+                  <span>Scan with Camera (F2)</span>
                 </button>
               </div>
             ) : (
@@ -1236,7 +1247,7 @@ export const PosPage: React.FC = () => {
                     <p className="text-[10px] font-mono text-slate-400 mt-0.5">{item.sku}</p>
                     <p className="text-xs font-semibold text-slate-700 mt-1">
                       {formatPrice(item.unitPrice)} × {item.quantity} ={' '}
-                      <strong className="font-bold text-slate-900">
+                      <strong className="font-black text-[#920d35]">
                         {formatPrice(item.unitPrice * item.quantity)}
                       </strong>
                     </p>
@@ -1290,14 +1301,14 @@ export const PosPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setDiscountType('fixed')}
-                      className={`px-2 py-1 ${discountType === 'fixed' ? 'bg-cyan-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                      className={`px-2 py-1 ${discountType === 'fixed' ? 'bg-[#920d35] text-white' : 'text-slate-600 hover:bg-slate-100'}`}
                     >
                       UGX
                     </button>
                     <button
                       type="button"
                       onClick={() => setDiscountType('percent')}
-                      className={`px-2 py-1 ${discountType === 'percent' ? 'bg-cyan-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                      className={`px-2 py-1 ${discountType === 'percent' ? 'bg-[#920d35] text-white' : 'text-slate-600 hover:bg-slate-100'}`}
                     >
                       %
                     </button>
@@ -1344,7 +1355,7 @@ export const PosPage: React.FC = () => {
 
               <div className="flex justify-between items-baseline pt-1.5 border-t border-slate-300">
                 <span className="text-sm font-bold text-slate-900">Total Due</span>
-                <span className="text-xl font-black text-cyan-900 tracking-tight">
+                <span className="text-2xl font-black text-[#920d35] font-mono tracking-tight">
                   {formatPrice(finalTotal)}
                 </span>
               </div>
@@ -1370,7 +1381,7 @@ export const PosPage: React.FC = () => {
                 onClick={() => setPaymentMethod('momo')}
                 className={`py-2 px-1 rounded-lg text-xs font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
                   paymentMethod === 'momo'
-                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    ? 'bg-[#f59e0b] text-slate-950 font-black shadow-sm border border-amber-600/30'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 }`}
               >
@@ -1396,7 +1407,7 @@ export const PosPage: React.FC = () => {
                 onClick={() => setPaymentMethod('card')}
                 className={`py-2 px-1 rounded-lg text-xs font-bold flex flex-col items-center gap-1 transition-all cursor-pointer ${
                   paymentMethod === 'card'
-                    ? 'bg-cyan-700 text-white shadow-sm'
+                    ? 'bg-[#0f172a] text-white shadow-sm'
                     : 'bg-white hover:bg-slate-100 text-slate-700 border border-slate-200'
                 }`}
               >
@@ -1415,7 +1426,7 @@ export const PosPage: React.FC = () => {
                     value={amountTendered}
                     onChange={(e) => setAmountTendered(e.target.value)}
                     placeholder={finalTotal.toString()}
-                    className="w-36 px-2.5 py-1 text-right font-mono font-bold bg-slate-50 border border-slate-300 rounded focus:bg-white text-xs"
+                    className="w-36 px-2.5 py-1 text-right font-mono font-bold bg-slate-50 border border-slate-300 rounded focus:bg-white text-xs focus:border-[#920d35]"
                   />
                 </div>
 
@@ -1425,7 +1436,7 @@ export const PosPage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleQuickCash(finalTotal)}
-                      className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded whitespace-nowrap cursor-pointer"
+                      className="px-2 py-1 bg-slate-100 hover:bg-[#920d35] hover:text-white text-slate-800 rounded whitespace-nowrap cursor-pointer transition-colors"
                     >
                       Exact
                     </button>
@@ -1501,23 +1512,56 @@ export const PosPage: React.FC = () => {
             <button
               onClick={handleCompleteSale}
               disabled={cart.length === 0 || isProcessingSale}
-              className="w-full min-h-[48px] py-3.5 bg-cyan-600 hover:bg-cyan-500 active:scale-[0.99] disabled:opacity-50 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full min-h-[50px] py-3.5 bg-gradient-to-r from-[#920d35] via-[#770929] to-[#580c1f] hover:brightness-110 active:scale-[0.99] disabled:opacity-50 text-white font-black text-sm sm:text-base rounded-xl shadow-lg shadow-red-950/25 border border-amber-400/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               {isProcessingSale ? (
                 <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin text-amber-300" />
                   <span>Processing Transaction...</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-5 h-5" />
-                  <span>CHARGE {formatPrice(finalTotal)} (F9)</span>
+                  <CheckCircle className="w-5 h-5 text-amber-300" />
+                  <span>CHARGE {formatPrice(finalTotal)}</span>
+                  <span className="px-1.5 py-0.5 bg-amber-400 text-slate-950 text-[11px] font-black rounded ml-1 shadow-xs">
+                    F9
+                  </span>
                 </>
               )}
             </button>
           </div>
         </div>
       </div>
+
+      {/* ================= DESKTOP WORKSTATION SHORTCUTS FOOTER ================= */}
+      <footer className="hidden lg:flex items-center justify-between px-4 py-1.5 bg-[#0f172a] text-slate-300 text-xs font-mono border-t border-slate-800 shrink-0">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-1.5 py-0.5 bg-slate-800 text-amber-300 rounded border border-slate-700 font-bold">F1</kbd>
+            <span>Barcode Focus</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-1.5 py-0.5 bg-slate-800 text-amber-300 rounded border border-slate-700 font-bold">F2</kbd>
+            <span>Camera Scanner</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-1.5 py-0.5 bg-slate-800 text-amber-300 rounded border border-slate-700 font-bold">F4</kbd>
+            <span>Hold Order</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-1.5 py-0.5 bg-[#920d35] text-white rounded border border-amber-400/40 font-bold">F9</kbd>
+            <span>Charge &amp; Complete</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <kbd className="px-1.5 py-0.5 bg-slate-800 text-slate-300 rounded border border-slate-700 font-bold">Esc</kbd>
+            <span>Close Modals</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-slate-400 text-[11px]">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>CYBER DYNAMIC TECHNOLOGIES WORKSTATION</span>
+        </div>
+      </footer>
 
       {/* ================= THERMAL RECEIPT PREVIEW MODAL ================= */}
       {showReceiptModal && receiptDetails && (
@@ -1661,14 +1705,14 @@ export const PosPage: React.FC = () => {
             <div className="p-3 bg-slate-100 border-t border-slate-200 flex gap-2">
               <button
                 onClick={handlePrintReceipt}
-                className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="flex-1 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-slate-700"
               >
-                <Printer className="w-4 h-4 text-cyan-400" />
+                <Printer className="w-4 h-4 text-amber-400" />
                 <span>Print Receipt (Ctrl+P)</span>
               </button>
               <button
                 onClick={() => setShowReceiptModal(false)}
-                className="px-4 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                className="px-4 py-2.5 bg-[#920d35] hover:bg-[#770929] text-white rounded-xl text-xs font-bold transition-colors cursor-pointer border border-amber-400/40"
               >
                 New Sale (Esc)
               </button>
@@ -1683,7 +1727,7 @@ export const PosPage: React.FC = () => {
           <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-6 space-y-4">
             <div className="flex items-start justify-between">
               <div>
-                <span className="text-[10px] font-bold text-cyan-600 uppercase tracking-wider">Select Specification</span>
+                <span className="text-[10px] font-bold text-[#920d35] uppercase tracking-wider">Select Specification</span>
                 <h3 className="text-sm font-bold text-slate-900 mt-0.5">{variationProduct.name}</h3>
               </div>
               <button onClick={() => setVariationProduct(null)} className="text-slate-400 hover:text-slate-600">
@@ -1699,15 +1743,15 @@ export const PosPage: React.FC = () => {
                     addToCart(variationProduct, variant);
                     setVariationProduct(null);
                   }}
-                  className="w-full py-2.5 px-3 rounded-lg hover:bg-cyan-50 border border-slate-200 hover:border-cyan-400 flex items-center justify-between text-left transition-all cursor-pointer group"
+                  className="w-full py-2.5 px-3 rounded-lg hover:bg-red-50 border border-slate-200 hover:border-[#920d35] flex items-center justify-between text-left transition-all cursor-pointer group"
                 >
                   <div>
-                    <p className="text-xs font-bold text-slate-800 group-hover:text-cyan-800">
+                    <p className="text-xs font-bold text-slate-800 group-hover:text-[#920d35]">
                       {Object.values(variant.attributes || {}).join(' / ') || `Variation #${variant.id}`}
                     </p>
                     <p className="text-[10px] font-mono text-slate-400">{variant.sku || `SKU-${variant.id}`}</p>
                   </div>
-                  <span className="text-xs font-black text-slate-900">{formatPrice(variant.price)}</span>
+                  <span className="text-xs font-black text-[#920d35] font-mono">{formatPrice(variant.price)}</span>
                 </button>
               ))}
             </div>
@@ -1759,7 +1803,7 @@ export const PosPage: React.FC = () => {
               </button>
               <button
                 onClick={handleAddCustomItem}
-                className="flex-1 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-bold cursor-pointer"
+                className="flex-1 py-2.5 bg-[#920d35] hover:bg-[#770929] text-white rounded-xl text-xs font-bold cursor-pointer border border-amber-400/30"
               >
                 Add to Cart
               </button>
@@ -1793,12 +1837,12 @@ export const PosPage: React.FC = () => {
                       <p className="text-[11px] text-slate-500">
                         {held.items.length} items • Held at {held.timestamp}
                       </p>
-                      <p className="font-mono font-bold text-cyan-700 mt-0.5">{formatPrice(held.subtotal)}</p>
+                      <p className="font-mono font-bold text-[#920d35] mt-0.5">{formatPrice(held.subtotal)}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleRecallOrder(held)}
-                        className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer"
+                        className="px-3 py-1.5 bg-[#920d35] hover:bg-[#770929] text-white rounded-lg text-xs font-bold flex items-center gap-1 cursor-pointer border border-amber-400/30"
                       >
                         <Play className="w-3.5 h-3.5" />
                         <span>Resume</span>

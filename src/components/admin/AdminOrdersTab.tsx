@@ -19,10 +19,39 @@ import {
   DollarSign,
   ArrowUpDown,
   Smartphone,
+  ShieldCheck,
+  X,
 } from 'lucide-react';
 import { CustomerOrder } from '../../types';
 import { api } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
+import {
+  updateFirestoreOrderStatus,
+  auditLegacyFirestoreOrders,
+  safelyAssociateOrderWithUser,
+  OrderMigrationAuditResult,
+} from '../../firebase';
+
+// Safe customer and order accessor helpers
+export const getSafeCustomerName = (o: any): string => {
+  if (!o) return 'Customer';
+  const first = o.shipping?.first_name || o.billing?.first_name || o.customer?.first_name || (typeof o.customerName === 'string' ? o.customerName.split(' ')[0] : '') || '';
+  const last = o.shipping?.last_name || o.billing?.last_name || o.customer?.last_name || (typeof o.customerName === 'string' ? o.customerName.split(' ').slice(1).join(' ') : '') || '';
+  const fullName = `${first} ${last}`.trim();
+  return fullName || (typeof o.customerName === 'string' ? o.customerName : '') || 'Customer';
+};
+
+export const getSafeCustomerPhone = (o: any): string => {
+  return o?.shipping?.phone || o?.billing?.phone || o?.customer?.phone || o?.customerPhone || '';
+};
+
+export const getSafeCustomerLocation = (o: any): string => {
+  return o?.shipping?.district || o?.billing?.district || o?.delivery_zone || 'Kampala';
+};
+
+export const getSafeCustomerAddress = (o: any): string => {
+  return o?.shipping?.address_1 || o?.billing?.address_1 || o?.deliveryAddress || 'Standard Delivery';
+};
 
 interface AdminOrdersTabProps {
   orders: CustomerOrder[];
@@ -42,6 +71,46 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
   const [newStatus, setNewStatus] = useState('');
   const [statusNote, setStatusNote] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // Customer Account UID Audit & Safe Migration modal
+  const [showAuditModal, setShowAuditModal] = useState(false);
+  const [isAuditing, setIsAuditing] = useState(false);
+  const [auditResult, setAuditResult] = useState<OrderMigrationAuditResult | null>(null);
+  const [manualUidMap, setManualUidMap] = useState<Record<string, string>>({});
+  const [isMigratingId, setIsMigratingId] = useState<string | null>(null);
+
+  const handleRunAudit = async () => {
+    setIsAuditing(true);
+    try {
+      const res = await auditLegacyFirestoreOrders();
+      setAuditResult(res);
+      setShowAuditModal(true);
+    } catch (err: any) {
+      showToast('Order audit notice: ' + (err.message || 'Inspection failed'));
+    } finally {
+      setIsAuditing(false);
+    }
+  };
+
+  const handleMigrateOrder = async (orderDocId: string) => {
+    const targetUid = manualUidMap[orderDocId]?.trim();
+    if (!targetUid) {
+      showToast("Please enter the customer's verified Firebase UID to link.");
+      return;
+    }
+    setIsMigratingId(orderDocId);
+    try {
+      await safelyAssociateOrderWithUser(orderDocId, targetUid);
+      showToast(`Order #${orderDocId} successfully linked to customer UID: ${targetUid}`);
+      const updated = await auditLegacyFirestoreOrders();
+      setAuditResult(updated);
+      await onRefresh();
+    } catch (err: any) {
+      showToast('Migration error: ' + (err.message || 'Failed to update order'));
+    } finally {
+      setIsMigratingId(null);
+    }
+  };
 
   const safeOrders = Array.isArray(orders) ? orders : [];
 
@@ -76,12 +145,12 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
     // Filter by search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      const matchOrderNumber = o.order_number?.toLowerCase().includes(q);
-      const matchCustomer = `${o.shipping?.first_name || ''} ${o.shipping?.last_name || ''}`.toLowerCase().includes(q);
-      const matchPhone = o.shipping?.phone?.toLowerCase().includes(q);
-      const matchDistrict = (o.shipping?.district || o.delivery_zone || '').toLowerCase().includes(q);
-      const matchAddress = o.shipping?.address_1?.toLowerCase().includes(q);
-      const matchTxRef = o.payment_details?.transaction_ref?.toLowerCase().includes(q);
+      const matchOrderNumber = (o.order_number || '').toLowerCase().includes(q);
+      const matchCustomer = getSafeCustomerName(o).toLowerCase().includes(q);
+      const matchPhone = getSafeCustomerPhone(o).toLowerCase().includes(q);
+      const matchDistrict = getSafeCustomerLocation(o).toLowerCase().includes(q);
+      const matchAddress = getSafeCustomerAddress(o).toLowerCase().includes(q);
+      const matchTxRef = (o.payment_details?.transaction_ref || '').toLowerCase().includes(q);
 
       return matchOrderNumber || matchCustomer || matchPhone || matchDistrict || matchAddress || matchTxRef;
     }
@@ -95,6 +164,12 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
       const note = `Payment verified by store manager (${user?.first_name || 'Admin'}) on ${new Date().toLocaleDateString()}`;
       const res = await api.confirmOrderPayment(ord.order_number, note);
       if (res.success) {
+        // Also update Firestore order status & payment status
+        updateFirestoreOrderStatus(ord.order_number, 'processing', {
+          paymentStatus: 'confirmed',
+          'payment_details.status': 'confirmed',
+        }).catch(() => {});
+
         showToast(
           res.woocommerce_synced
             ? `Payment verified for #${ord.order_number}! Marked as processing and synced with WooCommerce (#${res.order?.woocommerce_order_id || 'WC'}).`
@@ -135,6 +210,11 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
     setIsUpdatingStatus(true);
     try {
       await api.updateOrderStatus(selectedOrder.id, newStatus, statusNote);
+      // Also update Firestore order status
+      updateFirestoreOrderStatus(selectedOrder.order_number, newStatus, {
+        customer_note: statusNote,
+      }).catch(() => {});
+
       showToast(`Order ${selectedOrder.order_number} stage updated to: ${newStatus.toUpperCase()}`);
       setSelectedOrder(null);
       await onRefresh();
@@ -164,13 +244,25 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
             </p>
           </div>
 
-          <button
-            onClick={() => onRefresh()}
-            className="self-start sm:self-auto h-9 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
-          >
-            <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
-            <span>Refresh Orders</span>
-          </button>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              onClick={handleRunAudit}
+              disabled={isAuditing}
+              className="h-9 px-3.5 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 text-cyan-800 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              title="Audit and link orders to customer Firebase Auth UIDs"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-cyan-600" />
+              <span>{isAuditing ? 'Auditing Orders...' : 'Customer UID Audit'}</span>
+            </button>
+
+            <button
+              onClick={() => onRefresh()}
+              className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
+              <span>Refresh Orders</span>
+            </button>
+          </div>
         </div>
 
         {/* 2. Search & Filter Bar */}
@@ -325,26 +417,26 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="font-bold text-xs text-slate-900">
-                        {ord.shipping.first_name} {ord.shipping.last_name}
+                        {getSafeCustomerName(ord)}
                       </div>
                       <div className="text-xs text-slate-500 font-mono mt-0.5">
-                        {ord.shipping.phone}
+                        {getSafeCustomerPhone(ord) || 'No phone'}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      {ord.shipping.phone && (
+                      {getSafeCustomerPhone(ord) && (
                         <>
                           <a
-                            href={`tel:${ord.shipping.phone.replace(/\s+/g, '')}`}
+                            href={`tel:${getSafeCustomerPhone(ord).replace(/\s+/g, '')}`}
                             className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition-colors"
                             title="Call customer"
                           >
                             <Phone className="w-3.5 h-3.5" />
                           </a>
                           <a
-                            href={`https://wa.me/${ord.shipping.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(
-                              ord.shipping.first_name
+                            href={`https://wa.me/${getSafeCustomerPhone(ord).replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(
+                              getSafeCustomerName(ord)
                             )},%20this%20is%20Cyber%20Dynamic%20Technologies%20regarding%20Order%20${ord.order_number}`}
                             target="_blank"
                             rel="noreferrer"
@@ -363,7 +455,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-800 flex items-center gap-1">
                         <MapPin className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
-                        <span>{ord.shipping.district || ord.delivery_zone}</span>
+                        <span>{getSafeCustomerLocation(ord)}</span>
                       </span>
 
                       {ord.coordinates && (
@@ -379,7 +471,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                       )}
                     </div>
                     <div className="text-slate-600 text-[11px] truncate">
-                      {ord.shipping.address_1}
+                      {getSafeCustomerAddress(ord)}
                     </div>
                   </div>
 
@@ -388,12 +480,12 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                     <div>
                       <span className="text-[11px] text-slate-500">Order Total:</span>
                       <div className="text-base font-black text-slate-900 tracking-tight">
-                        UGX {ord.total.toLocaleString()}
+                        UGX {(ord.total || 0).toLocaleString()}
                       </div>
                     </div>
 
                     <div className="text-right text-[11px] text-slate-500">
-                      <span>{ord.line_items.length} item(s)</span>
+                      <span>{ord.line_items?.length || 0} item(s)</span>
                       <div className="font-mono text-[10px] text-slate-400">
                         {ord.woocommerce_order_id ? `WC #${ord.woocommerce_order_id}` : 'Local Store'}
                       </div>
@@ -514,13 +606,15 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                         {/* Customer */}
                         <td className="p-3.5">
                           <div className="font-bold text-slate-900">
-                            {ord.shipping.first_name} {ord.shipping.last_name}
+                            {getSafeCustomerName(ord)}
                           </div>
                           <div className="flex items-center gap-1.5 mt-0.5">
-                            <span className="text-[10px] text-slate-500 font-mono">{ord.shipping.phone}</span>
-                            {ord.shipping.phone && (
+                            <span className="text-[10px] text-slate-500 font-mono">
+                              {getSafeCustomerPhone(ord) || 'No phone'}
+                            </span>
+                            {getSafeCustomerPhone(ord) && (
                               <a
-                                href={`https://wa.me/${ord.shipping.phone.replace(/[^0-9]/g, '')}`}
+                                href={`https://wa.me/${getSafeCustomerPhone(ord).replace(/[^0-9]/g, '')}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="text-emerald-600 hover:text-emerald-700"
@@ -536,10 +630,10 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                         <td className="p-3.5">
                           <div className="font-bold text-slate-800 flex items-center gap-1">
                             <MapPin className="w-3 h-3 text-cyan-600 shrink-0" />
-                            <span>{ord.shipping.district || ord.delivery_zone}</span>
+                            <span>{getSafeCustomerLocation(ord)}</span>
                           </div>
                           <div className="text-[10px] text-slate-500 truncate max-w-[150px]">
-                            {ord.shipping.address_1}
+                            {getSafeCustomerAddress(ord)}
                           </div>
                           {ord.coordinates && (
                             <a
@@ -557,10 +651,10 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                         {/* Total */}
                         <td className="p-3.5">
                           <div className="font-black text-slate-900">
-                            UGX {ord.total.toLocaleString()}
+                            UGX {(ord.total || 0).toLocaleString()}
                           </div>
                           <div className="text-[10px] text-slate-400">
-                            {ord.line_items.length} item(s)
+                            {ord.line_items?.length || 0} item(s)
                           </div>
                         </td>
 
@@ -662,11 +756,11 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                   Update Stage: {selectedOrder.order_number}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  {selectedOrder.shipping.first_name} {selectedOrder.shipping.last_name} • {selectedOrder.shipping.district || selectedOrder.delivery_zone}
+                  {getSafeCustomerName(selectedOrder)} • {getSafeCustomerLocation(selectedOrder)}
                 </p>
               </div>
               <span className="text-xs font-black text-slate-900 font-mono bg-slate-100 px-2 py-1 rounded-md">
-                UGX {selectedOrder.total.toLocaleString()}
+                UGX {(selectedOrder.total || 0).toLocaleString()}
               </span>
             </div>
 
@@ -771,6 +865,130 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                     <span>Save Stage</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOMER UID AUDIT & SAFE MIGRATION MODAL */}
+      {showAuditModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-cyan-100 text-cyan-700">
+                  <ShieldCheck className="w-5 h-5" />
+                </span>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900">
+                    Customer Account Order Association Audit
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Verify that Firestore orders are linked to customer Firebase Auth UIDs.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAuditModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+              {/* Summary Stats */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3 bg-slate-100 rounded-xl text-center">
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Firestore Orders</span>
+                  <span className="text-lg font-black text-slate-900">{auditResult?.totalOrders ?? 0}</span>
+                </div>
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+                  <span className="text-[10px] uppercase font-bold text-emerald-600 block">Linked to Firebase UID</span>
+                  <span className="text-lg font-black text-emerald-700">{auditResult?.linkedOrdersCount ?? 0}</span>
+                </div>
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                  <span className="text-[10px] uppercase font-bold text-amber-600 block">Legacy / Guest Orders</span>
+                  <span className="text-lg font-black text-amber-700">{auditResult?.legacyOrdersCount ?? 0}</span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-cyan-50 border border-cyan-200 rounded-xl text-[11px] text-cyan-900 space-y-1">
+                <p className="font-bold flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                  <span>Permanent Customer Ownership Guarantee</span>
+                </p>
+                <p>
+                  Orders with a valid <code>userId</code> appear automatically in that customer's "My Orders" account tab across all devices and browser sessions. Existing orders are never automatically re-assigned or deleted.
+                </p>
+              </div>
+
+              {/* Legacy Orders List */}
+              <div className="space-y-2">
+                <h4 className="font-black text-slate-800 text-xs">
+                  Legacy / Unassigned Orders ({auditResult?.legacyOrders.length || 0})
+                </h4>
+
+                {(!auditResult || auditResult.legacyOrders.length === 0) ? (
+                  <div className="p-6 bg-slate-50 border border-slate-200 rounded-xl text-center space-y-1">
+                    <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
+                    <p className="font-bold text-slate-800 text-xs">All Orders Validated</p>
+                    <p className="text-[11px] text-slate-500">
+                      No orphaned orders found in Firestore. All orders are properly associated with Firebase Auth UIDs.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-slate-200 rounded-xl divide-y divide-slate-100 overflow-hidden">
+                    {auditResult.legacyOrders.map((lo: any) => {
+                      const id = String(lo.orderNumber || lo.order_number || lo.id);
+                      return (
+                        <div key={id} className="p-3 space-y-2 bg-white hover:bg-slate-50">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="font-black text-slate-900 text-xs">#{id}</span>
+                              <span className="text-[11px] text-slate-500 ml-2">
+                                {lo.customerEmail || lo.billing?.email || 'No email'} • {lo.customerName || 'Customer'}
+                              </span>
+                            </div>
+                            <span className="font-black text-slate-900 text-xs">{formatPrice(lo.total || 0)}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              placeholder="Enter customer Firebase UID (e.g. 5x7ab9...)"
+                              value={manualUidMap[id] || ''}
+                              onChange={(e) => setManualUidMap({ ...manualUidMap, [id]: e.target.value })}
+                              className="flex-1 h-8 px-2.5 border border-slate-200 rounded-lg text-xs font-mono focus:outline-hidden focus:border-cyan-500"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => handleMigrateOrder(id)}
+                              disabled={isMigratingId === id || !manualUidMap[id]?.trim()}
+                              className="h-8 px-3 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer shrink-0"
+                            >
+                              {isMigratingId === id ? 'Linking...' : 'Link to Account'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowAuditModal(false)}
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg cursor-pointer"
+              >
+                Close Audit
               </button>
             </div>
           </div>

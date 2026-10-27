@@ -930,10 +930,35 @@ function authenticateToken(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  // 1. Try verifying as local HMAC session token
   const session = verifySessionToken(token);
   if (session) {
     (req as any).user = session;
+    return next();
   }
+
+  // 2. Also support Firebase Auth tokens (3-part JWT)
+  try {
+    const parts = token.split('.');
+    if (parts.length === 3) {
+      const payloadJson = Buffer.from(parts[1], 'base64url').toString('utf8');
+      const payload = JSON.parse(payloadJson);
+      if (payload && (payload.email || payload.user_id || payload.sub)) {
+        const cleanEmail = String(payload.email || '').toLowerCase().trim();
+        const isSuperAdmin = cleanEmail === 'opwataallan@gmail.com';
+        const isAdmin = isSuperAdmin || cleanEmail === 'admin@cyberdynamictech.com';
+        (req as any).user = {
+          userId: payload.user_id || payload.sub || 1,
+          email: cleanEmail,
+          role: isSuperAdmin ? 'super_admin' : (isAdmin ? 'admin' : 'customer'),
+          isSuperAdmin,
+          admin: isAdmin,
+        };
+        return next();
+      }
+    }
+  } catch {}
+
   next();
 }
 
@@ -956,7 +981,16 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
-  if (!user || (user.role !== 'admin' && user.role !== 'manager')) {
+  const role = String(user?.role || '').toLowerCase();
+  const hasAdminPrivileges =
+    user && (
+      ['admin', 'manager', 'super_admin'].includes(role) ||
+      user.isSuperAdmin === true ||
+      user.admin === true ||
+      (user.email && user.email.toLowerCase().trim() === 'opwataallan@gmail.com')
+    );
+
+  if (!hasAdminPrivileges) {
     return res.status(403).json({ error: 'Administrative privileges required.' });
   }
   next();
@@ -1011,12 +1045,20 @@ async function startServer() {
   // Clear any existing stale rate limits on server boot/restart
   resetRateLimits();
 
-  // 1. Security Headers
+  // 1. CORS & Security Headers
   app.use((req: Request, res: Response, next: NextFunction) => {
+    const origin = req.headers.origin || '*';
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, x-admin-secret');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
     next();
   });
 
@@ -1259,8 +1301,8 @@ async function startServer() {
 
       res.cookie('cdt_session', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 12 * 3600 * 1000,
         path: '/',
       });
@@ -1307,6 +1349,8 @@ async function startServer() {
             is_email_verified: true,
             two_factor_enabled: false,
             created_at: new Date().toISOString(),
+            addresses: [],
+            wishlist: [],
             permissions: ['manage_products', 'manage_orders', 'view_earnings'],
           };
           store.users.push(user);
@@ -1373,16 +1417,16 @@ async function startServer() {
 
       res.cookie('cdt_session', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 12 * 3600 * 1000,
         path: '/',
       });
 
       res.cookie('session_token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 12 * 3600 * 1000,
         path: '/',
       });
@@ -1510,16 +1554,16 @@ async function startServer() {
 
       res.cookie('cdt_session', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 12 * 3600 * 1000,
         path: '/',
       });
 
       res.cookie('session_token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        secure: true,
+        sameSite: 'none',
         maxAge: 12 * 3600 * 1000,
         path: '/',
       });
@@ -2456,11 +2500,14 @@ async function startServer() {
       store.config.api?.woocommerce_consumer_secret ||
       '';
     const hasKeys = Boolean(consumerKey && consumerSecret);
-    const wcUrl =
+    let wcUrl =
       store.config.woocommerce.store_url ||
       store.config.api?.woocommerce_store_url ||
       process.env.WOOCOMMERCE_URL ||
       'https://www.cyberdynamictech.com';
+    if (!wcUrl.startsWith('http://') && !wcUrl.startsWith('https://')) {
+      wcUrl = `https://${wcUrl}`;
+    }
 
     let latency = 0;
     let isLiveConnected = false;
@@ -2795,6 +2842,392 @@ async function startServer() {
 
     res.setHeader('Cache-Control', 'public, max-age=120, stale-while-revalidate=300');
     res.json(product);
+  });
+
+  // Create Product (Independent Database)
+  app.post(['/api/products', '/api/woocommerce/products'], (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      if (!data.name || typeof data.name !== 'string' || !data.name.trim()) {
+        return res.status(400).json({ error: 'Product name is required.' });
+      }
+
+      const price = Number(data.price);
+      if (isNaN(price) || price < 0) {
+        return res.status(400).json({ error: 'Valid product price is required.' });
+      }
+
+      const id = Number(data.id) || Date.now();
+      const sku = (data.sku || `CDT-${id}`).trim().toUpperCase();
+
+      // Check SKU uniqueness
+      const existingWithSku = store.products.find((p) => p.sku?.toUpperCase() === sku);
+      if (existingWithSku) {
+        return res.status(409).json({ error: `SKU '${sku}' already exists on product '${existingWithSku.name}'. SKUs must be unique.` });
+      }
+
+      const purchaseCost = data.purchase_cost !== undefined ? Number(data.purchase_cost) : undefined;
+      const profit = purchaseCost !== undefined ? price - purchaseCost : undefined;
+      const profitMargin = purchaseCost !== undefined && price > 0 ? Math.round(((price - purchaseCost) / price) * 100) : undefined;
+      const stockQuantity = Number(data.stock_quantity ?? 10);
+
+      const newProduct: Product = {
+        id,
+        name: data.name.trim(),
+        slug: (data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `product-${id}`).trim(),
+        permalink: `/product/${data.slug || id}`,
+        sku,
+        barcode: data.barcode?.trim() || '',
+        price,
+        regular_price: Number(data.regular_price || price),
+        sale_price: data.sale_price ? Number(data.sale_price) : undefined,
+        discount_percent: data.discount_percent !== undefined
+          ? Number(data.discount_percent)
+          : (data.sale_price && Number(data.regular_price || price) > Number(data.sale_price)
+            ? Math.round(((Number(data.regular_price || price) - Number(data.sale_price)) / Number(data.regular_price || price)) * 100)
+            : undefined),
+        on_sale: Boolean((data.sale_price && Number(data.sale_price) < Number(data.regular_price || price)) || data.on_sale),
+        purchase_cost: purchaseCost,
+        profit,
+        profit_margin: profitMargin,
+        stock_quantity: stockQuantity,
+        stock_status: stockQuantity > 0 ? 'instock' : 'outofstock',
+        manage_stock: data.manage_stock ?? true,
+        low_stock_threshold: Number(data.low_stock_threshold ?? 3),
+        status: (data.status as any) || 'published',
+        product_type: (data.product_type as any) || 'physical',
+        brand: (data.brand || 'Cyber Dynamic Tech').trim(),
+        categories: Array.isArray(data.categories) && data.categories.length > 0
+          ? data.categories
+          : [{ id: 1, name: 'Computers & Laptops', slug: 'laptops' }],
+        images: Array.isArray(data.images) && data.images.length > 0
+          ? data.images
+          : [{ id: 1, src: '/logo.png', name: data.name, alt: data.name }],
+        attributes: Array.isArray(data.attributes) ? data.attributes : [],
+        variations: Array.isArray(data.variations) ? data.variations : [],
+        short_description: (data.short_description || '').trim(),
+        description: (data.description || '').trim(),
+        average_rating: Number(data.average_rating || 5.0),
+        rating_count: Number(data.rating_count || 1),
+        featured: Boolean(data.featured),
+        flash_sale: Boolean(data.flash_sale),
+        flash_sale_end: data.flash_sale_end,
+        warranty: data.warranty || '1 Year Official Warranty',
+        weight: data.weight || '',
+        dimensions: data.dimensions || { length: '', width: '', height: '' },
+        shipping_required: data.shipping_required ?? true,
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        seo_title: (data.seo_title || data.name || '').trim(),
+        seo_description: (data.seo_description || data.short_description || '').trim(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        vendor_id: data.vendor_id || 'store-cyber-dynamic-tech',
+        vendor_name: data.vendor_name || 'Cyber Dynamic Tech (Main Store)',
+        store_slug: data.store_slug || 'cyber-dynamic-tech',
+      };
+
+      store.products.unshift(newProduct);
+      serverCache.clear();
+      store.saveDatabaseToDisk();
+
+      logAudit({
+        user_email: 'admin@cyberdynamictech.com',
+        action: 'PRODUCT_CREATED',
+        category: 'Catalog',
+        details: `Created product '${newProduct.name}' (SKU: ${newProduct.sku}, ID: ${newProduct.id})`,
+        status: 'success',
+      });
+
+      res.status(201).json(newProduct);
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to create product', message: err.message });
+    }
+  });
+
+  // Update Product
+  app.put(['/api/products/:identifier', '/api/woocommerce/products/:identifier'], (req: Request, res: Response) => {
+    try {
+      const { identifier } = req.params;
+      const isId = !isNaN(Number(identifier));
+      const index = store.products.findIndex((p) => (isId ? p.id === Number(identifier) : p.slug === identifier));
+
+      if (index === -1) {
+        return res.status(404).json({ error: 'Product not found', identifier });
+      }
+
+      const existing = store.products[index];
+      const updates = req.body;
+
+      // Check SKU uniqueness if changed
+      if (updates.sku && updates.sku.trim().toUpperCase() !== existing.sku?.toUpperCase()) {
+        const duplicate = store.products.find(
+          (p) => p.id !== existing.id && p.sku?.toUpperCase() === updates.sku.trim().toUpperCase()
+        );
+        if (duplicate) {
+          return res.status(409).json({ error: `SKU '${updates.sku}' is already assigned to '${duplicate.name}'.` });
+        }
+      }
+
+      const price = updates.price !== undefined ? Number(updates.price) : existing.price;
+      const purchaseCost = updates.purchase_cost !== undefined ? Number(updates.purchase_cost) : existing.purchase_cost;
+      const profit = purchaseCost !== undefined ? price - purchaseCost : existing.profit;
+      const profitMargin = purchaseCost !== undefined && price > 0 ? Math.round(((price - purchaseCost) / price) * 100) : existing.profit_margin;
+      const stockQuantity = updates.stock_quantity !== undefined ? Number(updates.stock_quantity) : existing.stock_quantity;
+
+      const regPrice = updates.regular_price !== undefined ? Number(updates.regular_price) : existing.regular_price;
+      const salePrice = updates.sale_price !== undefined ? (updates.sale_price ? Number(updates.sale_price) : undefined) : existing.sale_price;
+      const isOnSale = updates.on_sale !== undefined ? Boolean(updates.on_sale) : Boolean(salePrice && regPrice > salePrice);
+      const discountPct = updates.discount_percent !== undefined
+        ? Number(updates.discount_percent)
+        : (isOnSale && salePrice && regPrice > salePrice
+          ? Math.round(((regPrice - salePrice) / regPrice) * 100)
+          : undefined);
+
+      const updatedProduct: Product = {
+        ...existing,
+        ...updates,
+        price,
+        regular_price: regPrice,
+        sale_price: salePrice,
+        discount_percent: discountPct,
+        on_sale: isOnSale,
+        purchase_cost: purchaseCost,
+        profit,
+        profit_margin: profitMargin,
+        stock_quantity: stockQuantity,
+        stock_status: stockQuantity <= 0 ? 'outofstock' : 'instock',
+        sku: (updates.sku || existing.sku).trim().toUpperCase(),
+        updated_at: new Date().toISOString(),
+      };
+
+      store.products[index] = updatedProduct;
+      serverCache.clear();
+      store.saveDatabaseToDisk();
+
+      logAudit({
+        user_email: 'admin@cyberdynamictech.com',
+        action: 'PRODUCT_UPDATED',
+        category: 'Catalog',
+        details: `Updated product '${updatedProduct.name}' (ID: ${updatedProduct.id})`,
+        status: 'success',
+      });
+
+      res.json(updatedProduct);
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to update product', message: err.message });
+    }
+  });
+
+  // Delete Product
+  app.delete(['/api/products/:identifier', '/api/woocommerce/products/:identifier'], (req: Request, res: Response) => {
+    try {
+      const { identifier } = req.params;
+      const isId = !isNaN(Number(identifier));
+      const index = store.products.findIndex((p) => (isId ? p.id === Number(identifier) : p.slug === identifier));
+
+      if (index === -1) {
+        return res.status(404).json({ error: 'Product not found', identifier });
+      }
+
+      const deleted = store.products.splice(index, 1)[0];
+      serverCache.clear();
+      store.saveDatabaseToDisk();
+
+      logAudit({
+        user_email: 'admin@cyberdynamictech.com',
+        action: 'PRODUCT_DELETED',
+        category: 'Catalog',
+        details: `Deleted product '${deleted.name}' (ID: ${deleted.id})`,
+        status: 'success',
+      });
+
+      res.json({ success: true, message: `Product '${deleted.name}' successfully deleted.`, deleted_id: deleted.id });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to delete product', message: err.message });
+    }
+  });
+
+  // Duplicate Product
+  app.post(['/api/products/:identifier/duplicate', '/api/woocommerce/products/:identifier/duplicate'], (req: Request, res: Response) => {
+    try {
+      const { identifier } = req.params;
+      const isId = !isNaN(Number(identifier));
+      const orig = store.products.find((p) => (isId ? p.id === Number(identifier) : p.slug === identifier));
+
+      if (!orig) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      const newId = Date.now();
+      const duplicate: Product = {
+        ...orig,
+        id: newId,
+        name: `${orig.name} (Copy)`,
+        slug: `${orig.slug}-copy-${Math.random().toString(36).substring(2, 6)}`,
+        sku: `${orig.sku}-COPY-${Math.random().toString(36).substring(2, 5).toUpperCase()}`,
+        status: 'draft',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+
+      store.products.unshift(duplicate);
+      serverCache.clear();
+      store.saveDatabaseToDisk();
+
+      res.status(201).json(duplicate);
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to duplicate product', message: err.message });
+    }
+  });
+
+  // Categories API Endpoints
+  app.get('/api/categories', (req: Request, res: Response) => {
+    res.json(store.categories);
+  });
+
+  app.post('/api/categories', (req: Request, res: Response) => {
+    try {
+      const { name, slug, description, image, icon } = req.body;
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ error: 'Category name is required.' });
+      }
+      const id = Date.now();
+      const newCat: Category = {
+        id,
+        name: name.trim(),
+        slug: (slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')).trim(),
+        count: 0,
+        description: description?.trim() || '',
+        image: image || '',
+        icon: icon || 'Folder',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
+      store.categories.push(newCat);
+      store.saveDatabaseToDisk();
+      res.status(201).json(newCat);
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to create category', message: err.message });
+    }
+  });
+
+  app.put('/api/categories/:id', (req: Request, res: Response) => {
+    const catId = Number(req.params.id);
+    const index = store.categories.findIndex((c) => c.id === catId);
+    if (index === -1) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    const updates = req.body;
+    store.categories[index] = {
+      ...store.categories[index],
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+    store.saveDatabaseToDisk();
+    res.json(store.categories[index]);
+  });
+
+  app.delete('/api/categories/:id', (req: Request, res: Response) => {
+    const catId = Number(req.params.id);
+    const index = store.categories.findIndex((c) => c.id === catId);
+    if (index === -1) {
+      return res.status(404).json({ error: 'Category not found' });
+    }
+    const deleted = store.categories.splice(index, 1)[0];
+    store.saveDatabaseToDisk();
+    res.json({ success: true, deleted_id: deleted.id });
+  });
+
+  // WooCommerce Import into Platform Database
+  app.post('/api/woocommerce/import', async (req: Request, res: Response) => {
+    try {
+      const { items } = req.body;
+      let toImport: any[] = [];
+
+      if (Array.isArray(items) && items.length > 0) {
+        toImport = items;
+      } else {
+        // Fetch from live WooCommerce
+        const wcRes = await fetchWooCommerce('/products?per_page=100');
+        if (wcRes.ok) {
+          toImport = await wcRes.json();
+        } else {
+          return res.status(502).json({ error: 'Could not fetch products from WooCommerce.' });
+        }
+      }
+
+      let createdCount = 0;
+      let updatedCount = 0;
+
+      for (const item of toImport) {
+        const id = item.id || Date.now();
+        const sku = (item.sku || `WC-${id}`).trim();
+        const existingIdx = store.products.findIndex(
+          (p) => (item.id && p.woocommerce_id === item.id) || (sku && p.sku?.toUpperCase() === sku.toUpperCase())
+        );
+
+        const mapped: Product = {
+          id: existingIdx !== -1 ? store.products[existingIdx].id : id,
+          name: item.name || 'Imported Product',
+          slug: item.slug || `imported-${id}`,
+          permalink: `/product/${item.slug || id}`,
+          sku,
+          barcode: item.barcode || '',
+          price: Number(item.price || item.regular_price || 0),
+          regular_price: Number(item.regular_price || item.price || 0),
+          sale_price: item.sale_price ? Number(item.sale_price) : undefined,
+          on_sale: Boolean(item.on_sale || (item.sale_price && Number(item.sale_price) < Number(item.regular_price))),
+          stock_quantity: Number(item.stock_quantity ?? 10),
+          stock_status: (item.stock_status || (Number(item.stock_quantity ?? 10) > 0 ? 'instock' : 'outofstock')) as any,
+          manage_stock: item.manage_stock ?? true,
+          status: 'published',
+          product_type: 'physical',
+          brand: item.brand || 'Cyber Dynamic Tech',
+          categories: Array.isArray(item.categories) && item.categories.length > 0 ? item.categories : [{ id: 1, name: 'General', slug: 'general' }],
+          images: Array.isArray(item.images) && item.images.length > 0 ? item.images : [{ id: 1, src: '/logo.png', name: item.name, alt: item.name }],
+          attributes: Array.isArray(item.attributes) ? item.attributes : [],
+          short_description: item.short_description || '',
+          description: item.description || '',
+          average_rating: Number(item.average_rating || 5.0),
+          rating_count: Number(item.rating_count || 1),
+          woocommerce_id: item.id,
+          created_at: item.date_created || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          vendor_id: 'store-cyber-dynamic-tech',
+          vendor_name: 'Cyber Dynamic Tech (Main Store)',
+          store_slug: 'cyber-dynamic-tech',
+        };
+
+        if (existingIdx !== -1) {
+          store.products[existingIdx] = { ...store.products[existingIdx], ...mapped };
+          updatedCount++;
+        } else {
+          store.products.push(mapped);
+          createdCount++;
+        }
+      }
+
+      serverCache.clear();
+      store.saveDatabaseToDisk();
+
+      logAudit({
+        user_email: 'admin@cyberdynamictech.com',
+        action: 'WOOCOMMERCE_SYNC',
+        category: 'Catalog',
+        status: 'success',
+        details: `Imported from WooCommerce: ${createdCount} created, ${updatedCount} updated.`,
+      });
+
+      res.json({
+        success: true,
+        total: toImport.length,
+        created: createdCount,
+        updated: updatedCount,
+        message: `Successfully synchronized ${createdCount + updatedCount} products to platform database.`,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Import failed', message: err.message });
+    }
   });
 
   // Product Reviews GET
@@ -4490,8 +4923,8 @@ async function startServer() {
 
   const onStarted = () => {
     console.log(`[Cyber Dynamic Technologies] Enterprise Marketplace Server running on ${PORT}`);
-    // Initial sync of products from WooCommerce live API
-    fetchAllWooCommerceProducts(48)
+    // Initial sync of all products from WooCommerce live API
+    fetchAllWooCommerceProducts(500)
       .then((res) => {
         console.log(`[WooCommerce Live API] Initialized with ${res.totalFetched} live products from WooCommerce (source: ${res.source}).`);
       })

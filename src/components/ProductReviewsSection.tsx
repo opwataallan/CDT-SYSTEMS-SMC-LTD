@@ -4,6 +4,7 @@ import { ProductReview } from '../types';
 import { api } from '../services/api';
 import { UGANDA_DISTRICTS } from '../data/ugandaDistricts';
 import { useShop } from '../context/ShopContext';
+import { saveReviewToFirestore } from '../firebase';
 
 interface ProductReviewsSectionProps {
   productId: number;
@@ -110,6 +111,15 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
       setReviews((prev) => [created, ...prev.filter((r) => r.id !== created.id)]);
       setShowWriteModal(false);
       setReviewText('');
+
+      // Backup review to Firestore
+      saveReviewToFirestore({
+        productId,
+        reviewer: reviewerName.trim(),
+        rating: newRating,
+        review: reviewText.trim(),
+      }).catch((e) => console.warn('Firestore review backup notice:', e));
+
       showToast('🌟 Verified review published successfully! Thank you.', 'success');
     } catch (err: any) {
       showToast(err?.message || 'Failed to submit review', 'error');

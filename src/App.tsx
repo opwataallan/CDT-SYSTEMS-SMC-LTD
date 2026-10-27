@@ -21,7 +21,6 @@ import { VendorDashboardPage } from './pages/VendorDashboardPage';
 import { VendorRegisterPage } from './pages/VendorRegisterPage';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { CdtPageLoader } from './components/CdtPageLoader';
-import { TopFlashingAdsBar } from './components/TopFlashingAdsBar';
 import { AndroidInstallBanner } from './components/AndroidInstallBanner';
 import { AndroidAppInstallModal } from './components/AndroidAppInstallModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
@@ -126,7 +125,7 @@ const MainLayout: React.FC = () => {
 
   if (currentView === 'pos') {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-100 text-slate-900 font-sans selection:bg-cyan-500 selection:text-white">
+      <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#0f172a] text-slate-100 font-sans selection:bg-[#920d35] selection:text-white">
         {/* CDT Page Loader */}
         {isPageLoading && <CdtPageLoader message={pageLoadingMessage} />}
 
@@ -171,12 +170,6 @@ const MainLayout: React.FC = () => {
           <span className="flex-1">{toastMessage}</span>
         </div>
       )}
-
-      {/* Android PWA Install Banner */}
-      <AndroidInstallBanner onOpenModal={() => setShowAndroidModal(true)} />
-
-      {/* Top Transitioning Animated GIF Banner with Flashing Ads (Display only in PC, hidden on mobile) */}
-      <TopFlashingAdsBar />
 
       {/* Main Top Header */}
       <Header />

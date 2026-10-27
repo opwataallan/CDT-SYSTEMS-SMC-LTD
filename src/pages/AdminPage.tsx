@@ -4,7 +4,6 @@ import {
   Lock,
   AlertCircle,
   RefreshCw,
-  Sparkles,
   ArrowRight,
   Eye,
   Store,
@@ -27,13 +26,14 @@ import { AdminWooCommerceTab } from '../components/admin/AdminWooCommerceTab';
 import { AdminDeliveryTab } from '../components/admin/AdminDeliveryTab';
 import { AdminStoreHeadquartersTab } from '../components/admin/AdminStoreHeadquartersTab';
 import { AdminMarketplaceTab } from '../components/admin/AdminMarketplaceTab';
+import { AdminProductsTab } from '../components/admin/AdminProductsTab';
+import { getAllOrdersFromFirestore } from '../firebase';
 
 export const AdminPage: React.FC = () => {
   const {
     user,
     isAdmin,
     login,
-    quickLogin,
     logoutUser,
     storeSettings,
     deliveryZones,
@@ -71,7 +71,29 @@ export const AdminPage: React.FC = () => {
 
   const loadOrders = async () => {
     try {
-      const ords = await api.getOrders();
+      let ords: CustomerOrder[] = [];
+      try {
+        const apiOrds = await api.getOrders();
+        if (Array.isArray(apiOrds)) ords = apiOrds;
+      } catch (e) {}
+
+      try {
+        const firestoreOrds = await getAllOrdersFromFirestore();
+        if (firestoreOrds && firestoreOrds.length > 0) {
+          const map = new Map<string, any>();
+          ords.forEach((o) => map.set(o.order_number, o));
+          firestoreOrds.forEach((fo: any) => {
+            const num = fo.orderNumber || fo.order_number || String(fo.id);
+            if (!map.has(num)) {
+              map.set(num, fo);
+            } else {
+              map.set(num, { ...map.get(num), ...fo });
+            }
+          });
+          ords = Array.from(map.values());
+        }
+      } catch (e) {}
+
       setOrders(ords);
     } catch (e) {}
   };
@@ -106,23 +128,6 @@ export const AdminPage: React.FC = () => {
       }
     } catch (err: any) {
       setLoginError(err.message || 'Invalid credentials or account locked.');
-    } finally {
-      setLoginLoading(false);
-    }
-  };
-
-  const handleQuickDemoLogin = async (role: 'admin' | 'staff' = 'admin') => {
-    setLoginLoading(true);
-    setLoginError(null);
-    try {
-      const res = await quickLogin(role);
-      if (res.success) {
-        showToast(`Authorized demo session as ${role.toUpperCase()}!`);
-      } else {
-        setLoginError(res.message);
-      }
-    } catch (err: any) {
-      setLoginError(err.message || 'Quick demo login failed');
     } finally {
       setLoginLoading(false);
     }
@@ -196,7 +201,7 @@ export const AdminPage: React.FC = () => {
                   required
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="admin@cyberdynamictech.com"
+                  placeholder="Enter email address"
                   className="w-full h-10 px-3 border border-slate-200 rounded-xl text-xs font-mono focus:outline-hidden focus:border-cyan-500 bg-slate-50 focus:bg-white transition-colors"
                 />
               </div>
@@ -228,33 +233,6 @@ export const AdminPage: React.FC = () => {
                 )}
               </button>
             </form>
-
-            {/* Quick Demo One-Click Access (Convenient for preview testing) */}
-            <div className="pt-2 border-t border-slate-100">
-              <div className="text-[11px] font-bold text-slate-500 text-center mb-2">
-                Preview Environment Fast Access
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoLogin('admin')}
-                  disabled={loginLoading}
-                  className="h-9 px-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[#007f19] font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Demo Admin</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickDemoLogin('staff')}
-                  disabled={loginLoading}
-                  className="h-9 px-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <span>Demo Manager</span>
-                </button>
-              </div>
-            </div>
 
             {/* Return Link */}
             <div className="text-center pt-2">
@@ -326,6 +304,9 @@ export const AdminPage: React.FC = () => {
                   wcStatus={wcStatus}
                 />
               )}
+
+              {/* Products & Catalog Management */}
+              {activeTab === 'products' && <AdminProductsTab />}
 
               {/* Multi-Vendor Marketplace Management */}
               {activeTab === 'marketplace' && <AdminMarketplaceTab />}

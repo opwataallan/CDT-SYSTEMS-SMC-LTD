@@ -16,7 +16,7 @@ import {
   ArrowRight,
   AlertCircle,
   CheckCircle2,
-  Sparkles,
+  Boxes,
 } from 'lucide-react';
 import { CustomerOrder } from '../../types';
 import { useShop } from '../../context/ShopContext';
@@ -122,7 +122,21 @@ export const AdminOverviewTab: React.FC<AdminOverviewTabProps> = ({
       )}
 
       {/* 3. Fast Quick Actions Grid (Touch-friendly & Desktop-ready) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 sm:gap-3">
+        <button
+          onClick={() => onNavigateTab('products')}
+          className="bg-white hover:bg-slate-50 border border-slate-200 p-3.5 rounded-xl shadow-2xs text-left transition-all cursor-pointer group"
+        >
+          <div className="w-8 h-8 rounded-lg bg-rose-50 text-[#920d35] flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+            <Boxes className="w-4 h-4" />
+          </div>
+          <div className="text-xs font-black text-slate-900">Products & Catalog</div>
+          <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
+            <span>Manage database products</span>
+            <ArrowRight className="w-3 h-3 text-slate-400 group-hover:text-slate-700 transition-colors" />
+          </div>
+        </button>
+
         <button
           onClick={() => onNavigateTab('orders')}
           className="bg-white hover:bg-slate-50 border border-slate-200 p-3.5 rounded-xl shadow-2xs text-left transition-all cursor-pointer group"

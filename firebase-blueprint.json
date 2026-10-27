@@ -1,0 +1,519 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered customer, vendor, or administrator user profile",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Firebase Auth UID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address",
+          "maxLength": 256
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User full display name",
+          "maxLength": 128
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "Avatar photo URL",
+          "maxLength": 1000
+        },
+        "first_name": {
+          "type": "string",
+          "description": "First name",
+          "maxLength": 100
+        },
+        "last_name": {
+          "type": "string",
+          "description": "Last name",
+          "maxLength": 100
+        },
+        "phone": {
+          "type": "string",
+          "description": "Ugandan phone number",
+          "maxLength": 32
+        },
+        "role": {
+          "type": "string",
+          "description": "User access role",
+          "enum": [
+            "SUPER_ADMIN",
+            "ADMIN",
+            "VENDOR",
+            "STORE_MANAGER",
+            "CASHIER",
+            "WAREHOUSE_MANAGER",
+            "DELIVERY_AGENT",
+            "CUSTOMER_SUPPORT",
+            "FINANCE",
+            "MARKETING",
+            "CUSTOMER",
+            "admin",
+            "manager",
+            "customer",
+            "vendor"
+          ]
+        },
+        "permissions": {
+          "type": "array",
+          "description": "Granular permissions granted to user"
+        },
+        "status": {
+          "type": "string",
+          "description": "Account status",
+          "enum": ["ACTIVE", "SUSPENDED", "active", "suspended"]
+        },
+        "isSuperAdmin": {
+          "type": "boolean",
+          "description": "Super admin authorization flag"
+        },
+        "vendorId": {
+          "type": "string",
+          "description": "Assigned vendor account ID",
+          "maxLength": 128
+        },
+        "assignedStoreIds": {
+          "type": "array",
+          "description": "List of store IDs managed by this user"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Account creation timestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Account update timestamp"
+        }
+      },
+      "required": ["uid", "role"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Designated administrator identity",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "Admin UID",
+          "maxLength": 128
+        },
+        "email": {
+          "type": "string",
+          "description": "Admin email",
+          "maxLength": 256
+        },
+        "role": {
+          "type": "string",
+          "description": "Role level",
+          "maxLength": 32
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer marketplace purchase order",
+      "type": "object",
+      "properties": {
+        "orderNumber": {
+          "type": "string",
+          "description": "Human-readable order identifier",
+          "maxLength": 64
+        },
+        "userId": {
+          "type": "string",
+          "description": "Customer UID or guest ID",
+          "maxLength": 128
+        },
+        "customerEmail": {
+          "type": "string",
+          "description": "Customer contact email",
+          "maxLength": 256
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Customer full name",
+          "maxLength": 128
+        },
+        "customerPhone": {
+          "type": "string",
+          "description": "Customer contact phone",
+          "maxLength": 32
+        },
+        "status": {
+          "type": "string",
+          "description": "Order processing status",
+          "enum": ["pending", "pending_payment", "processing", "on-hold", "packed", "shipped", "out-for-delivery", "delivered", "completed", "cancelled", "refunded", "failed"]
+        },
+        "total": {
+          "type": "number",
+          "description": "Total order amount in UGX"
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Subtotal amount in UGX"
+        },
+        "deliveryDistrict": {
+          "type": "string",
+          "description": "Destination district in Uganda",
+          "maxLength": 100
+        },
+        "deliveryAddress": {
+          "type": "string",
+          "description": "Street or landmark address",
+          "maxLength": 500
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Payment channel",
+          "maxLength": 64
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp"
+        }
+      },
+      "required": ["orderNumber", "userId", "total", "status"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer product rating and review",
+      "type": "object",
+      "properties": {
+        "productId": {
+          "type": "number",
+          "description": "Target product ID"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reviewer UID",
+          "maxLength": 128
+        },
+        "reviewer": {
+          "type": "string",
+          "description": "Reviewer display name",
+          "maxLength": 100
+        },
+        "rating": {
+          "type": "number",
+          "description": "Rating score between 1 and 5"
+        },
+        "review": {
+          "type": "string",
+          "description": "Review commentary",
+          "maxLength": 2000
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether purchaser is verified"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp created"
+        }
+      },
+      "required": ["productId", "userId", "rating", "review"]
+    },
+    "Store": {
+      "title": "Store",
+      "description": "Marketplace vendor storefront entity",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Store display name",
+          "maxLength": 128
+        },
+        "slug": {
+          "type": "string",
+          "description": "Store URL identifier",
+          "maxLength": 128
+        },
+        "vendorId": {
+          "type": "string",
+          "description": "Owner vendor UID",
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "description": "Store description",
+          "maxLength": 2000
+        },
+        "district": {
+          "type": "string",
+          "description": "Location district",
+          "maxLength": 100
+        },
+        "phone": {
+          "type": "string",
+          "description": "Store telephone",
+          "maxLength": 32
+        },
+        "status": {
+          "type": "string",
+          "description": "Store operational status",
+          "enum": ["active", "pending", "suspended"]
+        }
+      },
+      "required": ["name", "slug", "vendorId"]
+    },
+    "TestConnection": {
+      "title": "TestConnection",
+      "description": "Connectivity health check document",
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Connection test status",
+          "maxLength": 32
+        }
+      },
+      "required": ["status"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global marketplace and store configuration settings",
+      "type": "object",
+      "properties": {
+        "storeName": {
+          "type": "string",
+          "description": "Store name",
+          "maxLength": 128
+        },
+        "storeDescription": {
+          "type": "string",
+          "description": "Store tagline",
+          "maxLength": 500
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "Brand logo download URL",
+          "maxLength": 1000
+        },
+        "mobileLogoUrl": {
+          "type": "string",
+          "description": "Mobile compact logo URL",
+          "maxLength": 1000
+        },
+        "faviconUrl": {
+          "type": "string",
+          "description": "Favicon URL",
+          "maxLength": 1000
+        },
+        "defaultProductPlaceholder": {
+          "type": "string",
+          "description": "Placeholder image URL",
+          "maxLength": 1000
+        },
+        "themeColor": {
+          "type": "string",
+          "description": "Brand primary theme color hex code",
+          "maxLength": 32
+        },
+        "secondaryThemeColor": {
+          "type": "string",
+          "description": "Brand secondary theme color hex code",
+          "maxLength": 32
+        },
+        "currency": {
+          "type": "string",
+          "description": "Currency code e.g. UGX",
+          "maxLength": 10
+        },
+        "contactPhone": {
+          "type": "string",
+          "description": "Business contact phone number",
+          "maxLength": 32
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "Official support email",
+          "maxLength": 256
+        },
+        "businessAddress": {
+          "type": "string",
+          "description": "Store physical location",
+          "maxLength": 500
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Last updated timestamp"
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "Admin email who updated the settings",
+          "maxLength": 256
+        }
+      }
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Independent e-commerce catalog product with full specifications",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number", "description": "Numeric product ID" },
+        "name": { "type": "string", "description": "Product display title", "maxLength": 256 },
+        "slug": { "type": "string", "description": "URL-safe slug", "maxLength": 256 },
+        "sku": { "type": "string", "description": "Inventory SKU code", "maxLength": 128 },
+        "barcode": { "type": "string", "description": "Product barcode", "maxLength": 128 },
+        "price": { "type": "number", "description": "Active selling price in UGX" },
+        "regular_price": { "type": "number", "description": "Regular listing price in UGX" },
+        "sale_price": { "type": "number", "description": "Discounted sale price in UGX" },
+        "on_sale": { "type": "boolean", "description": "Sale flag" },
+        "purchase_cost": { "type": "number", "description": "Internal procurement cost" },
+        "profit": { "type": "number", "description": "Gross profit margin in UGX" },
+        "stock_quantity": { "type": "number", "description": "Available stock quantity" },
+        "stock_status": { "type": "string", "description": "Stock availability status", "enum": ["instock", "outofstock", "onbackorder"] },
+        "low_stock_threshold": { "type": "number", "description": "Low stock warning threshold" },
+        "manage_stock": { "type": "boolean", "description": "Stock tracking enabled" },
+        "brand": { "type": "string", "description": "Manufacturer or brand name", "maxLength": 128 },
+        "categories": { "type": "array", "description": "Assigned categories" },
+        "images": { "type": "array", "description": "Product image gallery" },
+        "short_description": { "type": "string", "description": "Brief summary", "maxLength": 2000 },
+        "description": { "type": "string", "description": "Detailed specifications", "maxLength": 20000 },
+        "status": { "type": "string", "description": "Publication status", "enum": ["published", "draft", "archived"] },
+        "product_type": { "type": "string", "description": "Physical or digital product", "enum": ["physical", "digital"] },
+        "featured": { "type": "boolean", "description": "Featured on homepage flag" },
+        "flash_sale": { "type": "boolean", "description": "Flash sale countdown flag" },
+        "warranty": { "type": "string", "description": "Warranty description", "maxLength": 256 },
+        "seo_title": { "type": "string", "description": "SEO meta title", "maxLength": 256 },
+        "seo_description": { "type": "string", "description": "SEO meta description", "maxLength": 1000 },
+        "created_at": { "type": "string", "description": "Creation timestamp" },
+        "updated_at": { "type": "string", "description": "Last updated timestamp" }
+      },
+      "required": ["name", "slug", "price"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product catalog taxonomy category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number", "description": "Numeric category ID" },
+        "name": { "type": "string", "description": "Category name", "maxLength": 128 },
+        "slug": { "type": "string", "description": "URL-safe slug", "maxLength": 128 },
+        "count": { "type": "number", "description": "Product count in this category" },
+        "image": { "type": "string", "description": "Category banner or thumbnail URL", "maxLength": 1000 },
+        "description": { "type": "string", "description": "Category description", "maxLength": 2000 },
+        "icon": { "type": "string", "description": "Lucide icon name identifier", "maxLength": 64 }
+      },
+      "required": ["name", "slug"]
+    },
+    "Cart": {
+      "title": "Cart",
+      "description": "Persistent customer shopping cart",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID", "maxLength": 128 },
+        "items": { "type": "array", "description": "Cart line items" },
+        "subtotal": { "type": "number", "description": "Items subtotal" },
+        "total": { "type": "number", "description": "Cart grand total" },
+        "updatedAt": { "type": "string", "description": "Timestamp" }
+      },
+      "required": ["userId"]
+    },
+    "Wishlist": {
+      "title": "Wishlist",
+      "description": "Persistent customer wishlist",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID", "maxLength": 128 },
+        "productIds": { "type": "array", "description": "List of saved product IDs" },
+        "updatedAt": { "type": "string", "description": "Timestamp" }
+      },
+      "required": ["userId"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Independent product catalog documents"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Independent product categories taxonomy"
+    },
+    "/carts/{cartId}": {
+      "schema": "Cart",
+      "description": "Persistent customer shopping carts"
+    },
+    "/wishlists/{wishlistId}": {
+      "schema": "Wishlist",
+      "description": "Persistent customer wishlists"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Customer and vendor profile documents"
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "System administrator identifiers"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer purchase orders"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Product ratings and reviews"
+    },
+    "/stores/{storeId}": {
+      "schema": "Store",
+      "description": "Marketplace vendor stores"
+    },
+    "/settings/{settingId}": {
+      "schema": "Settings",
+      "description": "Global application configuration document (settings/global, settings/general, etc.)"
+    },
+    "/roles/{roleId}": {
+      "schema": "Settings",
+      "description": "System and custom role definitions"
+    },
+    "/permissions/{permissionId}": {
+      "schema": "Settings",
+      "description": "System granular permission definitions"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "Settings",
+      "description": "System security and configuration audit trail logs"
+    },
+    "/coupons/{couponId}": {
+      "schema": "Settings",
+      "description": "Store discount coupons and promotional codes"
+    },
+    "/promotions/{promoId}": {
+      "schema": "Settings",
+      "description": "Marketing campaign promotions and banners"
+    },
+    "/deliveries/{deliveryId}": {
+      "schema": "Settings",
+      "description": "Assigned courier dispatch and delivery tracking"
+    },
+    "/notifications/{notifId}": {
+      "schema": "Settings",
+      "description": "User account notifications and alert records"
+    },
+    "/inventory/{inventoryId}": {
+      "schema": "Settings",
+      "description": "Store and warehouse inventory stock levels"
+    },
+    "/payments/{paymentId}": {
+      "schema": "Settings",
+      "description": "Order payment gateway transaction records"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Settings",
+      "description": "Financial ledger transactions and vendor payouts"
+    },
+    "/test/{testId}": {
+      "schema": "TestConnection",
+      "description": "Database connectivity probe target"
+    }
+  }
+}

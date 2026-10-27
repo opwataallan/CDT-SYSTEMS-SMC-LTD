@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Cpu } from 'lucide-react';
+import { Package } from 'lucide-react';
+import { settingsService } from '../services/settingsService';
 
 export interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src?: string | null;
@@ -82,7 +83,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   priority = false,
   className = '',
   containerClassName = '',
-  fallbackSrc = DEFAULT_FALLBACK_IMAGE,
+  fallbackSrc,
   loading,
   decoding,
   ...props
@@ -92,12 +93,17 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
+  const effectiveFallback =
+    fallbackSrc && fallbackSrc !== DEFAULT_FALLBACK_IMAGE
+      ? fallbackSrc
+      : settingsService.get('branding.default_product_placeholder') || DEFAULT_FALLBACK_IMAGE;
+
   const cleanSrc = getOptimizedImageUrl(src, width, quality, 'auto');
   const activeSrc = hasError
-    ? fallbackSrc
+    ? effectiveFallback
     : useProxy && cleanSrc.includes('cyberdynamictech.com')
     ? `/api/image-proxy?url=${encodeURIComponent(cleanSrc)}`
-    : cleanSrc || fallbackSrc;
+    : cleanSrc || effectiveFallback;
 
   // Reset error state and check cache completion when src changes
   useEffect(() => {
@@ -117,7 +123,7 @@ export const OptimizedImage: React.FC<OptimizedImageProps> = ({
         className={`w-full h-full min-h-[100px] flex flex-col items-center justify-center bg-slate-100 text-slate-400 p-2 select-none border border-slate-200 rounded ${containerClassName}`}
         style={aspectRatio ? { aspectRatio } : undefined}
       >
-        <Cpu className="w-7 h-7 text-slate-300 stroke-[1.5] mb-1" />
+        <Package className="w-7 h-7 text-slate-300 stroke-[1.5] mb-1" />
         <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 text-center line-clamp-1">
           CDT Hardware
         </span>

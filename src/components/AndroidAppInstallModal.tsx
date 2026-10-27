@@ -11,7 +11,6 @@ import {
   ExternalLink,
   ShieldCheck,
   ChevronRight,
-  Sparkles,
 } from 'lucide-react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 
@@ -221,7 +220,7 @@ export const AndroidAppInstallModal: React.FC<AndroidAppInstallModalProps> = ({
           {activeTab === 'chrome_guide' && (
             <div className="space-y-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
               <h4 className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#007f19]" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#007f19]" />
                 <span>How to Install via Google Chrome on Android:</span>
               </h4>
               <ol className="space-y-2 text-[11px] text-slate-600 list-decimal pl-4 font-medium">

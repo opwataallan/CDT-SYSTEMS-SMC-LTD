@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Trash2, Plus, Minus, ArrowRight, ShoppingBag, ShieldCheck, Tag, Sparkles } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ArrowRight, ShoppingBag, ShieldCheck, Tag } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
 import { CartItem } from '../types';
 
@@ -223,7 +223,7 @@ export const CartDrawer: React.FC = () => {
 
           {/* Drawer Footer with Totals and Checkout */}
           {cart.length > 0 && (
-            <div className="p-4 bg-white border-t border-slate-200 shadow-lg space-y-2.5">
+            <div className="p-4 pb-[max(1rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] bg-white border-t border-slate-200 shadow-lg space-y-2.5">
               {/* Coupon Form */}
               <form onSubmit={handleApplyCoupon} className="flex gap-1.5">
                 <div className="relative flex-1">
@@ -232,14 +232,14 @@ export const CartDrawer: React.FC = () => {
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                     placeholder="Coupon (e.g. CYBER10)"
-                    className="w-full h-8 px-2.5 text-xs uppercase font-semibold border border-slate-200 rounded focus:outline-hidden focus:border-cyan-500"
+                    className="w-full h-9 px-2.5 text-xs uppercase font-semibold border border-slate-200 rounded focus:outline-hidden focus:border-cyan-500"
                   />
-                  <Tag className="w-3 h-3 text-slate-400 absolute right-2.5 top-2.5 pointer-events-none" />
+                  <Tag className="w-3 h-3 text-slate-400 absolute right-2.5 top-3 pointer-events-none" />
                 </div>
                 <button
                   type="submit"
                   disabled={isApplyingCoupon || !couponCode.trim()}
-                  className="h-8 px-3 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white rounded text-xs font-bold transition-colors cursor-pointer"
+                  className="h-9 px-3.5 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white rounded text-xs font-bold transition-colors cursor-pointer touch-manipulation"
                 >
                   {isApplyingCoupon ? '...' : 'Apply'}
                 </button>
@@ -248,7 +248,7 @@ export const CartDrawer: React.FC = () => {
               {appliedCoupon && (
                 <div className="flex items-center justify-between p-1.5 rounded bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-medium">
                   <span className="flex items-center gap-1 text-[11px]">
-                    <Sparkles className="w-3 h-3 text-emerald-600" />
+                    <Tag className="w-3 h-3 text-emerald-600" />
                     <span>Coupon <strong>{appliedCoupon.code}</strong> (-UGX {discountAmount.toLocaleString()})</span>
                   </span>
                   <button
@@ -291,7 +291,7 @@ export const CartDrawer: React.FC = () => {
               <button
                 id="cart-drawer-checkout-btn"
                 onClick={handleCheckout}
-                className="w-full py-2.5 px-4 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                className="w-full min-h-[44px] py-2.5 px-4 bg-orange-500 hover:bg-orange-600 active:scale-[0.98] text-white rounded-lg font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer touch-manipulation"
               >
                 <span>Proceed to Checkout</span>
                 <ArrowRight className="w-3.5 h-3.5" />

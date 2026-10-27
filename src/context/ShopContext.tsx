@@ -11,9 +11,28 @@ import {
   MarketplaceConfig,
   Store,
 } from '../types';
-import { INITIAL_DELIVERY_ZONES } from '../data/cyberCatalog';
+import { INITIAL_DELIVERY_ZONES, INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/cyberCatalog';
 import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
+import {
+  auth,
+  signInWithGoogle,
+  signInWithEmail,
+  registerWithEmail,
+  signOutFirebase,
+  syncUserProfile,
+  onAuthStateChanged,
+  saveGlobalSettingsToFirestore,
+  loadGlobalSettingsFromFirestore,
+  subscribeToGlobalSettings,
+  subscribeToProducts,
+  seedInitialFirestoreCatalogIfEmpty,
+  saveUserCartToFirestore,
+  getUserCartFromFirestore,
+  saveUserWishlistToFirestore,
+  getUserWishlistFromFirestore,
+} from '../firebase';
+import { User as FirebaseUser } from 'firebase/auth';
 
 interface ShopContextType {
   products: Product[];
@@ -50,6 +69,8 @@ interface ShopContextType {
   setSelectedZone: (zone: DeliveryZone) => void;
 
   user: CustomerUser | null;
+  firebaseUser: FirebaseUser | null;
+  isSuperAdmin: boolean;
   isAdmin: boolean;
   isVendor: boolean;
   vendorStoreId?: string;
@@ -59,6 +80,8 @@ interface ShopContextType {
   goToStorefront: (slug: string) => void;
   loginUser: (email: string, name?: string, phone?: string) => void;
   login: (credentialsOrEmail: { email: string; password: string } | string, maybePassword?: string) => Promise<{ success: boolean; user?: CustomerUser; message: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; user?: CustomerUser; message: string }>;
+  isFirebaseReady: boolean;
   quickLogin: (role?: 'admin' | 'staff' | 'customer' | 'vendor') => Promise<{ success: boolean; message: string }>;
   register: (data: { first_name: string; last_name?: string; email: string; phone?: string; password: string }) => Promise<{ success: boolean; message: string }>;
   logoutUser: () => Promise<void>;
@@ -69,6 +92,7 @@ interface ShopContextType {
   primaryColor: string;
   setThemeColor: (color: string) => Promise<void>;
   updateCategorySettings: <K extends keyof MarketplaceConfig>(category: K, data: Partial<MarketplaceConfig[K]>) => Promise<void>;
+  saveAllSettings: (fullConfig: Partial<MarketplaceConfig>) => Promise<void>;
   refreshSettings: () => Promise<void>;
   formatPrice: (amount: number) => string;
 
@@ -87,9 +111,9 @@ interface ShopContextType {
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Global synchronized product catalog & categories (sourced strictly from API)
+  // Global synchronized product catalog & categories (exclusively fetched from live WooCommerce API)
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(() => INITIAL_CATEGORIES);
   const [stores, setStores] = useState<Store[]>([]);
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true
@@ -128,8 +152,13 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchCategories = async () => {
     try {
       const cats = await api.getCategories();
-      if (Array.isArray(cats)) {
-        setCategories(cats);
+      if (Array.isArray(cats) && cats.length > 0) {
+        const existingSlugs = new Set(cats.map((c: Category) => c.slug || c.id));
+        const combined = [
+          ...cats,
+          ...INITIAL_CATEGORIES.filter((c) => !existingSlugs.has(c.slug || c.id)),
+        ];
+        setCategories(combined);
       }
     } catch (err) {
       console.warn('API categories fetch notice:', err);
@@ -170,14 +199,27 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initial catalog load & network listeners
   useEffect(() => {
     let isMounted = true;
+    let unsubProducts: (() => void) | null = null;
+
     const initApp = async () => {
       try {
+        // 1. Load products and categories from local cache & API
         await Promise.allSettled([
           fetchProducts(),
           fetchCategories(),
-          // Background pre-fetch first page of shop catalog (page: 1, limit: 18) to ensure instant catalog readiness
           api.getProducts({ page: 1, limit: 18 }),
         ]);
+
+        // 3. Real-time subscription to database products
+        try {
+          unsubProducts = subscribeToProducts((firestoreProducts) => {
+            if (isMounted && Array.isArray(firestoreProducts) && firestoreProducts.length > 0) {
+              setProducts(firestoreProducts);
+            }
+          });
+        } catch (subErr) {
+          console.warn('Real-time products subscription notice:', subErr);
+        }
       } finally {
         setTimeout(() => {
           if (isMounted) setIsPageLoadingState(false);
@@ -194,6 +236,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       isMounted = false;
+      if (unsubProducts) unsubProducts();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -261,7 +304,75 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'manager';
+  const [isFirebaseReady, setIsFirebaseReady] = useState(false);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+
+  // Sync Firebase Auth with application user session
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      setFirebaseUser(fbUser);
+      setIsFirebaseReady(true);
+      if (fbUser) {
+        try {
+          const profile: any = await syncUserProfile(fbUser);
+          const isOpwataAdmin = fbUser.email?.trim().toLowerCase() === 'opwataallan@gmail.com';
+          const role = isOpwataAdmin
+            ? 'SUPER_ADMIN'
+            : (profile?.role || 'CUSTOMER');
+          const customerUser: CustomerUser = {
+            id: typeof profile?.id === 'number' ? profile.id : Date.now(),
+            uid: fbUser.uid,
+            displayName: profile?.displayName || fbUser.displayName || 'Customer',
+            photoURL: profile?.photoURL || fbUser.photoURL || '',
+            first_name: profile?.first_name || fbUser.displayName?.split(' ')[0] || 'Customer',
+            last_name: profile?.last_name || fbUser.displayName?.split(' ').slice(1).join(' ') || '',
+            email: fbUser.email || profile?.email || '',
+            phone: profile?.phone || '',
+            role: role as any,
+            status: profile?.status || 'ACTIVE',
+            isSuperAdmin: isOpwataAdmin || profile?.isSuperAdmin || role === 'SUPER_ADMIN',
+            admin: isOpwataAdmin || profile?.admin || role === 'SUPER_ADMIN' || role === 'ADMIN',
+            permissions: profile?.permissions || (isOpwataAdmin ? ['*'] : []),
+            vendorId: profile?.vendorId || null,
+            assignedStoreIds: profile?.assignedStoreIds || [],
+            addresses: profile?.addresses || [],
+            wishlist: profile?.wishlist || [],
+            vendor_id: profile?.vendorId || profile?.vendor_id,
+            store_id: profile?.store_id,
+          };
+          setUser(customerUser);
+          localStorage.setItem('cdt_user', JSON.stringify(customerUser));
+
+          // If administrator is signed in, ensure Firestore catalog is initialized if empty
+          if (customerUser.admin || customerUser.isSuperAdmin || isOpwataAdmin) {
+            seedInitialFirestoreCatalogIfEmpty().catch(() => {});
+          }
+        } catch (err) {
+          console.error('Error syncing Firebase user profile:', err);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const isSuperAdmin = Boolean(
+    user && (
+      user.role === 'SUPER_ADMIN' ||
+      user.isSuperAdmin === true ||
+      (user.email && user.email.trim().toLowerCase() === 'opwataallan@gmail.com')
+    )
+  );
+
+  const isAdmin = Boolean(
+    isSuperAdmin ||
+    (user && (
+      user.role === 'ADMIN' ||
+      user.role === 'admin' ||
+      user.role === 'manager' ||
+      user.role === 'STORE_MANAGER'
+    ))
+  );
 
   const isPosAllowed = Boolean(
     user && (
@@ -417,19 +528,60 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 3800);
   };
 
-  // Sync cart to localStorage
+  // Sync cart to localStorage and Firestore
   useEffect(() => {
     try {
       localStorage.setItem('cdt_cart', JSON.stringify(cart));
     } catch {}
-  }, [cart]);
 
-  // Sync wishlist to localStorage
+    const uid = firebaseUser?.uid || (user?.uid ? String(user.uid) : (user?.id ? `user_${user.id}` : null));
+    if (uid) {
+      saveUserCartToFirestore(uid, cart).catch(() => {});
+    }
+  }, [cart, user, firebaseUser]);
+
+  // Sync wishlist to localStorage and Firestore
   useEffect(() => {
     try {
       localStorage.setItem('cdt_wishlist', JSON.stringify(wishlist));
     } catch {}
-  }, [wishlist]);
+
+    const uid = firebaseUser?.uid || (user?.uid ? String(user.uid) : (user?.id ? `user_${user.id}` : null));
+    if (uid) {
+      saveUserWishlistToFirestore(uid, wishlist).catch(() => {});
+    }
+  }, [wishlist, user, firebaseUser]);
+
+  // Restore cart and wishlist from Firestore when user authenticates
+  useEffect(() => {
+    const uid = firebaseUser?.uid || (user?.uid ? String(user.uid) : (user?.id ? `user_${user.id}` : null));
+    if (!uid) return;
+
+    let isMounted = true;
+    getUserCartFromFirestore(uid).then((remoteCart) => {
+      if (isMounted && Array.isArray(remoteCart) && remoteCart.length > 0) {
+        setCart((currentLocal) => {
+          if (currentLocal.length === 0) return remoteCart;
+          const localIds = new Set(currentLocal.map((i) => i.id));
+          const additions = remoteCart.filter((i) => !localIds.has(i.id));
+          return [...currentLocal, ...additions];
+        });
+      }
+    }).catch(() => {});
+
+    getUserWishlistFromFirestore(uid).then((remoteWishlist) => {
+      if (isMounted && Array.isArray(remoteWishlist) && remoteWishlist.length > 0) {
+        setWishlist((currentLocal) => {
+          const merged = Array.from(new Set([...currentLocal, ...remoteWishlist]));
+          return merged;
+        });
+      }
+    }).catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, user?.uid, firebaseUser?.uid]);
 
   // Sync recently viewed to localStorage
   useEffect(() => {
@@ -461,9 +613,47 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     verifyAuthSession();
   }, []);
 
-  // Refresh settings from server API
+  // Real-time synchronization of settings/global from Cloud Firestore
+  useEffect(() => {
+    let isSubscribed = true;
+
+    // 1. Initial read from Firestore settings/global
+    loadGlobalSettingsFromFirestore()
+      .then((firestoreSettings) => {
+        if (isSubscribed && firestoreSettings) {
+          settingsService.updateConfig(firestoreSettings);
+        }
+      })
+      .catch((err) => {
+        console.warn('Initial Firestore settings load notice:', err);
+      });
+
+    // 2. Real-time onSnapshot synchronization
+    const unsubscribe = subscribeToGlobalSettings(
+      (updatedConfig) => {
+        if (isSubscribed) {
+          settingsService.updateConfig(updatedConfig);
+        }
+      },
+      (err) => {
+        console.warn('Settings real-time listener notice:', err);
+      }
+    );
+
+    return () => {
+      isSubscribed = false;
+      unsubscribe();
+    };
+  }, []);
+
+  // Refresh settings from server API (fallback/initial sync)
   const refreshSettings = async () => {
     try {
+      const firestoreSettings = await loadGlobalSettingsFromFirestore();
+      if (firestoreSettings) {
+        settingsService.updateConfig(firestoreSettings);
+        return;
+      }
       const publicData = await api.getPublicConfig();
       if (publicData) {
         settingsService.updateConfig(publicData);
@@ -481,20 +671,58 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     category: K,
     data: Partial<MarketplaceConfig[K]>
   ) => {
+    if (!data || typeof data !== 'object') {
+      throw new Error('Invalid settings data provided');
+    }
+
+    // 1. Write to Cloud Firestore settings/global and settings/{category} with merge: true
+    try {
+      await saveGlobalSettingsToFirestore({ category, data });
+    } catch (firestoreErr: any) {
+      console.error('Failed to write to Cloud Firestore settings:', firestoreErr);
+      showToast('Unable to save changes. Please check your connection or permissions.');
+      throw firestoreErr;
+    }
+
+    // 2. Apply locally & DOM
     settingsService.updateCategory(category, data);
+
+    // 3. Mirror to server cache for backward compatibility
     try {
       await api.saveCategorySettings(category, data);
-      showToast(`Settings for ${String(category)} saved successfully`);
-    } catch (e: any) {
-      showToast(`Local settings updated (${e.message || 'Saved locally'})`);
+    } catch (e) {
+      console.warn('Backend server cache update notice:', e);
     }
+
+    showToast(`Settings for "${String(category)}" saved successfully to Cloud Firestore!`);
+  };
+
+  const saveAllSettings = async (fullConfig: Partial<MarketplaceConfig>) => {
+    try {
+      await saveGlobalSettingsToFirestore(fullConfig);
+    } catch (firestoreErr: any) {
+      console.error('Failed to write all settings to Cloud Firestore:', firestoreErr);
+      showToast('Unable to save changes. Please check your connection or permissions.');
+      throw firestoreErr;
+    }
+
+    settingsService.updateConfig(fullConfig);
+
+    try {
+      await api.saveFullSettings(fullConfig);
+    } catch (e) {
+      console.warn('Backend server cache update notice:', e);
+    }
+
+    showToast('All settings categories successfully saved to Cloud Firestore!');
   };
 
   const setThemeColor = async (color: string) => {
     try {
       await updateCategorySettings('branding', { primary_color: color });
-    } catch (e) {
+    } catch (e: any) {
       settingsService.updateCategory('branding', { primary_color: color });
+      showToast(e.message || 'Theme color updated locally');
     }
   };
 
@@ -641,8 +869,36 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const res = await api.login(credentials);
       if (res.success && res.user) {
+        // Also ensure Firebase Auth session is active
+        if (typeof credentials === 'object' && credentials.email && credentials.password) {
+          try {
+            let fbUser: FirebaseUser | null = null;
+            try {
+              fbUser = await signInWithEmail(credentials.email, credentials.password);
+            } catch (authErr: any) {
+              if (authErr?.code === 'auth/user-not-found' || authErr?.code === 'auth/invalid-credential') {
+                try {
+                  fbUser = await registerWithEmail(credentials.email, credentials.password);
+                } catch {}
+              }
+            }
+            if (fbUser) {
+              res.user.uid = fbUser.uid;
+              setFirebaseUser(fbUser);
+              await syncUserProfile(fbUser, {
+                first_name: res.user.first_name,
+                last_name: res.user.last_name,
+                phone: res.user.phone,
+              });
+            }
+          } catch (fbErr) {
+            console.warn('Firebase email auth sync notice:', fbErr);
+          }
+        }
         setUser(res.user);
-        showToast(`Welcome back, ${res.user.first_name}!`);
+        localStorage.setItem('cdt_user', JSON.stringify(res.user));
+        if (res.token) localStorage.setItem('cdt_token', res.token);
+        showToast(`Welcome back, ${res.user.first_name || 'Customer'}!`);
         return { success: true, user: res.user, message: 'Signed in successfully.' };
       }
       return { success: false, message: 'Login failed.' };
@@ -657,7 +913,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await api.quickLogin(role as any);
       if (res.success && res.user) {
         setUser(res.user);
-        showToast(`Signed in as ${res.user.first_name} (${res.user.role})`);
+        localStorage.setItem('cdt_user', JSON.stringify(res.user));
+        if (res.token) localStorage.setItem('cdt_token', res.token);
+        showToast(`Signed in as ${res.user.first_name || 'User'} (${res.user.role})`);
         return { success: true, message: 'Signed in successfully.' };
       }
       return { success: false, message: 'Quick login failed.' };
@@ -677,8 +935,35 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.register(data);
       if (res.success && res.user) {
+        if (data.email && data.password) {
+          try {
+            let fbUser: FirebaseUser | null = null;
+            try {
+              fbUser = await registerWithEmail(data.email, data.password);
+            } catch (regErr: any) {
+              if (regErr?.code === 'auth/email-already-in-use') {
+                try {
+                  fbUser = await signInWithEmail(data.email, data.password);
+                } catch {}
+              }
+            }
+            if (fbUser) {
+              res.user.uid = fbUser.uid;
+              setFirebaseUser(fbUser);
+              await syncUserProfile(fbUser, {
+                first_name: data.first_name,
+                last_name: data.last_name,
+                phone: data.phone,
+              });
+            }
+          } catch (e) {
+            console.warn('Firebase register notice:', e);
+          }
+        }
         setUser(res.user);
-        showToast(`Account created! Welcome, ${res.user.first_name}`);
+        localStorage.setItem('cdt_user', JSON.stringify(res.user));
+        if (res.token) localStorage.setItem('cdt_token', res.token);
+        showToast(`Account created! Welcome, ${res.user.first_name || 'Customer'}`);
         return { success: true, message: 'Registered successfully.' };
       }
       return { success: false, message: 'Registration failed.' };
@@ -688,11 +973,60 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      const fbUser = await signInWithGoogle();
+      if (fbUser) {
+        const profile: any = await syncUserProfile(fbUser);
+        const isOpwataAdmin = fbUser.email?.trim().toLowerCase() === 'opwataallan@gmail.com';
+        const role = isOpwataAdmin ? 'SUPER_ADMIN' : (profile?.role || 'CUSTOMER');
+        const customerUser: CustomerUser = {
+          id: typeof profile?.id === 'number' ? profile.id : Date.now(),
+          uid: fbUser.uid,
+          displayName: profile?.displayName || fbUser.displayName || 'Customer',
+          photoURL: profile?.photoURL || fbUser.photoURL || '',
+          first_name: profile?.first_name || fbUser.displayName?.split(' ')[0] || 'Customer',
+          last_name: profile?.last_name || fbUser.displayName?.split(' ').slice(1).join(' ') || '',
+          email: fbUser.email || '',
+          phone: profile?.phone || '',
+          role: role as any,
+          status: profile?.status || 'ACTIVE',
+          isSuperAdmin: isOpwataAdmin || profile?.isSuperAdmin || role === 'SUPER_ADMIN',
+          admin: isOpwataAdmin || profile?.admin || role === 'SUPER_ADMIN' || role === 'ADMIN',
+          permissions: profile?.permissions || (isOpwataAdmin ? ['*'] : []),
+          vendorId: profile?.vendorId || null,
+          assignedStoreIds: profile?.assignedStoreIds || [],
+          addresses: profile?.addresses || [],
+          wishlist: profile?.wishlist || [],
+          vendor_id: profile?.vendorId || profile?.vendor_id,
+          store_id: profile?.store_id,
+        };
+        setFirebaseUser(fbUser);
+        setUser(customerUser);
+        localStorage.setItem('cdt_user', JSON.stringify(customerUser));
+        showToast(`Welcome, ${customerUser.first_name}! Signed in with Google.`);
+        return { success: true, user: customerUser, message: 'Signed in with Google.' };
+      }
+      return { success: false, message: 'Google sign-in was cancelled.' };
+    } catch (err: any) {
+      console.error('Google sign-in error:', err);
+      const isPermission = err?.message?.includes('permission') || err?.code === 'permission-denied';
+      showToast(isPermission ? "We couldn't complete that action. Please try again." : (err.message || 'Google sign-in failed'));
+      throw err;
+    }
+  };
+
   const logoutUser = async () => {
+    try {
+      await signOutFirebase();
+    } catch {}
     try {
       await api.logout();
     } catch {}
+    setFirebaseUser(null);
     setUser(null);
+    localStorage.removeItem('cdt_user');
+    localStorage.removeItem('cdt_token');
     showToast('You have logged out.');
   };
 
@@ -770,6 +1104,8 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         selectedZone,
         setSelectedZone,
         user,
+        firebaseUser,
+        isSuperAdmin,
         isAdmin,
         isVendor: Boolean(user?.role === 'vendor' || user?.role === 'vendor_staff'),
         vendorStoreId: user?.vendor_id || user?.store_id,
@@ -779,6 +1115,8 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         goToStorefront,
         loginUser,
         login,
+        loginWithGoogle,
+        isFirebaseReady,
         quickLogin,
         register,
         logoutUser,
@@ -788,6 +1126,7 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         primaryColor,
         setThemeColor,
         updateCategorySettings,
+        saveAllSettings,
         refreshSettings,
         formatPrice,
         toastMessage,

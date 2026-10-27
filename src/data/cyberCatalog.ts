@@ -18,7 +18,7 @@ export const INITIAL_STORE_SETTINGS: StoreSettings = {
   last_sync: 'Just now (WooCommerce API v3)',
   notice_banner: {
     enabled: true,
-    text: '⚡ EXPRESS SAME-DAY DISPATCH across all areas of Kampala, Uganda | Pay with MTN & Airtel MoMo or Cash on Delivery',
+    text: '⚡ EXPRESS SAME-DAY DELIVERY across all areas of Uganda | Pay with MTN & Airtel MoMo or Cash on Delivery',
   },
 };
 
@@ -133,7 +133,8 @@ export const INITIAL_CATEGORIES: Category[] = [
   },
 ];
 
-// Pure live API-driven catalog (no dummy products)
+// Rich Initial Product Catalog (Comprehensive High-Quality Dummy Products)
+// Live WooCommerce Product Catalog (Exclusively fetched from live WooCommerce API)
 export const INITIAL_PRODUCTS: Product[] = [];
 
 export const INITIAL_DELIVERY_ZONES: DeliveryZone[] = [

@@ -21,6 +21,7 @@ import { UGANDA_DISTRICTS, getDistrictDeliveryOptions } from '../data/ugandaDist
 import { DistrictSelector } from '../components/DistrictSelector';
 import { PaymentLandingPage } from '../components/PaymentLandingPage';
 import { notificationService } from '../services/notificationService';
+import { auth, saveOrderToFirestore } from '../firebase';
 
 export const CheckoutPage: React.FC = () => {
   const {
@@ -33,6 +34,8 @@ export const CheckoutPage: React.FC = () => {
     selectedZone,
     setSelectedZone,
     user,
+    config,
+    formatPrice,
     setCurrentView,
     showToast,
   } = useShop();
@@ -257,9 +260,28 @@ export const CheckoutPage: React.FC = () => {
         line_items: cart,
       };
 
+      // 1. Check Firebase Authentication
+      // 2. Confirm whether authenticated user exists
+      const currentAuthUid = auth.currentUser?.uid || (user?.uid && typeof user.uid === 'string' ? user.uid : undefined);
+      const isCustomerAuthenticated = Boolean(currentAuthUid);
+
+      // 3. Attach Firebase UID to payload if authenticated
+      if (isCustomerAuthenticated && currentAuthUid) {
+        (orderPayload as any).userId = currentAuthUid;
+      }
+
       const res = await api.createOrder(orderPayload);
 
       if (res.success && res.order) {
+        // If authenticated customer:
+        // 4. Attach UID to the order
+        // 5. Save the order to Firestore
+        // 6. Only after the Firestore write succeeds should the application show the order as successfully placed.
+        if (isCustomerAuthenticated && currentAuthUid) {
+          res.order.userId = currentAuthUid;
+          await saveOrderToFirestore(res.order, currentAuthUid);
+        }
+
         clearCart();
         setCreatedOrder(res.order);
 
@@ -291,8 +313,9 @@ export const CheckoutPage: React.FC = () => {
       <div className="mb-6">
         <div className="flex items-center justify-between max-w-lg mx-auto text-xs font-bold">
           <button
+            type="button"
             onClick={() => setActiveStep(1)}
-            className={`flex items-center gap-1.5 cursor-pointer ${
+            className={`flex items-center gap-1.5 cursor-pointer touch-manipulation ${
               activeStep >= 1 ? 'text-cyan-600' : 'text-slate-400'
             }`}
           >
@@ -303,12 +326,14 @@ export const CheckoutPage: React.FC = () => {
             >
               1
             </span>
-            <span>Delivery & Coordinates</span>
+            <span className="hidden sm:inline">Delivery & Address</span>
+            <span className="sm:hidden">Address</span>
           </button>
-          <div className="flex-1 max-w-[60px] h-0.5 bg-slate-200 mx-2" />
+          <div className="flex-1 max-w-[40px] sm:max-w-[60px] h-0.5 bg-slate-200 mx-1 sm:mx-2" />
           <button
+            type="button"
             onClick={() => setActiveStep(2)}
-            className={`flex items-center gap-1.5 cursor-pointer ${
+            className={`flex items-center gap-1.5 cursor-pointer touch-manipulation ${
               activeStep >= 2 ? 'text-cyan-600' : 'text-slate-400'
             }`}
           >
@@ -319,12 +344,14 @@ export const CheckoutPage: React.FC = () => {
             >
               2
             </span>
-            <span>Shipping Zone</span>
+            <span className="hidden sm:inline">Shipping Hub</span>
+            <span className="sm:hidden">Shipping</span>
           </button>
-          <div className="flex-1 max-w-[60px] h-0.5 bg-slate-200 mx-2" />
+          <div className="flex-1 max-w-[40px] sm:max-w-[60px] h-0.5 bg-slate-200 mx-1 sm:mx-2" />
           <button
+            type="button"
             onClick={() => setActiveStep(3)}
-            className={`flex items-center gap-1.5 cursor-pointer ${
+            className={`flex items-center gap-1.5 cursor-pointer touch-manipulation ${
               activeStep >= 3 ? 'text-cyan-600' : 'text-slate-400'
             }`}
           >
@@ -335,7 +362,8 @@ export const CheckoutPage: React.FC = () => {
             >
               3
             </span>
-            <span>Payment Method</span>
+            <span className="hidden sm:inline">Payment Method</span>
+            <span className="sm:hidden">Payment</span>
           </button>
         </div>
       </div>
@@ -363,7 +391,7 @@ export const CheckoutPage: React.FC = () => {
                   required
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  className="w-full h-10 sm:h-9 px-3 border border-slate-200 rounded-lg text-sm sm:text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                 />
               </div>
 
@@ -374,7 +402,7 @@ export const CheckoutPage: React.FC = () => {
                   required
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  className="w-full h-10 sm:h-9 px-3 border border-slate-200 rounded-lg text-sm sm:text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                 />
               </div>
 
@@ -382,10 +410,11 @@ export const CheckoutPage: React.FC = () => {
                 <label className="font-bold text-slate-700 block mb-1">Email Address *</label>
                 <input
                   type="email"
+                  inputMode="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  className="w-full h-10 sm:h-9 px-3 border border-slate-200 rounded-lg text-sm sm:text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                 />
               </div>
 
@@ -398,7 +427,7 @@ export const CheckoutPage: React.FC = () => {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+256 7XX XXX XXX"
-                  className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 font-mono"
+                  className="w-full h-10 sm:h-9 px-3 border border-slate-200 rounded-lg text-sm sm:text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 font-mono transition-colors"
                 />
               </div>
 
@@ -422,7 +451,7 @@ export const CheckoutPage: React.FC = () => {
                   value={city || district}
                   onChange={(e) => setCity(e.target.value)}
                   placeholder="e.g. Nakasero, Kira, Entebbe, or Jinja"
-                  className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  className="w-full h-10 sm:h-9 px-3 border border-slate-200 rounded-lg text-sm sm:text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                 />
               </div>
 
@@ -434,7 +463,7 @@ export const CheckoutPage: React.FC = () => {
                   value={addressLine}
                   onChange={(e) => setAddressLine(e.target.value)}
                   placeholder="e.g. Acacia Mall, Kololo, or Plot 14 Kampala Road"
-                  className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  className="w-full h-10 sm:h-9 px-3 border border-slate-200 rounded-lg text-sm sm:text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                 />
               </div>
 
@@ -445,7 +474,7 @@ export const CheckoutPage: React.FC = () => {
                   value={landmark}
                   onChange={(e) => setLandmark(e.target.value)}
                   placeholder="e.g. Near French Embassy, Opposite Posta Uganda, or Total Energies"
-                  className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                  className="w-full h-10 sm:h-9 px-3 border border-slate-200 rounded-lg text-sm sm:text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
                 />
               </div>
 
@@ -669,7 +698,8 @@ export const CheckoutPage: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  Send to 0394760459 (OPWATA ALLAN SAMUEL). Manager confirms before dispatch.
+                  {config?.payments?.mtn_momo?.instructions ||
+                    `Send to ${config?.payments?.mtn_momo?.phone_number || '0394760459'} (${config?.payments?.mtn_momo?.merchant_name || 'OPWATA ALLAN SAMUEL'}). Manager confirms before dispatch.`}
                 </p>
               </div>
 
@@ -692,7 +722,8 @@ export const CheckoutPage: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  Send to 0394760459 (OPWATA ALLAN SAMUEL). Manager confirms before dispatch.
+                  {config?.payments?.airtel_money?.instructions ||
+                    `Send to ${config?.payments?.airtel_money?.phone_number || '0394760459'} (${config?.payments?.airtel_money?.merchant_name || 'OPWATA ALLAN SAMUEL'}). Manager confirms before dispatch.`}
                 </p>
               </div>
 
@@ -730,7 +761,8 @@ export const CheckoutPage: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  Pay cash upon doorstep physical delivery and inspection
+                  {config?.payments?.cash_on_delivery?.instructions ||
+                    'Pay cash upon doorstep physical delivery and inspection'}
                 </p>
               </div>
             </div>
@@ -761,7 +793,7 @@ export const CheckoutPage: React.FC = () => {
         </div>
 
         {/* Right Column: Order Summary & Place Order (4 cols) */}
-        <div className="lg:col-span-4 space-y-4">
+        <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-20">
           <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs space-y-3">
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-2">
               Order Summary ({cart.reduce((t, i) => t + i.quantity, 0)} items)

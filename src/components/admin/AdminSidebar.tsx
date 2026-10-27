@@ -14,13 +14,14 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Server,
+  Boxes,
 } from 'lucide-react';
 import { useShop } from '../../context/ShopContext';
 
 export type AdminTab =
   | 'overview'
+  | 'products'
   | 'analytics'
   | 'marketplace'
   | 'orders'
@@ -64,6 +65,12 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           label: 'Overview & Sales',
           icon: TrendingUp,
           active: isOverviewActive,
+        },
+        {
+          id: 'products' as AdminTab,
+          label: 'Products & Catalog',
+          icon: Boxes,
+          active: activeTab === 'products',
         },
         {
           id: 'marketplace' as AdminTab,

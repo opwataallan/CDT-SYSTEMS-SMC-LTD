@@ -32,7 +32,6 @@ import {
   Server,
   Layers,
   ArrowUpRight,
-  Sparkles,
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
@@ -350,7 +349,7 @@ export const AdminAnalyticsDashboard: React.FC = () => {
         <div className="bg-white rounded-xl border border-slate-200 shadow-xs p-4 sm:p-5 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <TrendingUp className="w-3.5 h-3.5 text-amber-500" />
               <span>Top-Selling Products</span>
             </h3>
             <span className="text-[11px] text-slate-400 font-bold">Units / Rev</span>

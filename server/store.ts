@@ -18,7 +18,7 @@ import {
   StorePromotion,
 } from '../src/types';
 import { DEFAULT_MARKETPLACE_CONFIG } from '../src/data/defaultConfig';
-import { INITIAL_DELIVERY_ZONES, INITIAL_COUPONS } from '../src/data/cyberCatalog';
+import { INITIAL_DELIVERY_ZONES, INITIAL_COUPONS, INITIAL_PRODUCTS } from '../src/data/cyberCatalog';
 import { hashPassword, encryptField, decryptField } from './security';
 
 export interface UserAccount {
@@ -218,7 +218,7 @@ export const INITIAL_STORE_REVIEWS: StoreReview[] = [
 
 export class MarketplaceStore {
   public config: MarketplaceConfig = { ...DEFAULT_MARKETPLACE_CONFIG };
-  // Only products and categories fetched from the live API are stored (no dummy products)
+  // Real live product catalog loaded from WooCommerce API
   public products: Product[] = [];
   public categories: Category[] = [];
   public deliveryZones: DeliveryZone[] = [...INITIAL_DELIVERY_ZONES];
@@ -420,6 +420,8 @@ export class MarketplaceStore {
         }
         if (Array.isArray(data.products) && data.products.length > 0) {
           this.products = data.products;
+        } else {
+          this.products = [];
         }
         if (Array.isArray(data.categories) && data.categories.length > 0) {
           this.categories = data.categories;

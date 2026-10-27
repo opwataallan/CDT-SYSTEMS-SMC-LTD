@@ -2,6 +2,7 @@ import React from 'react';
 import { ProductSliderRow } from './ProductSliderRow';
 import { Zap, CheckCircle2 } from 'lucide-react';
 import { useShop } from '../context/ShopContext';
+import { DEFAULT_MARKETPLACE_CONFIG } from '../data/defaultConfig';
 
 export interface FiveRowProductSliderProps {
   className?: string;
@@ -14,8 +15,15 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
 }) => {
   const { config } = useShop();
 
-  const fliersRow2 = config?.homepage?.advert_fliers_row2;
-  const fliersRow4 = config?.homepage?.advert_fliers_row4;
+  const fliersRow2 =
+    config?.homepage?.advert_fliers_row2 && config.homepage.advert_fliers_row2.length > 0
+      ? config.homepage.advert_fliers_row2
+      : DEFAULT_MARKETPLACE_CONFIG.homepage.advert_fliers_row2;
+
+  const fliersRow4 =
+    config?.homepage?.advert_fliers_row4 && config.homepage.advert_fliers_row4.length > 0
+      ? config.homepage.advert_fliers_row4
+      : DEFAULT_MARKETPLACE_CONFIG.homepage.advert_fliers_row4;
 
   return (
     <section
@@ -26,36 +34,18 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         {showSectionHeader && (
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-2.5 pb-3 border-b border-slate-200/80">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-100 text-cyan-800 text-[11px] font-black tracking-wide uppercase">
-                  <Zap className="w-3 h-3 text-cyan-600 fill-cyan-600" />
-                  Live Product Showcase
-                </span>
-                <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                  Verified In Stock
-                </span>
-              </div>
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 tracking-tight">
-                Explore Our 5 Hardware Categories
-              </h2>
-            </div>
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+              Featured Collections
+            </h2>
           </div>
         )}
 
-        {/* =========================================================================
-            ROW 1: LAPTOPS & COMPUTERS (Auto-Scrolling)
-            Display: HP laptops, Dell laptops, Lenovo laptops, Desktop computers,
-                     Refurbished laptops, All-in-one computers
-           ========================================================================= */}
+        {/* ROW 1: LAPTOPS & COMPUTERS */}
         <ProductSliderRow
           rowNumber={1}
           title="Laptops & Computers"
           categorySlug="laptops-computers"
-          subCategoriesText="HP Laptops • Dell Laptops • Lenovo Laptops • Desktop PCs • Certified Refurbished • All-in-One"
-          badgeText="High Performance Workstations"
           autoScroll={true}
           speed={0.52}
           direction="left-to-right"
@@ -76,16 +66,11 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           ]}
         />
 
-        {/* =========================================================================
-            ROW 2: SMARTPHONES & TABLETS (Strictly Manual Swipe & Drag • 3 Advert Fliers)
-            Display: 3 Spotlight Advert Fliers configurable from Admin Settings
-           ========================================================================= */}
+        {/* ROW 2: SMARTPHONES & TABLETS */}
         <ProductSliderRow
           rowNumber={2}
           title="Smartphones & Tablets"
           categorySlug="smartphones-tablets"
-          subCategoriesText="Samsung Galaxy • iPhones • Google Pixel • Tablets & iPads • Fast GaN Chargers"
-          badgeText="Official Warranties"
           autoScroll={false}
           maxProducts={3}
           fliers={fliersRow2}
@@ -107,17 +92,11 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           ]}
         />
 
-        {/* =========================================================================
-            ROW 3: PRINTERS & OFFICE EQUIPMENT (Auto-Scrolling)
-            Display: HP printers, Laser printers, Photocopiers, Multifunction printers,
-                     Toner/cartridges, Office equipment
-           ========================================================================= */}
+        {/* ROW 3: PRINTERS & OFFICE EQUIPMENT */}
         <ProductSliderRow
           rowNumber={3}
           title="Printers & Office Equipment"
           categorySlug="printers-office-equipment"
-          subCategoriesText="HP LaserJet • Epson EcoTank • Canon Copiers • Kyocera A3 • Genuine HP Toners • Shredders"
-          badgeText="Lowest Cost Per Page"
           autoScroll={true}
           speed={0.58}
           direction="left-to-right"
@@ -140,16 +119,11 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           ]}
         />
 
-        {/* =========================================================================
-            ROW 4: NETWORKING & SECURITY (Strictly Manual Swipe & Drag • 3 Advert Fliers)
-            Display: 3 Spotlight Advert Fliers configurable from Admin Settings
-           ========================================================================= */}
+        {/* ROW 4: NETWORKING & SECURITY */}
         <ProductSliderRow
           rowNumber={4}
           title="Networking & Security"
           categorySlug="networking-security"
-          subCategoriesText="Wi-Fi 6 Routers • 4G/5G SIM Gateways • Cisco Managed Switches • ColorVu CCTV • Solar 4G Cameras"
-          badgeText="Seamless Enterprise Connectivity"
           autoScroll={false}
           maxProducts={3}
           fliers={fliersRow4}
@@ -172,17 +146,11 @@ export const FiveRowProductSlider: React.FC<FiveRowProductSliderProps> = ({
           ]}
         />
 
-        {/* =========================================================================
-            ROW 5: ACCESSORIES & ELECTRONICS (Auto-Scrolling)
-            Display: Keyboards, Computer mice, Headphones, Monitors, Gaming accessories,
-                     Smartwatches, Other IT electronics
-           ========================================================================= */}
+        {/* ROW 5: ACCESSORIES & ELECTRONICS */}
         <ProductSliderRow
           rowNumber={5}
           title="Accessories & Electronics"
           categorySlug="accessories-electronics"
-          subCategoriesText="Logitech MX Keyboards & Mice • Sony ANC Headphones • Dell 4K Monitors • Redragon Gaming • APC UPS"
-          badgeText="Ergonomic & Power Protection"
           autoScroll={true}
           speed={0.64}
           direction="left-to-right"

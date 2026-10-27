@@ -7,7 +7,6 @@ import {
   Mail,
   Phone,
   ArrowDownRight,
-  Sparkles,
   Loader2,
   Trash2,
   Info,
@@ -282,7 +281,7 @@ export const PriceDropAlertModal: React.FC<PriceDropAlertModalProps> = ({
           {/* Success Message Banner */}
           {successMessage && (
             <div className="p-3 rounded-xl bg-cyan-50 border border-cyan-200 text-cyan-900 text-xs flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-600 flex-shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-cyan-600 flex-shrink-0" />
               <span className="font-medium">{successMessage}</span>
             </div>
           )}

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, ArrowRight, Sparkles, Pause, Play, Hand, Smartphone } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, Pause, Play, Hand, Smartphone } from 'lucide-react';
 import { Product, AdvertFlyer } from '../types';
 import { SliderProductCard } from './SliderProductCard';
 import { AdvertFlyerCard } from './AdvertFlyerCard';
@@ -389,144 +389,52 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
       id={`product-slider-row-${rowNumber}`}
       className="py-2.5 sm:py-3.5 border-b border-slate-100 last:border-b-0 overflow-hidden"
     >
-      {/* Category Header with Row Number, Title, Scroll Mode Tag, and Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
-        <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-6 h-6 rounded-full bg-slate-900 text-cyan-400 font-mono text-xs font-bold shrink-0">
-            {rowNumber}
-          </span>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-1.5">
-                {title}
-              </h2>
-              {badgeText && (
-                <span className="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-[10px] font-bold">
-                  <Sparkles className="w-2.5 h-2.5" />
-                  {badgeText}
-                </span>
-              )}
-              {hasFliers && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-bold">
-                  Advert Flyers • 3 Promotions
-                </span>
-              )}
-              {/* Distinct Mode Badge */}
-              <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                  isManualSwipeOnly
-                    ? 'bg-amber-50 border-amber-200 text-amber-800'
-                    : 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                }`}
-              >
-                {isManualSwipeOnly ? (
-                  <>
-                    <Hand className="w-2.5 h-2.5 text-amber-600" />
-                    Manual Touch Swipe
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-2.5 h-2.5 text-emerald-600 fill-emerald-600" />
-                    Auto Scrolling
-                  </>
-                )}
-              </span>
-            </div>
-            {subCategoriesText && (
-              <p className="text-[11px] sm:text-xs text-slate-500 font-medium line-clamp-1 mt-0.5">
-                {subCategoriesText}
-              </p>
-            )}
-          </div>
-        </div>
+      {/* Category Header with Clean Title & Navigation Controls */}
+      <div className="flex items-center justify-between gap-3 mb-2.5">
+        <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+          {title}
+        </h2>
 
-        {/* Controls: User Mode Toggle (Manual Swipe / Auto Scroll), Left/Right Arrows, and View All */}
-        <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
-          <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-lg">
-            {/* Screen Touch / User Manual Swipe Toggle button: Allows user to enable or remove manual swipe */}
-            <button
-              type="button"
-              onClick={() => setIsManualSwipeOnly(!isManualSwipeOnly)}
-              className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                isManualSwipeOnly
-                  ? 'bg-amber-500 text-white shadow-2xs'
-                  : 'bg-white text-slate-700 hover:bg-slate-200/80 shadow-2xs'
-              }`}
-              title={isManualSwipeOnly ? 'Remove manual swipe (Switch to Auto Scroll)' : 'Enable manual swipe mode'}
-            >
-              {isManualSwipeOnly ? (
-                <>
-                  <Hand className="w-3 h-3 text-white" />
-                  <span className="text-[10px] hidden xs:inline">Manual Swipe</span>
-                  <span className="text-[9px] text-amber-200 underline xs:hidden">Manual</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-3 h-3 text-cyan-600 fill-cyan-600" />
-                  <span className="text-[10px] hidden xs:inline">Auto Scroll</span>
-                  <span className="text-[9px] text-cyan-700 xs:hidden">Auto</span>
-                </>
-              )}
-            </button>
+        {/* Controls: Left/Right Arrows and View All */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleScrollLeft}
+            disabled={activeAutoScroll ? false : !canScrollLeft}
+            className={`p-1.5 rounded-lg border border-slate-200 transition-all cursor-pointer ${
+              activeAutoScroll || canScrollLeft
+                ? 'bg-white hover:bg-slate-50 text-slate-700 shadow-2xs'
+                : 'bg-slate-100 text-slate-300 cursor-not-allowed opacity-50'
+            }`}
+            title="Scroll left"
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
 
-            {/* Play/Pause Button - ONLY active when auto-scrolling */}
-            {activeAutoScroll && (
-              <button
-                type="button"
-                onClick={() => setIsPlaying(!isPlaying)}
-                className={`p-1.5 rounded-md text-xs font-medium transition-colors cursor-pointer ${
-                  isPlaying
-                    ? 'text-slate-600 hover:text-slate-900 hover:bg-white'
-                    : 'bg-cyan-600 text-white shadow-2xs'
-                }`}
-                title={isPlaying ? 'Pause auto-scroll' : 'Resume auto-scroll'}
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
-              </button>
-            )}
-
-            {/* Left Nav Arrow */}
-            <button
-              type="button"
-              onClick={handleScrollLeft}
-              disabled={activeAutoScroll ? false : !canScrollLeft}
-              className={`p-1.5 rounded-md transition-all cursor-pointer ${
-                activeAutoScroll || canScrollLeft
-                  ? 'text-slate-700 hover:text-slate-950 hover:bg-white shadow-2xs'
-                  : 'text-slate-300 cursor-not-allowed opacity-40'
-              }`}
-              title="Scroll left"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Right Nav Arrow */}
-            <button
-              type="button"
-              onClick={handleScrollRight}
-              disabled={activeAutoScroll ? false : !canScrollRight}
-              className={`p-1.5 rounded-md transition-all cursor-pointer ${
-                activeAutoScroll || canScrollRight
-                  ? 'text-slate-700 hover:text-slate-950 hover:bg-white shadow-2xs'
-                  : 'text-slate-300 cursor-not-allowed opacity-40'
-              }`}
-              title="Scroll right"
-              aria-label="Scroll right"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleScrollRight}
+            disabled={activeAutoScroll ? false : !canScrollRight}
+            className={`p-1.5 rounded-lg border border-slate-200 transition-all cursor-pointer ${
+              activeAutoScroll || canScrollRight
+                ? 'bg-white hover:bg-slate-50 text-slate-700 shadow-2xs'
+                : 'bg-slate-100 text-slate-300 cursor-not-allowed opacity-50'
+            }`}
+            title="Scroll right"
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
 
           {/* View All Button */}
           <button
             type="button"
             onClick={handleViewAll}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50 border border-cyan-200 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold text-cyan-600 hover:text-cyan-700 hover:bg-cyan-50 transition-colors cursor-pointer ml-1"
           >
             <span>View All</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3 h-3" />
           </button>
         </div>
       </div>
@@ -554,9 +462,9 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
         onScroll={() => {
           if (!activeAutoScroll) updateScrollBounds();
         }}
-        className="w-full overflow-x-auto no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing select-none"
+        className="w-full overflow-x-auto no-scrollbar scroll-smooth cursor-grab active:cursor-grabbing select-none touch-pan-x"
         style={{
-          touchAction: 'pan-y', // allows vertical page scroll while horizontally swiping
+          touchAction: 'pan-x pan-y',
           WebkitOverflowScrolling: 'touch',
         }}
       >

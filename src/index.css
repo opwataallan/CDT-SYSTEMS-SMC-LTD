@@ -1,38 +1,35 @@
 @import "tailwindcss";
 
 @theme {
+  --color-brand-dark-red: #920d35;
+  --color-brand-dark-red-hover: #770929;
+  --color-brand-maroon: #580c1f;
+  --color-brand-maroon-dark: #430514;
+  --color-brand-gold: #f59e0b;
+  --color-brand-gold-hover: #d97706;
+  --color-brand-gold-light: #fef3c7;
+  --color-brand-navy: #0f172a;
+  --color-brand-navy-light: #1e293b;
+  --color-brand-navy-dark: #0a0f1d;
+
   --color-brand-burgundy: var(--brand-primary, #920d35);
   --color-brand-burgundy-dark: var(--brand-primary-hover, #770929);
-  --color-brand-burgundy-light: var(--brand-primary-light, #fbebee);
+  --color-brand-burgundy-light: var(--brand-primary-light, #fff1f2);
   --color-primary: var(--brand-primary, #920d35);
   --color-primary-hover: var(--brand-primary-hover, #770929);
-  --color-primary-light: var(--brand-primary-light, #fbebee);
-  --color-primary-dark: var(--brand-primary-dark, #5e061f);
-
-  /* Map cyan utilities to brand primary so existing high-density UI instantly adopts the theme */
-  --color-cyan-50: var(--brand-primary-light, #fbebee);
-  --color-cyan-100: var(--brand-primary-100, #f7d5dd);
-  --color-cyan-200: var(--brand-primary-200, #f0abbc);
-  --color-cyan-300: var(--brand-primary-200, #e47593);
-  --color-cyan-400: var(--brand-primary-hover, #aa1240);
-  --color-cyan-500: var(--brand-primary, #920d35);
-  --color-cyan-600: var(--brand-primary, #920d35);
-  --color-cyan-700: var(--brand-primary-hover, #770929);
-  --color-cyan-800: var(--brand-primary-dark, #5e061f);
-  --color-cyan-900: var(--brand-primary-dark, #420415);
-  --color-cyan-950: #2b020d;
+  --color-primary-light: var(--brand-primary-light, #fff1f2);
+  --color-primary-dark: var(--brand-primary-dark, #0f172a);
 
   --color-brand-green: #007f19;
   --color-brand-green-dark: #006013;
   --color-brand-green-light: #e6f6e8;
   --color-brand-forest: #0a3000;
-  --color-brand-dark: #141415;
-  --color-brand-slate: #1f2937;
-  --color-brand-gold: #e5a632;
+  --color-brand-dark: #0f172a;
+  --color-brand-slate: #1e293b;
   --color-brand-whatsapp: #25D366;
-  --color-brand-cyan: var(--brand-primary, #920d35);
-  --color-brand-cyan-dark: var(--brand-primary-hover, #770929);
-  --color-brand-cyan-light: var(--brand-primary-light, #fbebee);
+  --color-brand-cyan: #06b6d4;
+  --color-brand-cyan-dark: #0891b2;
+  --color-brand-cyan-light: #ecfeff;
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
 }
@@ -40,12 +37,18 @@
 :root {
   --brand-primary: #920d35;
   --brand-primary-hover: #770929;
-  --brand-primary-dark: #5e061f;
-  --brand-primary-light: #fbebee;
-  --brand-primary-100: #f7d5dd;
-  --brand-primary-200: #f0abbc;
+  --brand-maroon: #580c1f;
+  --brand-gold: #f59e0b;
+  --brand-gold-hover: #d97706;
+  --brand-navy: #0f172a;
+  --brand-navy-light: #1e293b;
+  --brand-primary-dark: #0f172a;
+  --brand-primary-light: #fff1f2;
+  --brand-primary-100: #ffe4e6;
+  --brand-primary-200: #fecdd3;
   --color-primary: #920d35;
   --color-secondary: #0f172a;
+  --color-accent: #f59e0b;
 }
 
 body {
@@ -55,16 +58,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Premium Matching Tech Gradient for Page Background */
+/* Cyber Dynamic Tech Clean Marketplace Page Background */
 .app-page-bg {
-  background-color: #f1f5f9;
-  background-image:
-    radial-gradient(1000px circle at 15% 15%, rgba(6, 182, 212, 0.08) 0%, transparent 60%),
-    radial-gradient(900px circle at 85% 25%, rgba(146, 13, 53, 0.045) 0%, transparent 50%),
-    radial-gradient(1100px circle at 50% 85%, rgba(14, 165, 233, 0.06) 0%, transparent 60%),
-    linear-gradient(165deg, #f8fafc 0%, #edf2f7 35%, #e2e8f0 75%, #ecf2f8 100%);
-  background-attachment: fixed;
-  background-size: cover;
+  background-color: #f8fafc;
   min-height: 100vh;
 }
 

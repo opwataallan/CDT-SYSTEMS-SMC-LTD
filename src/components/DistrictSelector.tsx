@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { MapPin, Search, Check, ChevronDown, Building2, Phone, Clock, Sparkles } from 'lucide-react';
+import { MapPin, Search, Check, ChevronDown, Building2, Phone, Clock } from 'lucide-react';
 import { UGANDA_DISTRICTS, UgandaDistrict, getDistrictPickupLocation, DistrictPickupLocation } from '../data/ugandaDistricts';
 
 interface DistrictSelectorProps {

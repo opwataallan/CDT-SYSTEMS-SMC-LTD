@@ -29,7 +29,11 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     xl: { height: 'h-16', iconHeight: 'h-16', maxHeight: 64 },
   }[size];
 
-  const logoSrc = customLogoUrl || storeSettings?.logo_url || (storeSettings as any)?.main_logo || '/logo.png';
+  const logoSrc =
+    customLogoUrl ||
+    ((variant === 'compact' || variant === 'icon' || variant === 'mark') && storeSettings?.mobile_logo_url
+      ? storeSettings.mobile_logo_url
+      : storeSettings?.logo_url || (storeSettings as any)?.main_logo || '/logo.png');
 
   const content = (
     <div
@@ -41,7 +45,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       <div className={`inline-flex items-center ${inverted ? 'bg-white/95 px-2 py-1 rounded-lg shadow-xs' : ''}`}>
         <img
           src={logoSrc}
-          alt="Cyber Dynamic Technologies - Technology • Solutions • Growth"
+          alt={storeSettings?.site_name ? `${storeSettings.site_name} - Technology • Solutions • Growth` : 'Cyber Dynamic Technologies - Technology • Solutions • Growth'}
           className={`${sizeConfig.height} w-auto max-w-full object-contain`}
           referrerPolicy="no-referrer"
           onError={(e) => {

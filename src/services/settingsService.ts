@@ -137,7 +137,10 @@ class SettingsService {
       site_name: this.config.general.site_name,
       site_url: this.config.general.site_url,
       tagline: this.config.general.site_tagline,
-      logo_url: this.config.branding.logo_url,
+      logo_url: this.config.branding.logo_url || (this.config.branding as any).main_logo,
+      mobile_logo_url: (this.config.branding as any).mobile_logo,
+      favicon_url: (this.config.branding as any).favicon,
+      theme_color: this.config.branding.primary_color,
       phone: this.config.general.phone,
       order_hotline: this.config.general.phone,
       whatsapp_number: this.config.general.whatsapp_number,
@@ -155,6 +158,8 @@ class SettingsService {
         text: this.config.homepage.announcement_bar.text,
         link: this.config.homepage.announcement_bar.link,
       },
+      hero_banner_image: this.config.homepage.hero_banner_image || '/assets/cdt-hero-banner.svg',
+      hero_banner_link: this.config.homepage.hero_banner_link || 'shop',
     };
   }
 
@@ -162,7 +167,24 @@ class SettingsService {
   public applyThemeToDOM() {
     if (typeof document === 'undefined') return;
     const root = document.documentElement;
-    const { branding, appearance } = this.config;
+    const { branding, appearance, general } = this.config;
+
+    // Dynamically sync favicon
+    const favUrl = (branding as any).favicon || (branding as any).faviconUrl;
+    if (favUrl) {
+      let link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = favUrl;
+    }
+
+    // Dynamically sync site title if default
+    if (general?.site_name && document.title.includes('Cyber Dynamic Technologies')) {
+      document.title = `${general.site_name} | Technology • Solutions • Growth`;
+    }
 
     const primary = branding.primary_color || '#920d35';
     const primaryHover = branding.accent_color || adjustColorBrightness(primary, -15);

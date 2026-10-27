@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
-  Sparkles,
+  Tag,
   ArrowRight,
   ShieldCheck,
   Truck,
@@ -22,8 +22,9 @@ import {
   SlidersHorizontal,
   ShoppingCart,
   PackageCheck,
-  LayoutGrid,
-  Columns2,
+  Settings,
+  Sparkles,
+  ExternalLink,
 } from 'lucide-react';
 import { ProductCard } from '../components/ProductCard';
 import { ProductCardSkeleton } from '../components/ProductCardSkeleton';
@@ -36,7 +37,7 @@ import { INITIAL_HERO_BANNERS } from '../data/cyberCatalog';
 import { stripHtmlToPlainText } from '../utils/sanitizeWooCommerceHtml';
 
 export const HomePage: React.FC = () => {
-  const { setCurrentView, products: shopProducts, categories: shopCategories, addToCart, formatPrice, config } = useShop();
+  const { setCurrentView, products: shopProducts, categories: shopCategories, addToCart, formatPrice, config, isAdmin } = useShop();
 
   // Products and categories loaded exclusively from API
   const [products, setProducts] = useState<Product[]>(() => (shopProducts && shopProducts.length > 0 ? shopProducts : []));
@@ -44,7 +45,6 @@ export const HomePage: React.FC = () => {
   const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(() => INITIAL_HERO_BANNERS);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'all' | 'laptops' | 'printers' | 'networking'>('all');
-  const [catalogMobileFlow, setCatalogMobileFlow] = useState<'2row' | 'grid'>('2row');
   const [isLoadingCatalog, setIsLoadingCatalog] = useState(false);
 
   // Category Manual Slider ref & scroll tracking
@@ -135,6 +135,33 @@ export const HomePage: React.FC = () => {
     }
   };
 
+  // Category touch swipe handlers (support horizontal mobile swipe)
+  const catTouchStartXRef = useRef<number>(0);
+  const catTouchScrollLeftRef = useRef<number>(0);
+
+  const handleCatTouchStart = (e: React.TouchEvent) => {
+    if (!categoryScrollRef.current) return;
+    catHasMovedRef.current = false;
+    catTouchStartXRef.current = e.touches[0].pageX - categoryScrollRef.current.offsetLeft;
+    catTouchScrollLeftRef.current = categoryScrollRef.current.scrollLeft;
+  };
+
+  const handleCatTouchMove = (e: React.TouchEvent) => {
+    if (!categoryScrollRef.current) return;
+    const x = e.touches[0].pageX - categoryScrollRef.current.offsetLeft;
+    const walk = (x - catTouchStartXRef.current);
+    if (Math.abs(walk) > 4) {
+      catHasMovedRef.current = true;
+    }
+  };
+
+  const handleCatTouchEnd = () => {
+    setTimeout(() => {
+      catHasMovedRef.current = false;
+    }, 100);
+    checkCategoryScroll();
+  };
+
   useEffect(() => {
     checkCategoryScroll();
     const el = categoryScrollRef.current;
@@ -210,422 +237,111 @@ export const HomePage: React.FC = () => {
   const currentProduct = activeHeroProducts[currentBannerIndex % Math.max(1, activeHeroProducts.length)] || safeProducts[0];
   const currentBanner = heroBanners[currentBannerIndex] || INITIAL_HERO_BANNERS[0];
 
+  // Mobile touch swipe handling for hero banner
+  const heroTouchStartX = useRef<number>(0);
+  const handleHeroTouchStart = (e: React.TouchEvent) => {
+    heroTouchStartX.current = e.touches[0].clientX;
+  };
+  const handleHeroTouchEnd = (e: React.TouchEvent) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = heroTouchStartX.current - touchEndX;
+    if (diff > 45) {
+      setCurrentBannerIndex((prev) => (prev + 1) % Math.max(1, activeHeroProducts.length));
+    } else if (diff < -45) {
+      setCurrentBannerIndex((prev) => (prev - 1 + activeHeroProducts.length) % Math.max(1, activeHeroProducts.length));
+    }
+  };
+
+  const handlePrevHero = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentBannerIndex((prev) => (prev - 1 + activeHeroProducts.length) % Math.max(1, activeHeroProducts.length));
+  };
+
+  const handleNextHero = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentBannerIndex((prev) => (prev + 1) % Math.max(1, activeHeroProducts.length));
+  };
+
+  const heroBannerImageSrc =
+    config?.homepage?.hero_banner_image ||
+    config?.homepage?.hero_image ||
+    '/assets/cdt-hero-banner.svg';
+
+  const handleHeroBannerClick = () => {
+    const link = config?.homepage?.hero_banner_link || 'shop';
+    if (link.startsWith('category:')) {
+      const catSlug = link.replace('category:', '');
+      setCurrentView('shop', { category: catSlug });
+    } else if (link.startsWith('product:')) {
+      const prodId = parseInt(link.replace('product:', ''), 10);
+      const prod = products.find((p) => p.id === prodId);
+      if (prod) {
+        setCurrentView('product', prod);
+      } else {
+        setCurrentView('shop');
+      }
+    } else if (link === 'pos') {
+      setCurrentView('pos');
+    } else {
+      setCurrentView(link || 'shop');
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-5 pb-10">
-      {/* 1. HERO SECTION WITH HIGH-DENSITY CATEGORY SIDEBAR + PRODUCT HERO */}
-      <section className="max-w-7xl mx-auto px-4 pt-4 sm:pt-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-stretch">
-          {/* Left Category Sidebar (High Density) */}
-          <div className="hidden lg:flex flex-col bg-white rounded-lg border border-slate-200 p-4 shadow-xs">
-            <div className="text-[11px] font-black uppercase text-slate-400 tracking-widest pb-3 mb-1 border-b border-slate-100 flex items-center justify-between">
-              <span>Categories</span>
-              <span className="text-[10px] text-cyan-600 font-bold">Uganda Hub</span>
-            </div>
-            <div className="flex-1 py-1 space-y-0.5">
-              {categories.slice(0, 12).map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setCurrentView('category', { slug: cat.slug, name: cat.name })}
-                  className="w-full text-left px-2 py-1.5 rounded text-[13px] font-medium text-slate-700 hover:text-cyan-600 hover:bg-slate-50 transition-colors flex items-center justify-between group cursor-pointer"
-                >
-                  <span className="line-clamp-1">{cat.name}</span>
-                  <span className="text-[10px] text-slate-400 group-hover:text-cyan-600">{cat.count}</span>
-                </button>
-              ))}
-            </div>
+      {/* 1. STOREFRONT HERO IMAGE BANNER (CONFIGURABLE VIA ADMIN SETTINGS) */}
+      <section className="max-w-7xl mx-auto px-4 pt-2 sm:pt-3">
+        <div
+          onClick={handleHeroBannerClick}
+          className="relative w-full rounded-2xl overflow-hidden shadow-lg border-2 border-[#920d35]/60 hover:border-[#f59e0b] bg-slate-950 transition-all duration-300 cursor-pointer group"
+        >
+          {/* Hero Banner Image */}
+          <div className="relative w-full aspect-[21/9] sm:aspect-[24/9] md:aspect-[28/9] min-h-[160px] sm:min-h-[200px] md:min-h-[240px] max-h-[360px] overflow-hidden flex items-center justify-center bg-gradient-to-r from-[#0f172a] via-[#580c1f] to-[#0f172a]">
+            <img
+              src={heroBannerImageSrc}
+              alt={config?.homepage?.hero_banner_alt || 'Cyber Dynamic Technologies Official Banner'}
+              className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.015]"
+              loading="eager"
+            />
 
-            {/* Kampala Central Dispatch Hub Highlight */}
-            <div className="mt-auto p-3 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600">
-              <div className="flex items-center gap-1.5 font-bold text-slate-900 mb-0.5">
-                <MapPin className="w-3.5 h-3.5 text-cyan-600" />
-                <span>Kampala Dispatch Hub</span>
-              </div>
-              <p className="text-[10px] text-slate-500 line-clamp-2">Kampala Central. Testing & pickup available daily.</p>
-            </div>
-          </div>
+            {/* Subtle Gradient Overlays for Brand Contrast */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20 pointer-events-none" />
+            <div className="absolute inset-0 border border-white/10 rounded-2xl pointer-events-none" />
 
-          {/* Center/Right Hero Banner (High Density Product Picture & Promotional Flyer Showcase) */}
-          <div className="lg:col-span-3 flex flex-col">
-            <div className="relative rounded-2xl overflow-hidden bg-slate-900 text-white min-h-[380px] sm:min-h-[420px] flex flex-col lg:flex-row items-center shadow-lg group border border-slate-700/80">
-              {/* Subtle Ambient Background with Overlay */}
-              <img
-                src={currentBanner.imageUrl || currentProduct?.images?.[0]?.src}
-                alt={currentBanner.title || currentProduct?.name || 'Product Banner'}
-                className="absolute inset-0 w-full h-full object-cover opacity-15 group-hover:scale-105 transition-transform duration-1000 ease-out"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900/95 to-slate-900/80" />
-
-              {/* Banner Left: Copy, Specs & Quick CTAs */}
-              <div className="relative z-10 p-4 sm:p-6 lg:p-7 max-w-xl flex-1 space-y-3">
-                {/* Badge & Brand Tag */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300 font-bold uppercase tracking-wider text-[10px] sm:text-[11px]">
-                    <Sparkles className="w-3 h-3 text-cyan-400" />
-                    <span>{currentBanner.badge || 'VERIFIED HARDWARE'}</span>
-                  </span>
-                  {currentProduct?.brand && (
-                    <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-bold text-[10px] tracking-wide uppercase">
-                      {currentProduct.brand}
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] text-emerald-400 font-semibold">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Kampala Dispatch Ready
-                  </span>
-                </div>
-
-                {/* Product Title */}
-                <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white leading-tight tracking-tight">
-                  {currentBanner.title || currentProduct?.name}
-                </h1>
-
-                {/* Subtitle / Key Specs */}
-                <p className="text-xs sm:text-sm text-slate-300 line-clamp-2 leading-relaxed font-medium">
-                  {currentBanner.subtitle || stripHtmlToPlainText(currentProduct?.short_description) || currentBanner.tagline}
-                </p>
-
-                {/* Spec Highlights */}
-                {currentProduct?.attributes && currentProduct.attributes.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                    {currentProduct.attributes.slice(0, 3).map((attr, idx) => (
-                      <span
-                        key={idx}
-                        className="px-2 py-0.5 rounded-md bg-slate-800/90 border border-slate-700 text-cyan-300 text-[10px] sm:text-[11px] font-semibold"
-                      >
-                        {attr.options[0] || attr.name}
-                      </span>
-                    ))}
-                    <span className="px-2 py-0.5 rounded-md bg-slate-800/90 border border-slate-700 text-slate-300 text-[10px] sm:text-[11px]">
-                      1-Yr Warranty
-                    </span>
-                  </div>
-                )}
-
-                {/* Price Display */}
-                {currentProduct && (
-                  <div className="flex flex-wrap items-baseline gap-2.5 pt-0.5">
-                    <span className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                      {formatPrice(currentProduct.price)}
-                    </span>
-                    {currentProduct.regular_price && currentProduct.regular_price > currentProduct.price && (
-                      <span className="text-xs sm:text-sm text-slate-400 line-through font-medium">
-                        {formatPrice(currentProduct.regular_price)}
-                      </span>
-                    )}
-                    {currentProduct.regular_price && currentProduct.regular_price > currentProduct.price && (
-                      <span className="px-2 py-0.5 rounded bg-rose-500/20 border border-rose-500/40 text-rose-300 font-bold text-[10px]">
-                        Save {formatPrice(currentProduct.regular_price - currentProduct.price)}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* CTA Buttons */}
-                <div className="flex flex-wrap items-center gap-2.5 pt-1">
-                  {currentProduct && (
-                    <button
-                      onClick={() => setCurrentView('product', currentProduct)}
-                      className="py-2 px-4 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md hover:shadow-cyan-500/20 active:scale-95"
-                    >
-                      <span>View Specs</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-
-                  {currentProduct && (
-                    <button
-                      onClick={() => addToCart(currentProduct, 1)}
-                      className="py-2 px-3.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95"
-                    >
-                      <ShoppingCart className="w-3.5 h-3.5" />
-                      <span>Add to Cart</span>
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => setCurrentView('shop')}
-                    className="py-2 px-3 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs transition-colors cursor-pointer"
-                  >
-                    All Products
-                  </button>
-                </div>
-
-                {/* Mobile Product Picture & Flier Dual Spotlight (Displays visual picture and flyer, not only words) */}
-                {currentProduct && (
-                  <div className="lg:hidden pt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {/* Mobile Product Picture Card */}
-                    <div
-                      onClick={() => setCurrentView('product', currentProduct)}
-                      className="p-2.5 rounded-xl bg-white text-slate-900 border border-slate-200 flex items-center gap-3 cursor-pointer shadow-sm hover:border-cyan-400 transition-colors"
-                    >
-                      <div className="w-16 h-16 rounded-lg bg-slate-50 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden border border-slate-100">
-                        <img
-                          src={currentProduct.images?.[0]?.src}
-                          alt={currentProduct.name}
-                          className="w-full h-full object-contain"
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1 mb-0.5">
-                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-cyan-100 text-cyan-800">
-                            PRODUCT PICTURE
-                          </span>
-                        </div>
-                        <p className="text-xs font-bold text-slate-900 truncate">{currentProduct.name}</p>
-                        <p className="text-xs font-black text-cyan-600">{formatPrice(currentProduct.price)}</p>
-                      </div>
-                      <span className="text-[10px] font-bold text-cyan-600 px-2 py-1 bg-cyan-50 rounded border border-cyan-200 flex items-center gap-0.5">
-                        View
-                        <ChevronRight className="w-3 h-3" />
-                      </span>
-                    </div>
-
-                    {/* Mobile Promotional Flier Card */}
-                    <div
-                      onClick={() => setCurrentView('shop', { flash_sale: true })}
-                      className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500 via-orange-600 to-red-600 text-white flex items-center gap-3 cursor-pointer shadow-sm hover:opacity-95 transition-opacity"
-                    >
-                      <div className="w-16 h-16 rounded-lg bg-black/20 p-1 flex-shrink-0 flex items-center justify-center overflow-hidden border border-white/20">
-                        {config?.homepage?.advert_fliers_row2?.[0]?.image ? (
-                          <img
-                            src={config.homepage.advert_fliers_row2[0].image}
-                            alt="Advert Flier"
-                            className="w-full h-full object-cover rounded"
-                          />
-                        ) : (
-                          <Flame className="w-7 h-7 text-amber-300 animate-pulse" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-yellow-400 text-slate-950 inline-block mb-0.5">
-                          SPECIAL PROMO FLIER
-                        </span>
-                        <p className="text-xs font-bold text-white truncate">
-                          {config?.homepage?.advert_fliers_row2?.[0]?.title || 'Kampala Tech Special Offer'}
-                        </p>
-                        <p className="text-[10px] text-amber-100 truncate">
-                          {config?.homepage?.advert_fliers_row2?.[0]?.subtitle || 'Save up to 30% + Free Delivery'}
-                        </p>
-                      </div>
-                      <span className="text-[10px] font-black text-slate-950 px-2 py-1 bg-white rounded flex items-center gap-0.5 shrink-0">
-                        Claim
-                        <ChevronRight className="w-3 h-3" />
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Right: Dual Visual Stage (Tablet & Desktop): Product Picture + Advert Flier */}
-              {currentProduct && (
-                <div className="hidden lg:flex flex-col items-center justify-center pr-6 py-6 z-10 space-y-3">
-                  <div className="flex items-stretch gap-3">
-                    {/* 1. PRODUCT PICTURE CARD */}
-                    <div className="w-64 rounded-2xl bg-white text-slate-900 shadow-xl border border-slate-200/90 overflow-hidden flex flex-col p-3.5 group/card hover:shadow-cyan-500/15 transition-all duration-300">
-                      <div className="flex items-center justify-between gap-2 pb-1.5 border-b border-slate-100 mb-2">
-                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-cyan-100 text-cyan-800">
-                          PRODUCT PICTURE
-                        </span>
-                        <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-600">
-                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                          In Stock
-                        </span>
-                      </div>
-
-                      {/* Product Image Stage */}
-                      <div
-                        onClick={() => setCurrentView('product', currentProduct)}
-                        className="w-full h-32 rounded-xl bg-slate-50 flex items-center justify-center p-2.5 relative overflow-hidden cursor-pointer group-hover/card:bg-slate-100/80 transition-colors"
-                      >
-                        <img
-                          src={currentProduct.images?.[0]?.src}
-                          alt={currentProduct.name}
-                          className="w-full h-full object-contain transform group-hover/card:scale-108 transition-transform duration-500"
-                          referrerPolicy="no-referrer"
-                        />
-                        {currentProduct.on_sale && (
-                          <span className="absolute top-1.5 left-1.5 px-1.5 py-0.5 bg-rose-600 text-white font-black text-[9px] uppercase tracking-wider rounded">
-                            SALE
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Product Info */}
-                      <div className="pt-2.5 space-y-1">
-                        <h3
-                          onClick={() => setCurrentView('product', currentProduct)}
-                          className="text-xs font-bold text-slate-900 line-clamp-1 hover:text-cyan-600 cursor-pointer transition-colors leading-tight"
-                        >
-                          {currentProduct.name}
-                        </h3>
-
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-xs font-black text-slate-900">
-                            {formatPrice(currentProduct.price)}
-                          </span>
-                          {currentProduct.regular_price && currentProduct.regular_price > currentProduct.price && (
-                            <span className="text-[10px] text-slate-400 line-through">
-                              {formatPrice(currentProduct.regular_price)}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-1.5 pt-1.5">
-                          <button
-                            onClick={() => addToCart(currentProduct, 1)}
-                            className="py-1 px-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors active:scale-95 shadow-xs"
-                          >
-                            <ShoppingCart className="w-3 h-3" />
-                            <span>Add</span>
-                          </button>
-                          <button
-                            onClick={() => setCurrentView('product', currentProduct)}
-                            className="py-1 px-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[10px] font-bold flex items-center justify-center gap-0.5 cursor-pointer transition-colors active:scale-95"
-                          >
-                            <span>Specs</span>
-                            <ChevronRight className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 2. ADVERT PROMO FLIER CARD */}
-                    <div
-                      onClick={() => setCurrentView('shop', { flash_sale: true })}
-                      className="w-56 rounded-2xl bg-gradient-to-br from-amber-500 via-orange-600 to-rose-700 text-white shadow-xl border border-amber-400/40 overflow-hidden flex flex-col p-3.5 group/flier cursor-pointer hover:shadow-orange-500/20 transition-all duration-300 relative"
-                    >
-                      <div className="flex items-center justify-between gap-1 pb-1.5 border-b border-white/20 mb-2">
-                        <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-yellow-400 text-slate-950 shadow-xs">
-                          PROMO FLIER
-                        </span>
-                        <span className="text-[9px] font-bold text-amber-100 flex items-center gap-1">
-                          <Flame className="w-3 h-3 fill-amber-300 text-amber-300" />
-                          Uganda
-                        </span>
-                      </div>
-
-                      {/* Flier Image Stage */}
-                      <div className="w-full h-32 rounded-xl bg-black/20 flex items-center justify-center p-1.5 relative overflow-hidden border border-white/20">
-                        {config?.homepage?.advert_fliers_row2?.[0]?.image ? (
-                          <img
-                            src={config.homepage.advert_fliers_row2[0].image}
-                            alt="Advert Flier"
-                            className="w-full h-full object-cover rounded-lg transform group-hover/flier:scale-105 transition-transform duration-500"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-center p-2">
-                            <Flame className="w-8 h-8 text-yellow-300 animate-bounce mb-1" />
-                            <span className="text-[10px] font-black uppercase text-yellow-200">MEGA FLASH OFFER</span>
-                            <span className="text-[9px] text-white/90">Save Up to 300,000 UGX</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Flier Info */}
-                      <div className="pt-2 space-y-1">
-                        <h4 className="text-xs font-black text-white line-clamp-1">
-                          {config?.homepage?.advert_fliers_row2?.[0]?.title || 'Kampala Hardware Flash Sale'}
-                        </h4>
-                        <p className="text-[10px] text-amber-100 line-clamp-1">
-                          {config?.homepage?.advert_fliers_row2?.[0]?.subtitle || 'Official warranty & same-day delivery'}
-                        </p>
-                        <button className="w-full mt-1 py-1 px-2 rounded-lg bg-white text-slate-950 font-black text-[10px] uppercase tracking-wider flex items-center justify-center gap-1 group-hover/flier:bg-yellow-300 transition-colors">
-                          <span>View Flyer Deals</span>
-                          <ArrowRight className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quick Product Switcher Thumbnails */}
-                  <div className="w-full pt-1.5 border-t border-slate-700/60">
-                    <div className="flex items-center justify-between mb-1 text-[9px] font-black uppercase tracking-wider text-slate-400">
-                      <span>Featured Hardware Lineup</span>
-                      <span className="text-cyan-400">{currentBannerIndex + 1}/{activeHeroProducts.length}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      {activeHeroProducts.map((prod, idx) => (
-                        <button
-                          key={prod.id || idx}
-                          onClick={() => setCurrentBannerIndex(idx)}
-                          title={prod.name}
-                          className={`relative w-8 h-8 rounded-lg bg-slate-800 border p-0.5 overflow-hidden cursor-pointer transition-all ${
-                            currentBannerIndex === idx
-                              ? 'border-cyan-500 ring-2 ring-cyan-400/50 scale-105'
-                              : 'border-slate-700 opacity-60 hover:opacity-100 hover:border-slate-500'
-                          }`}
-                        >
-                          <img
-                            src={prod.images?.[0]?.src || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=200&auto=format&fit=crop&q=80'}
-                            alt={prod.name}
-                            className="w-full h-full object-contain"
-                            referrerPolicy="no-referrer"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Prev / Next Banner Slide Arrows */}
-              {activeHeroProducts.length > 1 && (
-                <>
-                  <button
-                    onClick={() => setCurrentBannerIndex((prev) => (prev - 1 + activeHeroProducts.length) % activeHeroProducts.length)}
-                    aria-label="Previous Product Banner"
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white border border-slate-700 flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs opacity-0 group-hover:opacity-100"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setCurrentBannerIndex((prev) => (prev + 1) % activeHeroProducts.length)}
-                    aria-label="Next Product Banner"
-                    className="absolute right-2 md:right-auto md:left-[calc(100%-320px-1.5rem)] top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white border border-slate-700 flex items-center justify-center transition-all cursor-pointer backdrop-blur-xs opacity-0 group-hover:opacity-100"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </>
-              )}
-
-              {/* Banner Carousel Controls */}
-              {activeHeroProducts.length > 1 && (
-                <div className="absolute bottom-3 left-5 sm:left-8 z-20 flex items-center gap-2">
-                  {activeHeroProducts.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setCurrentBannerIndex(idx)}
-                      className={`h-2 rounded-full transition-all cursor-pointer ${
-                        currentBannerIndex === idx ? 'w-6 bg-cyan-400' : 'w-2 bg-white/40 hover:bg-white/70'
-                      }`}
-                      aria-label={`Slide ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
+            {/* Gold Brand Accent Badge */}
+            <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 z-10 flex items-center gap-2">
+              <span className="px-2.5 py-1 bg-[#0f172a]/90 backdrop-blur-md text-amber-300 border border-amber-400/40 rounded-lg text-[10px] sm:text-xs font-bold shadow-md flex items-center gap-1.5">
+                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                <span>CYBER DYNAMIC TECHNOLOGIES</span>
+              </span>
+              <span className="hidden sm:inline-flex px-2 py-0.5 bg-[#920d35]/90 text-white text-[10px] font-extrabold uppercase tracking-wider rounded-md border border-white/20">
+                Official Hardware Hub
+              </span>
             </div>
 
-            {/* Quick Benefits Strip (High Density Clean Badges) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5">
-              <div className="p-2 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
-                <Truck className="w-4 h-4 text-cyan-600 flex-shrink-0" />
-                <span className="text-[11px]">Nationwide Delivery</span>
-              </div>
-              <div className="p-2 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
-                <ShieldCheck className="w-4 h-4 text-cyan-600 flex-shrink-0" />
-                <span className="text-[11px]">1 Year Tech Warranty</span>
-              </div>
-              <div className="p-2 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
-                <Zap className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                <span className="text-[11px]">MTN / Airtel MoMo</span>
-              </div>
-              <div className="p-2 bg-white rounded-lg border border-slate-200 flex items-center gap-2 text-xs font-bold text-slate-700">
-                <RotateCcw className="w-4 h-4 text-cyan-600 flex-shrink-0" />
-                <span className="text-[11px]">Kampala Showroom</span>
-              </div>
+            {/* Click to Explore Action Pill */}
+            <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-10">
+              <span className="px-3 py-1 sm:px-4 sm:py-1.5 bg-[#920d35] group-hover:bg-[#770929] text-white text-[11px] sm:text-xs font-bold rounded-lg shadow-md border border-amber-400/40 flex items-center gap-1.5 transition-all">
+                <span>Explore Catalog</span>
+                <ArrowRight className="w-3.5 h-3.5 text-amber-300" />
+              </span>
             </div>
+
+            {/* Admin Quick Settings Shortcut */}
+            {isAdmin && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentView('admin');
+                }}
+                className="absolute top-3 right-3 z-20 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-[#0f172a]/90 hover:bg-[#920d35] text-amber-300 hover:text-white rounded-lg text-[10px] sm:text-xs font-bold border border-amber-400/40 backdrop-blur-md shadow-lg transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Update Hero Banner image in Admin Settings"
+              >
+                <Settings className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Update Banner (Settings)</span>
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -636,12 +352,9 @@ export const HomePage: React.FC = () => {
       {/* 3. CATEGORIES MANUAL SLIDER */}
       <section className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between mb-2">
-          <div>
-            <h2 className="text-base font-black uppercase tracking-tight text-slate-900">
-              Top 12 Tech Categories
-            </h2>
-            <p className="text-xs text-slate-500">Explore 12 primary technology departments in Uganda • Slide or drag</p>
-          </div>
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+            Categories
+          </h2>
 
           <div className="flex items-center gap-2">
             <button
@@ -677,22 +390,25 @@ export const HomePage: React.FC = () => {
               onClick={() => setCurrentView('shop')}
               className="text-xs font-bold text-cyan-600 hover:underline ml-2 hidden sm:inline-flex items-center gap-1 cursor-pointer"
             >
-              <span>View Full Catalog</span>
+              <span>View All</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Horizontal Scrollable Manual Slider (Supports Drag, Touch Swipe, and Wheel Scroll) */}
+        {/* Horizontal Scrollable Manual Slider (Supports Touch Swipe & Mouse Drag) */}
         <div
           ref={categoryScrollRef}
           onMouseDown={handleCatMouseDown}
           onMouseMove={handleCatMouseMove}
           onMouseUp={handleCatMouseUp}
           onMouseLeave={handleCatMouseUp}
-          className="flex gap-2 sm:gap-2.5 overflow-x-auto scroll-smooth py-1.5 px-0.5 no-scrollbar select-none cursor-grab active:cursor-grabbing"
+          onTouchStart={handleCatTouchStart}
+          onTouchMove={handleCatTouchMove}
+          onTouchEnd={handleCatTouchEnd}
+          className="flex gap-2 sm:gap-2.5 overflow-x-auto scroll-smooth py-1.5 px-0.5 no-scrollbar select-none cursor-grab active:cursor-grabbing snap-x touch-pan-x"
           style={{
-            touchAction: 'pan-y',
+            touchAction: 'pan-x pan-y',
             WebkitOverflowScrolling: 'touch',
           }}
         >
@@ -704,7 +420,7 @@ export const HomePage: React.FC = () => {
                 setCurrentView('category', { slug: cat.slug, name: cat.name });
               }}
               style={{ scrollSnapAlign: 'start' }}
-              className="flex-shrink-0 w-32 sm:w-40 md:w-44 flex flex-col items-center text-center p-2 sm:p-2.5 rounded-xl bg-white border border-slate-200 hover:border-cyan-500 hover:shadow-md transition-all group cursor-pointer"
+              className="flex-shrink-0 w-28 sm:w-36 md:w-40 flex flex-col items-center text-center p-2 rounded-xl bg-white border border-slate-200 hover:border-cyan-500 hover:shadow-md transition-all group cursor-pointer"
             >
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-slate-100 mb-1.5 border border-slate-100 flex items-center justify-center">
                 <img
@@ -717,9 +433,6 @@ export const HomePage: React.FC = () => {
                 {cat.name}
               </span>
               <span className="text-[10px] text-slate-400 mt-0.5">{cat.count} items</span>
-              <span className="text-[10px] font-bold text-cyan-600 mt-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                Browse &rarr;
-              </span>
             </button>
           ))}
         </div>
@@ -732,87 +445,50 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4">
         {/* Section Header & Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 mb-2.5 sm:mb-3">
-          <div>
-            <h2 className="text-lg font-black uppercase tracking-tight text-slate-900">
-              Hardware Catalog in <span className="text-cyan-600">Uganda</span>
-            </h2>
-            <p className="text-xs text-slate-500">Tested, certified and stocked in Kampala & ready for same-day dispatch</p>
-          </div>
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+            All Hardware
+          </h2>
 
-          <div className="flex items-center gap-2">
-            {/* Mobile Layout Switcher (2-Row Swipe vs 2-Col Grid) */}
-            <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200 sm:hidden shadow-2xs">
-              <button
-                type="button"
-                onClick={() => setCatalogMobileFlow('2row')}
-                title="2-Row Horizontal Swipe (2 Cards)"
-                className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                  catalogMobileFlow === '2row' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Columns2 className="w-3 h-3" />
-                <span className="text-[10px]">2-Row</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setCatalogMobileFlow('grid')}
-                title="2-Column Grid"
-                className={`px-2 py-1 rounded text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                  catalogMobileFlow === 'grid' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <LayoutGrid className="w-3 h-3" />
-                <span className="text-[10px]">2-Col</span>
-              </button>
-            </div>
-
-            <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 overflow-x-auto text-xs font-bold shadow-2xs">
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
-                  activeTab === 'all' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                All Items
-              </button>
-              <button
-                onClick={() => setActiveTab('laptops')}
-                className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
-                  activeTab === 'laptops' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Laptops & PCs
-              </button>
-              <button
-                onClick={() => setActiveTab('printers')}
-                className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
-                  activeTab === 'printers' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Printers
-              </button>
-              <button
-                onClick={() => setActiveTab('networking')}
-                className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
-                  activeTab === 'networking' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                4G MiFi & Routers
-              </button>
-            </div>
+          <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 overflow-x-auto text-xs font-bold shadow-2xs">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
+                activeTab === 'all' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              All Items
+            </button>
+            <button
+              onClick={() => setActiveTab('laptops')}
+              className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
+                activeTab === 'laptops' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Laptops & PCs
+            </button>
+            <button
+              onClick={() => setActiveTab('printers')}
+              className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
+                activeTab === 'printers' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Printers
+            </button>
+            <button
+              onClick={() => setActiveTab('networking')}
+              className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${
+                activeTab === 'networking' ? 'bg-cyan-500 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              4G MiFi & Routers
+            </button>
           </div>
         </div>
 
-        {/* Products Display: Loading Skeletons OR 2-Row Horizontal Flow / Grid (2 Cards on Mobile) */}
+        {/* Hardware Products Display: 2 Columns for Mobile Display */}
         {isLoadingCatalog && visibleCatalogProducts.length === 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
             <ProductCardSkeleton count={12} />
-          </div>
-        ) : catalogMobileFlow === '2row' ? (
-          <div className="grid grid-rows-2 grid-flow-col auto-cols-[calc((100vw-36px)/2)] sm:auto-cols-[175px] overflow-x-auto gap-2 sm:gap-2.5 pb-2.5 scrollbar-thin md:grid-cols-4 lg:grid-cols-6 md:grid-rows-none md:auto-cols-auto md:overflow-visible">
-            {visibleCatalogProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-2.5 md:gap-3">
@@ -841,42 +517,35 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. PHYSICAL SHOWROOM & ENTERPRISE CONTRACTS BANNER */}
+      {/* 5. ENTERPRISE & BULK ORDERS */}
       <section className="max-w-7xl mx-auto px-4">
-        <div className="rounded-xl bg-[#0F172A] text-white p-5 sm:p-6 relative overflow-hidden border border-slate-800 shadow-xs">
-          <div className="max-w-2xl relative z-10 space-y-3">
-            <span className="inline-flex items-center gap-1.5 text-cyan-400 text-xs font-bold uppercase tracking-wider">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Kampala Central Head Office</span>
-            </span>
-
-            <h3 className="text-xl sm:text-2xl font-black tracking-tight leading-tight">
-              Supplying Government, NGOs, Schools & Retailers Across Kampala & Uganda
+        <div className="rounded-xl bg-[#0F172A] text-white p-5 sm:p-6 border border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1 max-w-xl">
+            <h3 className="text-base sm:text-lg font-bold tracking-tight">
+              Enterprise & Bulk Hardware Procurement
             </h3>
-
-            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              Located in Kampala. We provide bulk supplies of laptops, network switches,
-              heavy-duty photocopiers, POS thermal printers, and biometric scanners with formal tax invoices and local technical maintenance.
+            <p className="text-xs text-slate-400">
+              Bulk supplies of laptops, networking switches, copiers, and POS hardware with official tax invoices and CDT warranty.
             </p>
+          </div>
 
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <a
-                href="https://wa.me/256779743101?text=Hello%20Cyber%20Dynamic%20Tech,%20I%20need%20a%20quotation%20for%20bulk%20equipment"
-                target="_blank"
-                rel="noreferrer"
-                className="py-2.5 px-4 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs flex items-center gap-2 shadow-xs transition-all"
-              >
-                <span>Request Quotation (WhatsApp)</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </a>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <a
+              href="https://wa.me/256779743101?text=Hello%20Cyber%20Dynamic%20Tech,%20I%20need%20a%20quotation%20for%20bulk%20equipment"
+              target="_blank"
+              rel="noreferrer"
+              className="py-2 px-3.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all"
+            >
+              <span>Request Quote</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </a>
 
-              <button
-                onClick={() => setCurrentView('contact')}
-                className="py-2.5 px-4 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs transition-colors cursor-pointer"
-              >
-                Store Directions (Kampala)
-              </button>
-            </div>
+            <button
+              onClick={() => setCurrentView('contact')}
+              className="py-2 px-3.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs transition-colors cursor-pointer"
+            >
+              Kampala Store
+            </button>
           </div>
         </div>
       </section>

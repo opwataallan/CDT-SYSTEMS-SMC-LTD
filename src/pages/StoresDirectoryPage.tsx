@@ -11,7 +11,6 @@ import {
   Package,
   ArrowRight,
   TrendingUp,
-  Sparkles,
   Phone,
   Truck,
   CheckCircle2,
@@ -82,7 +81,7 @@ export const StoresDirectoryPage: React.FC = () => {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-[#920d35] to-slate-950 p-8 sm:p-12 text-white shadow-xl mb-10">
           <div className="relative z-10 max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-cyan-300 text-xs font-semibold mb-4 border border-white/10">
-              <Sparkles className="w-3.5 h-3.5" />
+              <ShieldCheck className="w-3.5 h-3.5" />
               <span>Uganda Multi-Vendor Electronics Marketplace</span>
             </div>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mb-4">
@@ -210,7 +209,7 @@ export const StoresDirectoryPage: React.FC = () => {
 
                     {isMain ? (
                       <span className="absolute top-3 left-3 bg-[#920d35] text-white text-[11px] font-bold px-2.5 py-1 rounded-md shadow-sm border border-white/20 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
+                        <ShieldCheck className="w-3 h-3" />
                         Main Platform Store
                       </span>
                     ) : (
