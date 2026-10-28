@@ -4871,6 +4871,25 @@ async function startServer() {
     }
   });
 
+  // WebPros MCP Server configuration and status endpoint
+  app.get('/api/mcp/config', (req: Request, res: Response) => {
+    res.json({
+      success: true,
+      provider: 'WebPros MCP',
+      endpoint: 'https://mcp.webpros.com/api/mcp',
+      mcpServers: {
+        'webpros-mcp': {
+          type: 'http',
+          url: 'https://mcp.webpros.com/api/mcp',
+          oauth: {
+            callbackPort: 64474,
+            clientId: 'Hf3QmY8LpRs2KaV7NxTwJe6CgUz9BdMiP4vXnLq1Zo',
+          },
+        },
+      },
+    });
+  });
+
   // ==========================================
   // API ERROR & 404 GUARDS (NEVER SERVE HTML FOR /api)
   // ==========================================
@@ -4904,7 +4923,7 @@ async function startServer() {
   if (isDev) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, hmr: false },
       appType: 'spa',
     });
     app.use(vite.middlewares);

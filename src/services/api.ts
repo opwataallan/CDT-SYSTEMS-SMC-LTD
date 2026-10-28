@@ -1438,4 +1438,9 @@ export const api = {
       body: JSON.stringify({ status, admin_notes: notes, transaction_reference }),
     }, 'Failed to update payout status');
   },
+
+  async getMcpConfig(): Promise<{ success: boolean; provider: string; endpoint: string; mcpServers: Record<string, any> }> {
+    return safeFetch('/api/mcp/config', { method: 'GET' }, 'Failed to fetch MCP config');
+  },
 };
+

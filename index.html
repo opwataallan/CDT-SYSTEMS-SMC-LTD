@@ -22,6 +22,21 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+      // Gracefully prevent unhandled WebSocket closure error alerts from Vite dev client in iframe/proxied environments
+      window.addEventListener('error', function(event) {
+        if (event.message && (event.message.includes('WebSocket closed without opened') || event.message.includes('WebSocket'))) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+        }
+      }, true);
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason && String(event.reason).includes('WebSocket closed without opened')) {
+          event.stopImmediatePropagation();
+          event.preventDefault();
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root">

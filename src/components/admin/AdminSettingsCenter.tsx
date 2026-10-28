@@ -2555,6 +2555,87 @@ export const AdminSettingsCenter: React.FC = () => {
                   />
                   <p className="text-[11px] text-slate-400 mt-1">Used to verify authenticity of incoming order update webhooks from WooCommerce</p>
                 </div>
+
+                {/* WebPros Model Context Protocol (MCP) Integration */}
+                <div className="pt-4 border-t border-slate-200 mt-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                        MCP
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900 text-xs">WebPros Model Context Protocol (MCP)</h4>
+                        <p className="text-[11px] text-slate-500">cPanel &amp; hosting automation endpoint integration</p>
+                      </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      Configured &amp; Active
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2 text-xs">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11.5px]">
+                      <span className="text-slate-500 font-semibold">Server Name:</span>
+                      <span className="font-mono font-bold text-slate-800">webpros-mcp</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11.5px]">
+                      <span className="text-slate-500 font-semibold">Transport Type:</span>
+                      <span className="font-mono text-slate-800">http (Server-Sent Events)</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11.5px]">
+                      <span className="text-slate-500 font-semibold">Endpoint URL:</span>
+                      <a href="https://mcp.webpros.com/api/mcp" target="_blank" rel="noreferrer" className="font-mono text-indigo-600 hover:underline flex items-center gap-1">
+                        https://mcp.webpros.com/api/mcp
+                        <ExternalLink size={11} />
+                      </a>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11.5px]">
+                      <span className="text-slate-500 font-semibold">OAuth Client ID:</span>
+                      <span className="font-mono text-slate-700 text-[10.5px]">Hf3QmY8LpRs2KaV7NxTwJe6CgUz9BdMiP4vXnLq1Zo</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11.5px]">
+                      <span className="text-slate-500 font-semibold">OAuth Callback Port:</span>
+                      <span className="font-mono font-bold text-slate-800">64474</span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11.5px]">
+                      <span className="text-slate-500 font-semibold">Config Files:</span>
+                      <span className="font-mono text-emerald-700 font-semibold">/mcp.json &amp; /.cursor/mcp.json</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const payload = JSON.stringify({
+                          "webpros-mcp": {
+                            "type": "http",
+                            "url": "https://mcp.webpros.com/api/mcp",
+                            "oauth": {
+                              "callbackPort": 64474,
+                              "clientId": "Hf3QmY8LpRs2KaV7NxTwJe6CgUz9BdMiP4vXnLq1Zo"
+                            }
+                          }
+                        }, null, 2);
+                        navigator.clipboard.writeText(payload);
+                        showToast('WebPros MCP configuration JSON copied to clipboard');
+                      }}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-xs flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <DownloadCloud size={12} />
+                      <span>Copy MCP Config JSON</span>
+                    </button>
+                    <a
+                      href="/api/mcp/config"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs flex items-center gap-1.5"
+                    >
+                      <ExternalLink size={12} />
+                      <span>Inspect /api/mcp/config</span>
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           )}
