@@ -29,9 +29,13 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     xl: { height: 'h-16', iconHeight: 'h-16', maxHeight: 64 },
   }[size];
 
+  const CDT_ICON_SRC = '/assets/aistudio/272125-removebg-preview_a76dc8ab.png';
+
   const logoSrc =
     customLogoUrl ||
-    ((variant === 'compact' || variant === 'icon' || variant === 'mark') && storeSettings?.mobile_logo_url
+    ((variant === 'icon' || variant === 'mark')
+      ? CDT_ICON_SRC
+      : (variant === 'compact' && storeSettings?.mobile_logo_url)
       ? storeSettings.mobile_logo_url
       : storeSettings?.logo_url || (storeSettings as any)?.main_logo || '/logo.png');
 

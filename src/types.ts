@@ -33,6 +33,7 @@ export interface ProductVariation {
 export interface ProductReview {
   id: number;
   product_id?: number;
+  product_name?: string;
   reviewer: string;
   reviewer_email?: string;
   district?: string;
@@ -41,6 +42,7 @@ export interface ProductReview {
   date_created: string;
   verified: boolean;
   helpful_count?: number;
+  reviewer_avatar?: string;
 }
 
 export interface Product {
@@ -231,6 +233,8 @@ export interface CustomerOrder {
   payment_confirmed_by?: string;
   payment_confirmed_at?: string;
   woocommerce_order_id?: number;
+  woocommerce_order_key?: string;
+  woocommerce_receipt_url?: string;
   woocommerce_synced?: boolean;
   woocommerce_sync_error?: string;
   vendor_orders?: VendorOrder[];
@@ -853,6 +857,35 @@ export interface WooCommerceIntegrationSettings {
   verify_ssl?: boolean;
   last_sync_timestamp: string;
   connection_status: 'connected' | 'unauthorized' | 'offline';
+  // WooCommerce Backend Database (wp_options) sync configuration
+  database_sync_enabled?: boolean;
+  database_host?: string;
+  database_port?: number;
+  database_name?: string;
+  database_user?: string;
+  database_password?: string;
+  database_password_configured?: boolean;
+  database_table_prefix?: string;
+  database_sync_status?: 'connected' | 'synced' | 'disconnected' | 'error' | 'not_configured';
+  database_last_sync?: string;
+  database_last_error?: string;
+  database_synced_options?: string[];
+  sync_frequency?: string;
+}
+
+export interface DatabaseConfig {
+  sync_enabled: boolean;
+  db_host: string;
+  db_port: number;
+  db_name: string;
+  db_user: string;
+  db_password?: string;
+  db_password_configured?: boolean;
+  table_prefix: string;
+  last_sync_timestamp?: string;
+  sync_status: 'connected' | 'synced' | 'disconnected' | 'error' | 'not_configured';
+  last_error?: string;
+  options_synced?: string[];
 }
 
 export interface MaintenanceSettings {
@@ -1015,6 +1048,7 @@ export interface MarketplaceConfig {
   legal: LegalSettings;
   advanced: AdvancedSettings;
   pos: PosSettings;
+  database?: DatabaseConfig;
   badges?: ProductBadgeConfig[];
   marketplace?: MarketplaceGeneralConfig;
   commissions?: MarketplaceCommissionSettings;

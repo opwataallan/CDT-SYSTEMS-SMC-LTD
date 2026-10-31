@@ -37,6 +37,7 @@ import { useShop } from '../context/ShopContext';
 import { Product, ProductVariation, CustomerOrder } from '../types';
 import { api } from '../services/api';
 import { PosCameraScannerModal } from '../components/pos/PosCameraScannerModal';
+import { CdtLogoSpinner } from '../components/CdtLogoSpinner';
 
 interface PosCartItem {
   id: string;
@@ -1012,7 +1013,7 @@ export const PosPage: React.FC = () => {
           <div className="flex-1 p-3 overflow-y-auto">
             {loadingProducts ? (
               <div className="h-64 flex flex-col items-center justify-center text-slate-500">
-                <RefreshCw className="w-8 h-8 animate-spin text-[#920d35] mb-2" />
+                <CdtLogoSpinner size="lg" variant="gold" className="mb-3" />
                 <p className="text-xs font-semibold">Loading product catalog...</p>
               </div>
             ) : filteredProducts.length === 0 ? (
@@ -1038,7 +1039,7 @@ export const PosPage: React.FC = () => {
                           addToCart(p);
                         }
                       }}
-                      className="group bg-white rounded-xl border border-slate-200 hover:border-[#920d35] hover:shadow-md p-2.5 flex flex-col text-left transition-all relative overflow-hidden cursor-pointer"
+                      className="group bg-white rounded-xl border border-slate-200/80 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 hover:border-[#920d35] p-2.5 flex flex-col text-left transition-all relative overflow-hidden cursor-pointer"
                     >
                       {/* Image Thumbnail */}
                       <div className="w-full h-24 bg-slate-50 rounded-lg overflow-hidden mb-2 relative flex items-center justify-center">
@@ -1134,7 +1135,7 @@ export const PosPage: React.FC = () => {
         <div
           className={`${
             mobileTab === 'cart' ? 'flex flex-col flex-1 h-full' : 'hidden'
-          } lg:flex lg:flex-col lg:w-[440px] xl:w-[480px] 2xl:w-[520px] bg-white shrink-0 shadow-2xl border-l border-slate-300 overflow-hidden`}
+          } lg:flex lg:flex-col lg:w-[440px] xl:w-[480px] 2xl:w-[520px] bg-white shrink-0 shadow-pos-sidebar border-l border-slate-300 overflow-hidden z-10`}
         >
           {/* Mobile Top Bar for Cart */}
           <div className="lg:hidden p-2.5 bg-[#0f172a] text-white flex items-center justify-between border-b border-slate-800 shrink-0">

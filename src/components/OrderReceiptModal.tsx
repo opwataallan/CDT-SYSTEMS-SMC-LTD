@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { Printer, Download, X, CheckCircle2, ShieldCheck, Phone, MapPin, Building, Calendar, Hash } from 'lucide-react';
+import { Printer, Download, X, CheckCircle2, ShieldCheck, Phone, MapPin, Building, Calendar, Hash, ExternalLink } from 'lucide-react';
 import { CustomerOrder } from '../types';
 import { useShop } from '../context/ShopContext';
 
@@ -252,9 +252,22 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                   Receipt #{order.order_number}
                 </p>
                 {order.woocommerce_order_id && (
-                  <p className="text-[10px] text-emerald-700 font-mono font-bold">
-                    WooCommerce ID: #{order.woocommerce_order_id}
-                  </p>
+                  <div className="flex flex-col sm:items-end">
+                    <span className="text-[10px] text-emerald-700 font-mono font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      WooCommerce ID: #{order.woocommerce_order_id}
+                    </span>
+                    {order.woocommerce_receipt_url && (
+                      <a
+                        href={order.woocommerce_receipt_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-cyan-700 hover:text-cyan-900 font-bold underline inline-flex items-center gap-0.5 mt-0.5"
+                      >
+                        <span>Live WC Store Receipt</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
+                  </div>
                 )}
                 <p className="text-[10px] text-slate-400">
                   Issued: {formattedDate}

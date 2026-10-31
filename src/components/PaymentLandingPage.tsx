@@ -145,6 +145,23 @@ export const PaymentLandingPage: React.FC<PaymentLandingPageProps> = ({
             Order Reference:{' '}
             <strong className="text-slate-900 font-mono font-black">{currentOrder.order_number}</strong>
           </p>
+          {currentOrder.woocommerce_order_id && (
+            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 border border-purple-200 text-purple-900 text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-purple-600 animate-pulse"></span>
+              <span>WooCommerce Order: #{currentOrder.woocommerce_order_id}</span>
+              {currentOrder.woocommerce_receipt_url && (
+                <a
+                  href={currentOrder.woocommerce_receipt_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-purple-700 hover:text-purple-900 underline font-black inline-flex items-center gap-0.5 ml-1"
+                >
+                  <span>Live WC Receipt</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         {/* VERBATIM PAYMENT INSTRUCTION CALLOUT FOR MOBILE MONEY & TRANSFERS */}

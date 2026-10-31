@@ -47,7 +47,7 @@ export const BottomNav: React.FC = () => {
   return (
     <nav
       aria-label="Mobile Navigation"
-      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-1 pt-1 pb-[max(6px,calc(env(safe-area-inset-bottom,0px)+4px))] shadow-lg print:hidden touch-manipulation"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-1 pt-1 pb-[max(6px,calc(env(safe-area-inset-bottom,0px)+4px))] shadow-bottom-dock print:hidden touch-manipulation"
     >
       <div className="grid grid-cols-5 items-center">
         {navItems.map((item) => {

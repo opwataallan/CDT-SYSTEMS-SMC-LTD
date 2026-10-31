@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
+import { CdtLogoSpinner } from './CdtLogoSpinner';
 
 export interface CdtPageLoaderProps {
   message?: string;
@@ -7,6 +8,7 @@ export interface CdtPageLoaderProps {
   fullScreen?: boolean;
   inline?: boolean;
   className?: string;
+  spinnerSize?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 export const CdtPageLoader: React.FC<CdtPageLoaderProps> = ({
@@ -15,6 +17,7 @@ export const CdtPageLoader: React.FC<CdtPageLoaderProps> = ({
   fullScreen = true,
   inline = false,
   className = '',
+  spinnerSize = 'xl',
 }) => {
   const content = (
     <div
@@ -23,27 +26,9 @@ export const CdtPageLoader: React.FC<CdtPageLoaderProps> = ({
       role="status"
       aria-live="polite"
     >
-      {/* CDT Official Logo Container */}
+      {/* Official CDT Logo with Concentric Spinning Circular Loader */}
       <div className="relative mb-5 flex items-center justify-center">
-        {/* Soft Ambient Brand Glow */}
-        <div className="absolute -inset-4 rounded-2xl bg-gradient-to-r from-red-600/10 via-rose-500/10 to-cyan-500/10 blur-xl animate-pulse" />
-
-        {/* Clean Logo Presentation - Keeping the original logo intact */}
-        <div className="relative px-5 py-3 rounded-2xl bg-white shadow-sm border border-slate-100 flex items-center justify-center">
-          <img
-            src="/logo.png"
-            alt="Cyber Dynamic Technologies"
-            className="w-52 sm:w-64 max-w-[75vw] h-auto object-contain transition-transform duration-500 hover:scale-102"
-            referrerPolicy="no-referrer"
-            onError={(e) => {
-              const img = e.currentTarget as HTMLImageElement;
-              if (!img.dataset.failed) {
-                img.dataset.failed = 'true';
-                img.src = '/assets/cyber-dynamic-technologies-logo.jpg';
-              }
-            }}
-          />
-        </div>
+        <CdtLogoSpinner size={spinnerSize} variant="brand" showGlow={true} />
       </div>
 
       {/* Brand Title & Loading Status */}

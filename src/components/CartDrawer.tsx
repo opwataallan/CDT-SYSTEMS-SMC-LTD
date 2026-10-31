@@ -75,7 +75,7 @@ export const CartDrawer: React.FC = () => {
       />
 
       <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
-        <div className="w-full sm:w-screen max-w-md bg-white shadow-2xl flex flex-col">
+        <div className="w-full sm:w-screen max-w-md bg-white shadow-[-16px_0_48px_-8px_rgba(15,23,42,0.25)] flex flex-col">
           {/* Drawer Header (High Density Dark Slate) */}
           <div className="px-4 py-3.5 bg-[#0F172A] text-white flex items-center justify-between border-b border-slate-800">
             <div className="flex items-center gap-2">
@@ -223,7 +223,7 @@ export const CartDrawer: React.FC = () => {
 
           {/* Drawer Footer with Totals and Checkout */}
           {cart.length > 0 && (
-            <div className="p-4 pb-[max(1rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] bg-white border-t border-slate-200 shadow-lg space-y-2.5">
+            <div className="p-4 pb-[max(1rem,calc(env(safe-area-inset-bottom,0px)+0.75rem))] bg-white border-t border-slate-200/80 shadow-[0_-8px_24px_-4px_rgba(15,23,42,0.08)] space-y-2.5">
               {/* Coupon Form */}
               <form onSubmit={handleApplyCoupon} className="flex gap-1.5">
                 <div className="relative flex-1">

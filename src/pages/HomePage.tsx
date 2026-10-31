@@ -293,7 +293,7 @@ export const HomePage: React.FC = () => {
       <section className="max-w-7xl mx-auto px-4 pt-2 sm:pt-3">
         <div
           onClick={handleHeroBannerClick}
-          className="relative w-full rounded-2xl overflow-hidden shadow-lg border-2 border-[#920d35]/60 hover:border-[#f59e0b] bg-slate-950 transition-all duration-300 cursor-pointer group"
+          className="relative w-full rounded-2xl overflow-hidden shadow-hero border-2 border-[#920d35]/70 hover:border-[#f59e0b] bg-slate-950 transition-all duration-300 cursor-pointer group"
         >
           {/* Hero Banner Image */}
           <div className="relative w-full aspect-[21/9] sm:aspect-[24/9] md:aspect-[28/9] min-h-[160px] sm:min-h-[200px] md:min-h-[240px] max-h-[360px] overflow-hidden flex items-center justify-center bg-gradient-to-r from-[#0f172a] via-[#580c1f] to-[#0f172a]">
@@ -420,7 +420,7 @@ export const HomePage: React.FC = () => {
                 setCurrentView('category', { slug: cat.slug, name: cat.name });
               }}
               style={{ scrollSnapAlign: 'start' }}
-              className="flex-shrink-0 w-28 sm:w-36 md:w-40 flex flex-col items-center text-center p-2 rounded-xl bg-white border border-slate-200 hover:border-cyan-500 hover:shadow-md transition-all group cursor-pointer"
+              className="flex-shrink-0 w-28 sm:w-36 md:w-40 flex flex-col items-center text-center p-2.5 rounded-xl bg-white border border-slate-200/80 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 hover:border-[#920d35]/50 transition-all group cursor-pointer"
             >
               <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-slate-100 mb-1.5 border border-slate-100 flex items-center justify-center">
                 <img
@@ -449,7 +449,7 @@ export const HomePage: React.FC = () => {
             All Hardware
           </h2>
 
-          <div className="flex items-center gap-1 bg-white p-1 rounded-lg border border-slate-200 overflow-x-auto text-xs font-bold shadow-2xs">
+          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200/80 overflow-x-auto text-xs font-bold shadow-panel">
             <button
               onClick={() => setActiveTab('all')}
               className={`px-3 py-1 rounded transition-colors whitespace-nowrap cursor-pointer ${

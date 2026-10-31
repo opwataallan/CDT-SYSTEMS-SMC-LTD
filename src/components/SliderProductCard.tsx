@@ -63,7 +63,7 @@ export const SliderProductCard: React.FC<SliderProductCardProps> = ({
     <div
       id={`slider-product-card-${product.id}`}
       onClick={handleCardClick}
-      className="group relative flex-shrink-0 w-[calc((100vw-44px)/2)] sm:w-[calc((100vw-88px)/4)] md:w-[calc((100vw-110px)/5)] lg:w-[calc((min(100vw,1280px)-112px)/6)] xl:w-[calc((1280px-112px)/6)] min-w-[140px] max-w-[210px] bg-white rounded-lg sm:rounded-xl p-1.5 sm:p-2 border border-slate-200 shadow-2xs hover:shadow-md hover:border-cyan-500 transition-all duration-300 flex flex-col select-none cursor-pointer"
+      className="group relative flex-shrink-0 w-[calc((100vw-44px)/2)] sm:w-[calc((100vw-88px)/4)] md:w-[calc((100vw-110px)/5)] lg:w-[calc((min(100vw,1280px)-112px)/6)] xl:w-[calc((1280px-112px)/6)] min-w-[140px] max-w-[210px] bg-white rounded-xl p-2 border border-slate-200/80 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 hover:border-[#920d35]/50 transition-all duration-300 flex flex-col select-none cursor-pointer"
     >
       {/* Top Floating Badges */}
       <div className="absolute top-1.5 left-1.5 right-1.5 sm:top-2 sm:left-2 sm:right-2 flex items-center justify-between z-10 pointer-events-none">

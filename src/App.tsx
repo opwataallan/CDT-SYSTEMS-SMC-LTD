@@ -21,6 +21,7 @@ import { VendorDashboardPage } from './pages/VendorDashboardPage';
 import { VendorRegisterPage } from './pages/VendorRegisterPage';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { CdtPageLoader } from './components/CdtPageLoader';
+import { SplashScreen } from './components/SplashScreen';
 import { AndroidInstallBanner } from './components/AndroidInstallBanner';
 import { AndroidAppInstallModal } from './components/AndroidAppInstallModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
@@ -30,6 +31,7 @@ import { api } from './services/api';
 const MainLayout: React.FC = () => {
   const { currentView, setCurrentView, viewData, toastMessage, isPageLoading, pageLoadingMessage } = useShop();
   const [showAndroidModal, setShowAndroidModal] = React.useState(false);
+  const [showSplash, setShowSplash] = React.useState(true);
 
   // Background pre-fetching of the first page of products immediately after app mounts
   React.useEffect(() => {
@@ -108,6 +110,9 @@ const MainLayout: React.FC = () => {
   if (currentView === 'vendor-dashboard') {
     return (
       <div className="min-h-screen flex flex-col bg-slate-100 text-slate-900 font-sans selection:bg-[#920d35] selection:text-white">
+        {/* App Splash Screen on Initial Launch */}
+        {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} minDurationMs={1400} />}
+
         {/* CDT Page Loader */}
         {isPageLoading && <CdtPageLoader message={pageLoadingMessage} />}
 
@@ -126,6 +131,9 @@ const MainLayout: React.FC = () => {
   if (currentView === 'pos') {
     return (
       <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#0f172a] text-slate-100 font-sans selection:bg-[#920d35] selection:text-white">
+        {/* App Splash Screen on Initial Launch */}
+        {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} minDurationMs={1400} />}
+
         {/* CDT Page Loader */}
         {isPageLoading && <CdtPageLoader message={pageLoadingMessage} />}
 
@@ -143,6 +151,9 @@ const MainLayout: React.FC = () => {
   if (currentView === 'admin') {
     return (
       <div className="min-h-screen flex flex-col bg-slate-100 text-slate-900 font-sans selection:bg-[#920d35] selection:text-white">
+        {/* App Splash Screen on Initial Launch */}
+        {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} minDurationMs={1400} />}
+
         {/* CDT Page Loader */}
         {isPageLoading && <CdtPageLoader message={pageLoadingMessage} />}
 
@@ -160,6 +171,9 @@ const MainLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col app-page-bg text-slate-800 font-sans selection:bg-cyan-500 selection:text-white">
+      {/* App Splash Screen on Initial Launch */}
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} minDurationMs={1400} />}
+
       {/* CDT Page Loader */}
       {isPageLoading && <CdtPageLoader message={pageLoadingMessage} />}
 

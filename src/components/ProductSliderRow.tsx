@@ -387,7 +387,7 @@ export const ProductSliderRow: React.FC<ProductSliderRowProps> = ({
   return (
     <section
       id={`product-slider-row-${rowNumber}`}
-      className="py-2.5 sm:py-3.5 border-b border-slate-100 last:border-b-0 overflow-hidden"
+      className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-panel mb-4 overflow-hidden"
     >
       {/* Category Header with Clean Title & Navigation Controls */}
       <div className="flex items-center justify-between gap-3 mb-2.5">

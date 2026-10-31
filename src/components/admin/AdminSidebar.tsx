@@ -146,7 +146,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 
   return (
     <aside
-      className={`hidden lg:flex flex-col bg-slate-900 border-r border-slate-800 text-white transition-all duration-200 z-30 select-none ${
+      className={`hidden lg:flex flex-col bg-slate-900 border-r border-slate-800 text-white transition-all duration-200 z-30 select-none shadow-[4px_0_24px_-4px_rgba(0,0,0,0.35)] ${
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >

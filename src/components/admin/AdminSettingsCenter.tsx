@@ -28,6 +28,7 @@ import {
   Zap,
   Cpu,
   RefreshCw,
+  Database,
   Power,
   FileText,
   Code2,
@@ -162,6 +163,107 @@ export const AdminSettingsCenter: React.FC = () => {
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [broadcastFeedback, setBroadcastFeedback] = useState<{ success: boolean; message: string } | null>(null);
 
+  // WooCommerce Database Sync State
+  const [showDbPassword, setShowDbPassword] = useState(false);
+  const [isSyncingDb, setIsSyncingDb] = useState(false);
+  const [isPullingDb, setIsPullingDb] = useState(false);
+  const [isTestingDb, setIsTestingDb] = useState(false);
+  const [dbSyncFeedback, setDbSyncFeedback] = useState<{ success: boolean; message: string; details?: any } | null>(null);
+  const [dbStatus, setDbStatus] = useState<any>(null);
+
+  const loadDbStatus = async () => {
+    try {
+      const res = await api.getWooCommerceDatabaseStatus();
+      if (res && res.success) {
+        setDbStatus(res);
+      }
+    } catch {}
+  };
+
+  const handleSyncToWooCommerceDb = async () => {
+    setIsSyncingDb(true);
+    setDbSyncFeedback(null);
+    try {
+      const res = await api.syncSettingsToWooCommerceDatabase();
+      setDbSyncFeedback({
+        success: res.success,
+        message: res.message,
+        details: res.options_updated,
+      });
+      showToast(res.message || 'Settings pushed to WooCommerce database!');
+      await loadDbStatus();
+    } catch (err: any) {
+      setDbSyncFeedback({
+        success: false,
+        message: err.message || 'Failed to sync with WooCommerce database',
+      });
+      showToast('Database sync error: ' + (err.message || 'Failed'));
+    } finally {
+      setIsSyncingDb(false);
+    }
+  };
+
+  const handlePullFromWooCommerceDb = async () => {
+    setIsPullingDb(true);
+    setDbSyncFeedback(null);
+    try {
+      const res = await api.pullSettingsFromWooCommerceDatabase();
+      if (res.success && res.config) {
+        setLocalConfig(res.config);
+        setDbSyncFeedback({
+          success: true,
+          message: `Settings imported from ${res.source || 'WooCommerce database'}!`,
+        });
+        showToast('Settings pulled from WooCommerce database successfully!');
+        await loadDbStatus();
+      } else {
+        setDbSyncFeedback({
+          success: false,
+          message: res.message || 'No settings found in WooCommerce database',
+        });
+      }
+    } catch (err: any) {
+      setDbSyncFeedback({
+        success: false,
+        message: err.message || 'Failed to pull settings from WooCommerce database',
+      });
+      showToast('Pull error: ' + (err.message || 'Failed'));
+    } finally {
+      setIsPullingDb(false);
+    }
+  };
+
+  const handleTestDbConnection = async () => {
+    setIsTestingDb(true);
+    setDbSyncFeedback(null);
+    try {
+      const curWc = localConfig.woocommerce || {};
+      const res = await api.testWooCommerceDatabaseConnection({
+        host: curWc.database_host,
+        port: curWc.database_port,
+        database: curWc.database_name,
+        user: curWc.database_user,
+        password: curWc.database_password,
+        table_prefix: curWc.database_table_prefix,
+      });
+      setDbSyncFeedback({
+        success: res.success,
+        message: `${res.message} (${res.latency_ms || 0}ms)`,
+        details: res,
+      });
+      showToast(res.message);
+      await loadDbStatus();
+    } catch (err: any) {
+      setDbSyncFeedback({
+        success: false,
+        message: err.message || 'Database test failed',
+      });
+      showToast('Database test failed');
+    } finally {
+      setIsTestingDb(false);
+    }
+  };
+
   const loadSmsLogs = async () => {
     setIsLoadingSmsLogs(true);
     try {
@@ -251,6 +353,7 @@ export const AdminSettingsCenter: React.FC = () => {
   React.useEffect(() => {
     if (activeCategory === 'woocommerce' || activeCategory === 'api') {
       loadWcStatus();
+      loadDbStatus();
     }
     if (activeCategory === 'sms') {
       loadSmsLogs();

@@ -12,6 +12,11 @@ import {
   Phone,
   MessageCircle,
   ChevronRight,
+  ChevronLeft,
+  Maximize2,
+  Play,
+  Pause,
+  X,
   MapPin,
   Clock,
   HelpCircle,
@@ -30,6 +35,7 @@ import { getDistrictDeliveryOptions } from '../data/ugandaDistricts';
 import { WooCommerceHtml } from '../components/WooCommerceHtml';
 import { sanitizeWooCommerceHtml } from '../utils/sanitizeWooCommerceHtml';
 import { PriceDropAlertModal } from '../components/PriceDropAlertModal';
+import { CdtLogoSpinner } from '../components/CdtLogoSpinner';
 
 interface ProductDetailPageProps {
   slugOrId: string | number;
@@ -64,9 +70,66 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
   const [isPriceAlertModalOpen, setIsPriceAlertModalOpen] = useState(false);
   const [userPriceAlert, setUserPriceAlert] = useState<PriceDropAlert | null>(null);
 
+  // Sliding Carousel & Lightbox States
+  const [isAutoSliding, setIsAutoSliding] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+
   const districtOptions = getDistrictDeliveryOptions(chosenDistrict);
   const doorstepOpt = districtOptions.find((o) => o.type === 'doorstep') || districtOptions[0];
   const pickupOpt = districtOptions.find((o) => o.type === 'pickup');
+
+  // Automatically slide product pictures when viewed, pausing on hover or user interaction
+  useEffect(() => {
+    if (!product || !product.images || product.images.length <= 1) return;
+    if (!isAutoSliding || isHovered || isLightboxOpen) return;
+
+    const timer = setInterval(() => {
+      setSelectedImageIndex((prev) => (prev + 1) % product.images.length);
+    }, 4500);
+
+    return () => clearInterval(timer);
+  }, [product, isAutoSliding, isHovered, isLightboxOpen]);
+
+  // Touch Swipe Handlers for mobile & tablet
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+  const handleTouchEnd = () => {
+    if (touchStartX === null || touchEndX === null) return;
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > 40;
+    const isRightSwipe = distance < -40;
+    if (isLeftSwipe && product?.images && product.images.length > 1) {
+      setSelectedImageIndex((prev) => (prev + 1) % product.images.length);
+    }
+    if (isRightSwipe && product?.images && product.images.length > 1) {
+      setSelectedImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+    }
+    setTouchStartX(null);
+    setTouchEndX(null);
+  };
+
+  // Lightbox keyboard navigation (Esc to close, Arrow keys to slide)
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsLightboxOpen(false);
+      if (e.key === 'ArrowRight' && product?.images?.length) {
+        setSelectedImageIndex((prev) => (prev + 1) % product.images.length);
+      }
+      if (e.key === 'ArrowLeft' && product?.images?.length) {
+        setSelectedImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLightboxOpen, product?.images?.length]);
 
   // Check alert subscription status for current logged-in user
   useEffect(() => {
@@ -146,8 +209,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-        <div className="w-8 h-8 border-3 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center flex flex-col items-center justify-center">
+        <CdtLogoSpinner size="lg" variant="brand" className="mb-4" />
         <p className="text-xs font-bold text-slate-700">Loading hardware specifications...</p>
       </div>
     );
@@ -215,35 +278,155 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
 
       {/* 2. MAIN PRODUCT DETAIL GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Column: Image Gallery (5 cols) */}
-        <div className="lg:col-span-5 space-y-2.5">
-          <div className="relative rounded-lg overflow-hidden bg-slate-50 border border-slate-200 aspect-square shadow-2xs">
-            <img
-              src={product.images[selectedImageIndex]?.src || product.images[0]?.src}
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+        {/* Left Column: Interactive Product Pictures Sliding Carousel (5 cols) */}
+        <div className="lg:col-span-5 space-y-3">
+          <div
+            className="relative rounded-2xl overflow-hidden bg-white border border-slate-200/80 aspect-square shadow-panel group select-none flex items-center justify-center"
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            {/* Sliding Carousel Track */}
+            <div
+              className="flex h-full w-full transition-transform duration-500 ease-out"
+              style={{ transform: `translateX(-${selectedImageIndex * 100}%)` }}
+            >
+              {(product.images && product.images.length > 0
+                ? product.images
+                : [{ id: 0, src: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800', alt: product.name }]
+              ).map((img, idx) => (
+                <div
+                  key={img.id || idx}
+                  className="min-w-full w-full h-full flex-shrink-0 flex items-center justify-center p-3 relative cursor-zoom-in"
+                  onClick={() => setIsLightboxOpen(true)}
+                  title="Click to view full-resolution preview"
+                >
+                  <img
+                    src={img.src}
+                    alt={img.alt || product.name}
+                    className="w-full h-full object-contain drop-shadow-xs transition-transform duration-300 group-hover:scale-102"
+                    loading={idx === 0 ? 'eager' : 'lazy'}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Discount Badge */}
             {discountPercent > 0 && (
-              <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded bg-orange-500 text-white font-black text-[10px] shadow-2xs uppercase tracking-wider">
+              <span className="absolute top-3 left-3 px-2 py-0.5 rounded bg-orange-500 text-white font-black text-[10px] shadow-sm uppercase tracking-wider z-10">
                 -{discountPercent}% OFF
               </span>
             )}
+
+            {/* Top Right Actions: Auto-slide toggle & Fullscreen Zoom */}
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+              {product.images && product.images.length > 1 && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsAutoSliding(!isAutoSliding);
+                  }}
+                  title={isAutoSliding ? 'Pause auto-slide' : 'Resume auto-slide'}
+                  className={`p-1.5 rounded-full backdrop-blur-md border text-xs transition-all shadow-sm cursor-pointer ${
+                    isAutoSliding
+                      ? 'bg-white/85 text-emerald-600 border-emerald-200 hover:bg-white'
+                      : 'bg-white/85 text-slate-500 border-slate-200 hover:bg-white'
+                  }`}
+                >
+                  {isAutoSliding ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsLightboxOpen(true);
+                }}
+                title="Fullscreen zoom"
+                className="p-1.5 rounded-full bg-white/85 hover:bg-white text-slate-700 backdrop-blur-md border border-slate-200 shadow-sm transition-all cursor-pointer"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Left Chevron Arrow */}
+            {product.images && product.images.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+                }}
+                aria-label="Previous picture"
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 shadow-panel border border-slate-200/80 flex items-center justify-center transition-all opacity-80 sm:opacity-0 group-hover:opacity-100 hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
+              </button>
+            )}
+
+            {/* Right Chevron Arrow */}
+            {product.images && product.images.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImageIndex((prev) => (prev + 1) % product.images.length);
+                }}
+                aria-label="Next picture"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 hover:bg-white text-slate-800 shadow-panel border border-slate-200/80 flex items-center justify-center transition-all opacity-80 sm:opacity-0 group-hover:opacity-100 hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
+              </button>
+            )}
+
+            {/* Bottom Bar: Slide Dot Indicators & Counter Badge */}
+            {product.images && product.images.length > 1 && (
+              <div className="absolute bottom-3 left-0 right-0 flex items-center justify-between px-3.5 z-10 pointer-events-none">
+                <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full pointer-events-auto">
+                  {product.images.map((_, dotIdx) => (
+                    <button
+                      key={dotIdx}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedImageIndex(dotIdx);
+                      }}
+                      aria-label={`Slide to image ${dotIdx + 1}`}
+                      className={`transition-all duration-300 rounded-full h-1.5 cursor-pointer ${
+                        selectedImageIndex === dotIdx
+                          ? 'w-5 bg-gradient-to-r from-amber-400 to-amber-300 shadow-xs'
+                          : 'w-1.5 bg-white/60 hover:bg-white'
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-black/45 backdrop-blur-sm text-white border border-white/20">
+                  {selectedImageIndex + 1} / {product.images.length}
+                </span>
+              </div>
+            )}
           </div>
 
-          {/* Thumbnails */}
-          {product.images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
+          {/* Thumbnails Row */}
+          {product.images && product.images.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-1 pt-0.5 scrollbar-thin">
               {product.images.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`w-14 h-14 rounded-lg overflow-hidden border flex-shrink-0 transition-all cursor-pointer ${
+                  onMouseEnter={() => setSelectedImageIndex(idx)}
+                  aria-label={`Select picture ${idx + 1}`}
+                  className={`w-14 h-14 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all cursor-pointer p-0.5 bg-white ${
                     selectedImageIndex === idx
-                      ? 'border-cyan-500 ring-2 ring-cyan-500/20 shadow-2xs'
-                      : 'border-slate-200 opacity-70 hover:opacity-100'
+                      ? 'border-[#920d35] ring-2 ring-[#920d35]/30 shadow-panel scale-102'
+                      : 'border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-300'
                   }`}
                 >
-                  <img src={img.src} alt={img.alt || product.name} className="w-full h-full object-cover" />
+                  <img src={img.src} alt={img.alt || product.name} className="w-full h-full object-cover rounded-lg" />
                 </button>
               ))}
             </div>
@@ -486,7 +669,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
         {/* Right Column: Delivery & Warranty Trust Box (3 cols) */}
         <div className="lg:col-span-3 space-y-3">
           {/* Marketplace Vendor / Merchant Card */}
-          <div className="bg-white p-3 sm:p-3.5 rounded-lg border border-slate-200 shadow-2xs space-y-2">
+          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-panel space-y-2.5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-[#920d35] text-white flex items-center justify-center font-bold text-xs">
@@ -521,7 +704,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
           </div>
 
           {/* Delivery District Selector */}
-          <div className="bg-white p-3 sm:p-3.5 rounded-lg border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-panel space-y-2.5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
               <div className="flex items-center gap-1.5 text-xs font-extrabold text-slate-800">
                 <Truck className="w-3.5 h-3.5 text-cyan-600" />
@@ -590,7 +773,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
           </div>
 
           {/* Warranty & Guarantees */}
-          <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs space-y-2 text-xs">
+          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-panel space-y-2 text-xs">
             <div className="flex items-center gap-1.5 font-extrabold text-slate-800 border-b border-slate-100 pb-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-cyan-600" />
               <span>Cyber Dynamic Guarantee</span>
@@ -807,6 +990,83 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ slugOrId }
             }
           }}
         />
+      )}
+      {/* 7. FULLSCREEN PRODUCT PICTURE LIGHTBOX MODAL */}
+      {isLightboxOpen && product && product.images && product.images.length > 0 && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-between p-4 sm:p-6"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          {/* Top Bar */}
+          <div className="w-full max-w-5xl flex items-center justify-between text-white pb-3 border-b border-white/10" onClick={(e) => e.stopPropagation()}>
+            <div className="min-w-0 pr-4">
+              <h4 className="text-sm sm:text-base font-black truncate">{product.name}</h4>
+              <p className="text-xs text-slate-400">
+                Image {selectedImageIndex + 1} of {product.images.length}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsLightboxOpen(false)}
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+              aria-label="Close fullscreen view"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Center Main Zoom View */}
+          <div className="relative flex-1 w-full max-w-4xl flex items-center justify-center my-auto p-2" onClick={(e) => e.stopPropagation()}>
+            {product.images.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setSelectedImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length)}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white backdrop-blur-md flex items-center justify-center transition-all cursor-pointer"
+                aria-label="Previous picture"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
+            <div className="w-full h-full max-h-[70vh] flex items-center justify-center overflow-hidden">
+              <img
+                src={product.images[selectedImageIndex]?.src}
+                alt={product.images[selectedImageIndex]?.alt || product.name}
+                className="max-h-full max-w-full object-contain rounded-lg transition-transform duration-300 drop-shadow-2xl"
+              />
+            </div>
+
+            {product.images.length > 1 && (
+              <button
+                type="button"
+                onClick={() => setSelectedImageIndex((prev) => (prev + 1) % product.images.length)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white/20 hover:bg-white/30 text-white backdrop-blur-md flex items-center justify-center transition-all cursor-pointer"
+                aria-label="Next picture"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Thumbnails */}
+          {product.images.length > 1 && (
+            <div className="w-full max-w-3xl flex items-center justify-center gap-2 overflow-x-auto py-2" onClick={(e) => e.stopPropagation()}>
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setSelectedImageIndex(idx)}
+                  className={`w-14 h-14 rounded-lg overflow-hidden border-2 flex-shrink-0 transition-all cursor-pointer p-0.5 ${
+                    selectedImageIndex === idx ? 'border-amber-400 ring-2 ring-amber-400/50 scale-105' : 'border-white/20 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img.src} alt={img.alt || ''} className="w-full h-full object-cover rounded" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

@@ -123,7 +123,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
       {/* 1. TOP BREADCRUMB & HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-panel flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
         <div>
           <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mb-0.5">
             <button onClick={() => setCurrentView('home')} className="hover:text-cyan-600 transition-colors">
@@ -263,7 +263,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
         {/* Desktop Filters Sidebar (High Density) */}
         <aside className="hidden lg:block space-y-3">
           {/* Categories */}
-          <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs space-y-2">
+          <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-panel space-y-2.5">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Categories</h3>
             <div className="space-y-0.5">
               <button
@@ -299,7 +299,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           </div>
 
           {/* Quick Filter: In Stock & Flash Sales */}
-          <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs space-y-2">
+          <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-panel space-y-2.5">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Availability & Deals</h3>
             <div className="space-y-2 text-xs">
               <label className="flex items-center gap-2 text-slate-700 cursor-pointer">
@@ -325,7 +325,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           </div>
 
           {/* Price Range Presets */}
-          <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs space-y-2">
+          <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-panel space-y-2.5">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Price in UGX</h3>
             <div className="space-y-0.5 text-xs">
               <button
@@ -368,7 +368,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           </div>
 
           {/* Brands Filter */}
-          <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs space-y-2">
+          <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-panel space-y-2.5">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Brands</h3>
             <div className="space-y-1 text-xs max-h-48 overflow-y-auto pr-1">
               {availableBrands.map((brand) => (
@@ -391,7 +391,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
           </div>
 
           {/* Marketplace Stores & Vendors Filter */}
-          <div className="bg-white p-3 rounded-lg border border-slate-200 shadow-2xs space-y-2">
+          <div className="bg-white p-3.5 rounded-xl border border-slate-200/80 shadow-panel space-y-2.5">
             <div className="flex items-center justify-between">
               <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Verified Stores</h3>
               <button

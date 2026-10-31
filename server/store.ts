@@ -358,9 +358,10 @@ export class MarketplaceStore {
   public smsLogs: SmsLogEntry[] = [];
 
   constructor() {
-    // Check if env credentials exist to update WooCommerce settings
     if (process.env.WOOCOMMERCE_URL) {
-      this.config.woocommerce.store_url = process.env.WOOCOMMERCE_URL;
+      let u = process.env.WOOCOMMERCE_URL.trim().replace(/\/+$/, '');
+      if (!u.startsWith('http://') && !u.startsWith('https://')) u = `https://${u}`;
+      this.config.woocommerce.store_url = u;
     }
     if (process.env.WOOCOMMERCE_CONSUMER_KEY) {
       this.config.woocommerce.consumer_key = process.env.WOOCOMMERCE_CONSUMER_KEY;

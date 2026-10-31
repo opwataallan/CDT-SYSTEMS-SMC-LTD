@@ -320,6 +320,11 @@ export const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({
                             • {rev.district}
                           </span>
                         )}
+                        {rev.product_name && (
+                          <span className="text-[9px] font-medium text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded truncate max-w-[200px]" title={rev.product_name}>
+                            Verified for: {rev.product_name}
+                          </span>
+                        )}
                       </div>
                       <div className="text-[10px] text-slate-400">{rev.date_created}</div>
                     </div>

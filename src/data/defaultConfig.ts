@@ -27,11 +27,11 @@ export const DEFAULT_MARKETPLACE_CONFIG: MarketplaceConfig = {
 
   branding: {
     logo_url: '/logo.png',
-    mobile_logo_url: '/logo.png',
+    mobile_logo_url: '/assets/aistudio/272125-removebg-preview_a76dc8ab.png',
     dark_logo_url: '/logo.png',
-    favicon_url: '/logo.png',
-    login_logo_url: '/logo.png',
-    email_logo_url: '/logo.png',
+    favicon_url: '/assets/aistudio/272125-removebg-preview_a76dc8ab.png',
+    login_logo_url: '/assets/aistudio/272125-removebg-preview_a76dc8ab.png',
+    email_logo_url: '/assets/aistudio/272125-removebg-preview_a76dc8ab.png',
     default_product_placeholder: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=500&auto=format&fit=crop&q=80',
     primary_color: '#920d35', // Cyber Dynamic Technologies Burgundy / Crimson #920d35
     secondary_color: '#0f172a', // slate-900

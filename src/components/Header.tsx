@@ -136,7 +136,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white border-b border-slate-200/90 shadow-xs">
+    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-header-bar">
       {/* 1. MAIN HEADER BAR */}
       <div className="px-3 sm:px-6 py-2.5 sm:py-3 max-w-7xl mx-auto flex items-center justify-between gap-3 sm:gap-6">
         {/* Brand Logo & Mobile Menu Toggle */}
@@ -161,7 +161,7 @@ export const Header: React.FC = () => {
         <div ref={searchContainerRef} className="relative flex-1 max-w-2xl hidden md:block">
           <form
             onSubmit={handleSearchSubmit}
-            className="flex items-center border border-slate-300 hover:border-slate-400 focus-within:border-[#920d35] focus-within:ring-2 focus-within:ring-[#920d35]/20 rounded-xl overflow-hidden bg-slate-50/50 transition-all shadow-2xs"
+            className="flex items-center border border-slate-300 hover:border-slate-400 focus-within:border-[#920d35] focus-within:ring-2 focus-within:ring-[#920d35]/20 rounded-xl overflow-hidden bg-slate-50/50 transition-all shadow-[0_2px_10px_-2px_rgba(15,23,42,0.06)] hover:shadow-[0_4px_16px_-2px_rgba(15,23,42,0.1)] focus-within:shadow-[0_6px_22px_-3px_rgba(146,13,53,0.15)]"
           >
             <div className="pl-3.5 pr-2 text-slate-400">
               <Search className="w-4 h-4" />
@@ -197,7 +197,7 @@ export const Header: React.FC = () => {
 
           {/* Autocomplete Dropdown */}
           {isSearchFocused && (
-            <div className="absolute left-0 right-0 top-12 mt-1 bg-white rounded-xl shadow-xl border border-slate-200 text-slate-900 overflow-hidden z-50 animate-in fade-in-50 duration-150">
+            <div className="absolute left-0 right-0 top-12 mt-1 bg-white rounded-xl shadow-modal border border-slate-200/90 text-slate-900 overflow-hidden z-50 animate-in fade-in-50 duration-150">
               {!searchQuery.trim() ? (
                 <div className="p-3.5 bg-slate-50/80">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">
@@ -298,7 +298,7 @@ export const Header: React.FC = () => {
             </button>
 
             {isLocationMenuOpen && (
-              <div className="absolute right-0 mt-1.5 w-80 max-h-[380px] overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-200 p-2 text-slate-900 z-50">
+              <div className="absolute right-0 mt-1.5 w-80 max-h-[380px] overflow-y-auto bg-white rounded-xl shadow-modal border border-slate-200/90 p-2 text-slate-900 z-50">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1 mb-1 border-b border-slate-100 flex items-center justify-between">
                   <span>Select Delivery Hub</span>
                   <span className="text-[#920d35] font-semibold">Uganda Stations</span>
@@ -347,7 +347,7 @@ export const Header: React.FC = () => {
             </button>
 
             {isUserMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 text-slate-800 z-50 text-xs">
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-modal border border-slate-200/90 py-1.5 text-slate-800 z-50 text-xs">
                 {user ? (
                   <>
                     <div className="px-3 py-2 border-b border-slate-100">

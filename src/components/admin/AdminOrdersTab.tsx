@@ -486,8 +486,21 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
 
                     <div className="text-right text-[11px] text-slate-500">
                       <span>{ord.line_items?.length || 0} item(s)</span>
-                      <div className="font-mono text-[10px] text-slate-400">
-                        {ord.woocommerce_order_id ? `WC #${ord.woocommerce_order_id}` : 'Local Store'}
+                      <div className="font-mono text-[10px]">
+                        {ord.woocommerce_order_id ? (
+                          <a
+                            href={ord.woocommerce_receipt_url || `https://www.cyberdynamictech.com/wp-admin/post.php?post=${ord.woocommerce_order_id}&action=edit`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-purple-700 hover:text-purple-900 font-bold inline-flex items-center gap-0.5"
+                            title="Open in WooCommerce"
+                          >
+                            <span>WC #{ord.woocommerce_order_id}</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        ) : (
+                          <span className="text-slate-400">Local Store</span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -687,9 +700,16 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                         {/* WooCommerce */}
                         <td className="p-3.5">
                           {ord.woocommerce_order_id ? (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-800 border border-purple-200">
-                              WC #{ord.woocommerce_order_id}
-                            </span>
+                            <a
+                              href={ord.woocommerce_receipt_url || `https://www.cyberdynamictech.com/wp-admin/post.php?post=${ord.woocommerce_order_id}&action=edit`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 inline-flex items-center gap-1 transition-colors"
+                              title="View on WooCommerce"
+                            >
+                              <span>WC #{ord.woocommerce_order_id}</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </a>
                           ) : (
                             <button
                               onClick={() => handleSyncToWooCommerce(ord)}

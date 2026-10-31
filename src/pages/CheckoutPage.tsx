@@ -372,7 +372,7 @@ export const CheckoutPage: React.FC = () => {
         {/* Left Column: Checkout Forms (8 cols) */}
         <div className="lg:col-span-8 space-y-4">
           {/* STEP 1: CUSTOMER & DELIVERY ADDRESS */}
-          <div className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-2xs space-y-3">
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-panel space-y-3">
             <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-cyan-600" />
@@ -605,7 +605,7 @@ export const CheckoutPage: React.FC = () => {
           </div>
 
           {/* STEP 2: SHIPPING METHOD FOR CHOSEN DISTRICT */}
-          <div className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-2xs space-y-3">
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-panel space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-2.5">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
                 <Truck className="w-3.5 h-3.5 text-cyan-600" />
@@ -672,7 +672,7 @@ export const CheckoutPage: React.FC = () => {
           </div>
 
           {/* STEP 3: PAYMENT METHOD */}
-          <div className="bg-white p-4 sm:p-5 rounded-lg border border-slate-200 shadow-2xs space-y-3">
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-panel space-y-3">
             <h2 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2.5">
               <CreditCard className="w-3.5 h-3.5 text-orange-500" />
               <span>3. Payment Method</span>
@@ -794,7 +794,7 @@ export const CheckoutPage: React.FC = () => {
 
         {/* Right Column: Order Summary & Place Order (4 cols) */}
         <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-20">
-          <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-2xs space-y-3">
+          <div className="bg-white p-4 sm:p-5 rounded-xl border border-slate-200/80 shadow-panel-lg space-y-3">
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 border-b border-slate-100 pb-2">
               Order Summary ({cart.reduce((t, i) => t + i.quantity, 0)} items)
             </h3>

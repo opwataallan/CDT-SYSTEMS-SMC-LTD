@@ -186,7 +186,7 @@ export const TopDealsSlider: React.FC<TopDealsSliderProps> = ({ products }) => {
 
   return (
     <section id="top-deals-section" className="max-w-7xl mx-auto px-4">
-      <div className="bg-[#0F172A] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 text-white border border-slate-800 shadow-md relative overflow-hidden">
+      <div className="bg-[#0F172A] rounded-xl sm:rounded-2xl p-2.5 sm:p-3.5 text-white border border-slate-800/80 shadow-[0_12px_36px_-6px_rgba(15,23,42,0.4),0_4px_16px_-2px_rgba(15,23,42,0.2)] relative overflow-hidden">
         {/* Subtle Background Glow */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 left-1/3 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none" />

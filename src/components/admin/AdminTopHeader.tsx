@@ -79,7 +79,7 @@ export const AdminTopHeader: React.FC<AdminTopHeaderProps> = ({
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 px-3.5 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-2xs">
+    <header className="h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-3.5 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-header-bar">
       {/* Left: Mobile Drawer Trigger + Breadcrumb */}
       <div className="flex items-center gap-3">
         {/* Mobile Hamburger Button */}

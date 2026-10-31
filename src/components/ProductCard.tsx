@@ -32,14 +32,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
   return (
     <div
       id={`product-card-${product.id}`}
-      className="group relative flex flex-col bg-white/95 rounded-lg p-1.5 sm:p-2 border border-slate-200/90 shadow-2xs hover:border-cyan-500 hover:shadow-md transition-all duration-200 cursor-pointer"
+      className="group relative flex flex-col bg-white rounded-xl p-2 border border-slate-200/80 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 hover:border-[#920d35]/50 transition-all duration-200 cursor-pointer"
       onClick={handleCardClick}
     >
       {/* Badges and Wishlist Button Overlay */}
       <div className="absolute top-2 left-2 right-2 flex items-center justify-between z-10 pointer-events-none">
         <div>
           {discountPercent > 0 && (
-            <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white font-bold text-[9px] shadow-2xs">
+            <span className="px-1.5 py-0.5 rounded bg-rose-500 text-white font-bold text-[9px] shadow-sm">
               -{discountPercent}%
             </span>
           )}
@@ -51,7 +51,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
             e.stopPropagation();
             toggleWishlist(product.id);
           }}
-          className={`pointer-events-auto min-w-[34px] min-h-[34px] flex items-center justify-center rounded-full backdrop-blur-sm transition-all duration-150 shadow-2xs active:scale-90 ${
+          className={`pointer-events-auto min-w-[34px] min-h-[34px] flex items-center justify-center rounded-full backdrop-blur-sm transition-all duration-150 shadow-sm active:scale-90 ${
             isFavorited
               ? 'bg-rose-50 text-rose-600'
               : 'bg-white/90 hover:bg-white text-slate-400 hover:text-rose-500'
@@ -63,7 +63,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'gr
       </div>
 
       {/* Product Image Container */}
-      <div className="relative w-full aspect-[4/3] bg-white rounded-md overflow-hidden mb-2 flex items-center justify-center border border-slate-100/90 shadow-2xs">
+      <div className="relative w-full aspect-[4/3] bg-white rounded-lg overflow-hidden mb-2 flex items-center justify-center border border-slate-100/90 shadow-[inset_0_1px_4px_rgba(0,0,0,0.03)]">
         <OptimizedImage
           src={primaryImage}
           alt={product.images?.[0]?.alt || product.name}

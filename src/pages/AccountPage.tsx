@@ -400,7 +400,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
   if (!user && !auth.currentUser) {
     return (
       <div className="max-w-md mx-auto px-4 py-12">
-        <div className="bg-white p-6 sm:p-8 rounded-xl border border-slate-200 shadow-sm space-y-5">
+        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-panel-lg space-y-5">
           {/* Official Cyber Dynamic Technologies Logo */}
           <div className="flex justify-center pb-2">
             <img
@@ -810,7 +810,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
       {/* Admin Quick Action Banner if Admin */}
       {isAdmin && (
-        <div className="bg-gradient-to-r from-slate-900 to-cyan-950 text-white p-4 rounded-xl shadow-sm border border-cyan-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-gradient-to-r from-slate-900 to-cyan-950 text-white p-4 rounded-xl shadow-panel border border-cyan-900/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-cyan-500 text-white flex items-center justify-center shadow-xs">
               <Settings className="w-5 h-5" />
@@ -838,7 +838,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
       )}
 
       {/* Account Header */}
-      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-panel flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-base shadow-xs">
             {user.first_name?.[0] || 'U'}{user.last_name ? user.last_name[0] : ''}
