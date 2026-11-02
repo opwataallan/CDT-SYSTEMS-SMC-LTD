@@ -513,27 +513,16 @@ export const AdminSettingsCenter: React.FC = () => {
         throw new Error('Invalid settings object to save');
       }
 
-      // Check if Firebase Auth session is active; if not, prompt administrator
-      if (!auth.currentUser) {
-        showToast('Connecting Administrator session with Firebase...', 'info');
-        try {
-          await loginWithGoogle();
-        } catch (authErr: any) {
-          throw new Error(
-            `Administrator Google Auth required to update settings in Cloud Firestore. Detail: ${authErr.message || authErr}`
-          );
-        }
-      }
-
-      // Persist to Cloud Firestore: settings/global
+      // Persist directly to app storage (server database.json and local reactive settingsService)
       await updateCategorySettings(activeCategory, categoryData);
 
       const categoryLabel = CATEGORIES.find((c) => c.key === activeCategory)?.label || activeCategory;
-      setSaveSuccessMsg(`Settings for "${categoryLabel}" successfully saved and persisted to Cloud Firestore (settings/global).`);
+      setSaveSuccessMsg(`Settings for "${categoryLabel}" successfully saved to app settings!`);
+      showToast(`Settings for "${categoryLabel}" saved successfully!`);
       setTimeout(() => setSaveSuccessMsg(null), 5000);
     } catch (err: any) {
-      console.error('Failed to save settings to Firestore:', err);
-      const msg = err.message || 'Failed to persist settings in Cloud Firestore';
+      console.error('Failed to save settings:', err);
+      const msg = err.message || 'Failed to save settings to the application';
       setSaveErrorMsg(msg);
       showToast(msg);
     } finally {
@@ -547,23 +536,14 @@ export const AdminSettingsCenter: React.FC = () => {
     setSaveErrorMsg(null);
 
     try {
-      if (!auth.currentUser) {
-        showToast('Connecting Administrator session with Firebase...', 'info');
-        try {
-          await loginWithGoogle();
-        } catch (authErr: any) {
-          throw new Error(
-            `Administrator Google Auth required to write to Cloud Firestore. Detail: ${authErr.message || authErr}`
-          );
-        }
-      }
-
+      // Persist all 32 categories directly to app storage (data/database.json)
       await saveAllSettings(localConfig);
-      setSaveSuccessMsg('All 31 settings categories successfully persisted in Cloud Firestore (settings/global)!');
+      setSaveSuccessMsg('All 32 settings categories successfully saved to application storage!');
+      showToast('All 32 settings categories saved successfully!');
       setTimeout(() => setSaveSuccessMsg(null), 6000);
     } catch (err: any) {
-      console.error('Failed to save all settings to Firestore:', err);
-      const msg = err.message || 'Failed to persist complete configuration in Cloud Firestore';
+      console.error('Failed to save all settings:', err);
+      const msg = err.message || 'Failed to persist complete configuration to app storage';
       setSaveErrorMsg(msg);
       showToast(msg);
     } finally {
@@ -590,7 +570,7 @@ export const AdminSettingsCenter: React.FC = () => {
         handleFieldChange('branding', mirrorField, downloadUrl);
       }
 
-      // Automatically persist to Cloud Firestore settings/global immediately upon upload
+      // Automatically persist to app settings immediately upon upload
       try {
         const updatedBranding = {
           ...localConfig.branding,
@@ -598,11 +578,11 @@ export const AdminSettingsCenter: React.FC = () => {
           ...(mirrorField ? { [mirrorField]: downloadUrl } : {}),
         };
         await updateCategorySettings('branding', updatedBranding);
-        setSaveSuccessMsg(`Image uploaded to Firebase Storage and persisted to Cloud Firestore (settings/global)! URL: ${downloadUrl.slice(0, 60)}...`);
-        showToast('Image uploaded and saved to settings/global!');
+        setSaveSuccessMsg(`Image uploaded and saved to branding settings! URL: ${downloadUrl.slice(0, 60)}...`);
+        showToast('Image uploaded and saved to branding settings!');
       } catch (saveErr: any) {
-        console.warn('Auto-save after Storage upload notice:', saveErr);
-        showToast(`Image uploaded to Firebase Storage! Click "Save Settings" to confirm.`);
+        console.warn('Auto-save after upload notice:', saveErr);
+        showToast(`Image uploaded! Click "Save Settings" to confirm.`);
       }
     } catch (err: any) {
       console.error('Firebase Storage upload error:', err);
@@ -2416,6 +2396,229 @@ export const AdminSettingsCenter: React.FC = () => {
                     </button>
                   </div>
                 </div>
+              </div>
+
+              {/* ARCHITECTURE & STORAGE MODEL CARD */}
+              <div className="p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-cyan-950 border border-cyan-800/60 rounded-xl text-white space-y-3 shadow-md">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shrink-0">
+                    <Database size={16} />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-sm text-white">System Architecture & Database Storage</h4>
+                    <p className="text-[11px] text-cyan-200/80">WooCommerce stores store data • Settings stored on app • Firebase for Auth only</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                  <div className="bg-white/10 backdrop-blur-xs p-3 rounded-lg border border-white/10 space-y-1">
+                    <div className="flex items-center gap-1.5 text-cyan-300 font-bold text-[11px]">
+                      <Package size={13} />
+                      <span>1. WooCommerce Database</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300">
+                      Stores products, variations, categories, real-time inventory counts, and live customer orders directly at <span className="font-mono text-cyan-200">cyberdynamictech.com</span>.
+                    </p>
+                  </div>
+
+                  <div className="bg-white/10 backdrop-blur-xs p-3 rounded-lg border border-white/10 space-y-1">
+                    <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-[11px]">
+                      <SlidersHorizontal size={13} />
+                      <span>2. App Settings Storage</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300">
+                      Marketplace configuration, delivery zones, appearance, POS terminals, and payments are stored securely on the application server (<span className="font-mono text-emerald-200">database.json</span>).
+                    </p>
+                  </div>
+
+                  <div className="bg-white/10 backdrop-blur-xs p-3 rounded-lg border border-white/10 space-y-1">
+                    <div className="flex items-center gap-1.5 text-amber-300 font-bold text-[11px]">
+                      <Key size={13} />
+                      <span>3. Firebase Authentication</span>
+                    </div>
+                    <p className="text-[11px] text-slate-300">
+                      Exclusively manages user identity, Google Sign-in, email/password credentials, and session tokens. No Firestore required for settings.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* WOOCOMMERCE DATABASE DIRECT SYNC / BRIDGE */}
+              <div className="p-4 border border-slate-200 rounded-xl space-y-4 bg-white shadow-2xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                      <Database size={14} className="text-cyan-600" /> WooCommerce Database (wp_options) Bridge
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Export and sync your marketplace configuration options to your WordPress/WooCommerce MySQL database or REST bridge plugin.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                      dbStatus?.connected || dbSyncFeedback?.success
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-slate-100 text-slate-600 border-slate-200'
+                    }`}>
+                      {dbStatus?.connected || dbSyncFeedback?.success ? 'MySQL Connected' : 'Bridge Ready'}
+                    </span>
+                    <a
+                      href="/api/plugins/cdt-marketplace-bridge.zip"
+                      download="cdt-marketplace-bridge.zip"
+                      className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded text-[11px] flex items-center gap-1 transition-colors"
+                      title="Download companion WordPress plugin"
+                    >
+                      <DownloadCloud size={12} />
+                      <span>Download WP Plugin</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="sm:col-span-2">
+                    <label className="font-bold text-slate-800 block mb-1">MySQL Database Host</label>
+                    <input
+                      type="text"
+                      value={currentValues.database_host || 'localhost'}
+                      onChange={(e) => handleFieldChange('woocommerce', 'database_host', e.target.value)}
+                      placeholder="localhost or your-cpanel-ip"
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Port</label>
+                    <input
+                      type="number"
+                      value={currentValues.database_port || 3306}
+                      onChange={(e) => handleFieldChange('woocommerce', 'database_port', Number(e.target.value))}
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Database Name</label>
+                    <input
+                      type="text"
+                      value={currentValues.database_name || ''}
+                      onChange={(e) => handleFieldChange('woocommerce', 'database_name', e.target.value)}
+                      placeholder="e.g. cyberdyn_wc"
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Database User</label>
+                    <input
+                      type="text"
+                      value={currentValues.database_user || ''}
+                      onChange={(e) => handleFieldChange('woocommerce', 'database_user', e.target.value)}
+                      placeholder="e.g. cyberdyn_usr"
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="font-bold text-slate-800 block">Database Password</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowDbPassword(!showDbPassword)}
+                        className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center gap-1"
+                      >
+                        {showDbPassword ? <EyeOff size={11} /> : <Eye size={11} />}
+                        {showDbPassword ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
+                    <input
+                      type={showDbPassword ? 'text' : 'password'}
+                      value={currentValues.database_password || ''}
+                      onChange={(e) => handleFieldChange('woocommerce', 'database_password', e.target.value)}
+                      placeholder={currentValues.database_password_configured ? '•••••••• (Stored on server)' : 'Database password'}
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Table Prefix</label>
+                    <input
+                      type="text"
+                      value={currentValues.database_table_prefix || 'wp_'}
+                      onChange={(e) => handleFieldChange('woocommerce', 'database_table_prefix', e.target.value)}
+                      placeholder="wp_"
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-800 block mb-1">Remote Settings Bridge Method</label>
+                    <select
+                      value={currentValues.database_sync_method || 'rest_bridge'}
+                      onChange={(e) => handleFieldChange('woocommerce', 'database_sync_method', e.target.value)}
+                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs bg-white"
+                    >
+                      <option value="rest_bridge">WordPress Plugin Bridge (HTTP POST - No Port 3306 Required)</option>
+                      <option value="direct_mysql">Direct MySQL Connection (Port 3306)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Database Actions */}
+                <div className="flex flex-wrap items-center gap-2.5 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleTestDbConnection}
+                    disabled={isTestingDb}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold rounded-lg text-xs cursor-pointer disabled:opacity-50"
+                  >
+                    <Activity size={13} className={isTestingDb ? 'animate-spin text-cyan-600' : 'text-cyan-600'} />
+                    <span>{isTestingDb ? 'Testing...' : 'Test DB Connection'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSyncToWooCommerceDb}
+                    disabled={isSyncingDb}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    <Upload size={13} className={isSyncingDb ? 'animate-bounce' : ''} />
+                    <span>{isSyncingDb ? 'Pushing...' : 'Push Settings to WooCommerce Database'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handlePullFromWooCommerceDb}
+                    disabled={isPullingDb}
+                    className="flex items-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-xs shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    <DownloadCloud size={13} className={isPullingDb ? 'animate-bounce' : ''} />
+                    <span>{isPullingDb ? 'Pulling...' : 'Pull Settings from WooCommerce Database'}</span>
+                  </button>
+                </div>
+
+                {/* Database Feedback */}
+                {dbSyncFeedback && (
+                  <div className={`p-3 rounded-lg border flex items-start gap-2.5 ${
+                    dbSyncFeedback.success
+                      ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                      : 'bg-rose-50 border-rose-200 text-rose-900'
+                  }`}>
+                    {dbSyncFeedback.success ? (
+                      <CheckCircle2 size={15} className="shrink-0 text-emerald-600 mt-0.5" />
+                    ) : (
+                      <AlertCircle size={15} className="shrink-0 text-rose-600 mt-0.5" />
+                    )}
+                    <div className="space-y-0.5 text-xs">
+                      <p className="font-bold">{dbSyncFeedback.success ? 'Database Sync Succeeded' : 'Database Notice'}</p>
+                      <p className="text-[11px] opacity-90">{dbSyncFeedback.message}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

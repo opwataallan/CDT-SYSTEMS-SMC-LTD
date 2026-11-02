@@ -22,11 +22,6 @@ import {
   signOutFirebase,
   syncUserProfile,
   onAuthStateChanged,
-  saveGlobalSettingsToFirestore,
-  loadGlobalSettingsFromFirestore,
-  subscribeToGlobalSettings,
-  subscribeToProducts,
-  seedInitialFirestoreCatalogIfEmpty,
   saveUserCartToFirestore,
   getUserCartFromFirestore,
   saveUserWishlistToFirestore,
@@ -199,27 +194,14 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Initial catalog load & network listeners
   useEffect(() => {
     let isMounted = true;
-    let unsubProducts: (() => void) | null = null;
 
     const initApp = async () => {
       try {
-        // 1. Load products and categories from local cache & API
+        // Load products and categories directly from WooCommerce catalog
         await Promise.allSettled([
-          fetchProducts(),
+          fetchProducts(48),
           fetchCategories(),
-          api.getProducts({ page: 1, limit: 18 }),
         ]);
-
-        // 3. Real-time subscription to database products
-        try {
-          unsubProducts = subscribeToProducts((firestoreProducts) => {
-            if (isMounted && Array.isArray(firestoreProducts) && firestoreProducts.length > 0) {
-              setProducts(firestoreProducts);
-            }
-          });
-        } catch (subErr) {
-          console.warn('Real-time products subscription notice:', subErr);
-        }
       } finally {
         setTimeout(() => {
           if (isMounted) setIsPageLoadingState(false);
@@ -236,7 +218,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => {
       isMounted = false;
-      if (unsubProducts) unsubProducts();
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -342,11 +323,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           setUser(customerUser);
           localStorage.setItem('cdt_user', JSON.stringify(customerUser));
-
-          // If administrator is signed in, ensure Firestore catalog is initialized if empty
-          if (customerUser.admin || customerUser.isSuperAdmin || isOpwataAdmin) {
-            seedInitialFirestoreCatalogIfEmpty().catch(() => {});
-          }
         } catch (err) {
           console.error('Error syncing Firebase user profile:', err);
         }
@@ -613,47 +589,9 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     verifyAuthSession();
   }, []);
 
-  // Real-time synchronization of settings/global from Cloud Firestore
-  useEffect(() => {
-    let isSubscribed = true;
-
-    // 1. Initial read from Firestore settings/global
-    loadGlobalSettingsFromFirestore()
-      .then((firestoreSettings) => {
-        if (isSubscribed && firestoreSettings) {
-          settingsService.updateConfig(firestoreSettings);
-        }
-      })
-      .catch((err) => {
-        console.warn('Initial Firestore settings load notice:', err);
-      });
-
-    // 2. Real-time onSnapshot synchronization
-    const unsubscribe = subscribeToGlobalSettings(
-      (updatedConfig) => {
-        if (isSubscribed) {
-          settingsService.updateConfig(updatedConfig);
-        }
-      },
-      (err) => {
-        console.warn('Settings real-time listener notice:', err);
-      }
-    );
-
-    return () => {
-      isSubscribed = false;
-      unsubscribe();
-    };
-  }, []);
-
-  // Refresh settings from server API (fallback/initial sync)
+  // App Settings Initialization & Sync from App Server
   const refreshSettings = async () => {
     try {
-      const firestoreSettings = await loadGlobalSettingsFromFirestore();
-      if (firestoreSettings) {
-        settingsService.updateConfig(firestoreSettings);
-        return;
-      }
       const publicData = await api.getPublicConfig();
       if (publicData) {
         settingsService.updateConfig(publicData);
@@ -675,46 +613,31 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
       throw new Error('Invalid settings data provided');
     }
 
-    // 1. Write to Cloud Firestore settings/global and settings/{category} with merge: true
-    try {
-      await saveGlobalSettingsToFirestore({ category, data });
-    } catch (firestoreErr: any) {
-      console.error('Failed to write to Cloud Firestore settings:', firestoreErr);
-      showToast('Unable to save changes. Please check your connection or permissions.');
-      throw firestoreErr;
-    }
-
-    // 2. Apply locally & DOM
+    // 1. Apply immediately to local app settings service and reactive DOM
     settingsService.updateCategory(category, data);
 
-    // 3. Mirror to server cache for backward compatibility
+    // 2. Persist to app backend database.json
     try {
       await api.saveCategorySettings(category, data);
-    } catch (e) {
-      console.warn('Backend server cache update notice:', e);
+    } catch (e: any) {
+      console.warn('App server settings update notice:', e.message);
     }
 
-    showToast(`Settings for "${String(category)}" saved successfully to Cloud Firestore!`);
+    showToast(`Settings for "${String(category)}" saved successfully on the app!`);
   };
 
   const saveAllSettings = async (fullConfig: Partial<MarketplaceConfig>) => {
-    try {
-      await saveGlobalSettingsToFirestore(fullConfig);
-    } catch (firestoreErr: any) {
-      console.error('Failed to write all settings to Cloud Firestore:', firestoreErr);
-      showToast('Unable to save changes. Please check your connection or permissions.');
-      throw firestoreErr;
-    }
-
+    // 1. Apply immediately to local app settings service and reactive DOM
     settingsService.updateConfig(fullConfig);
 
+    // 2. Persist to app backend database.json
     try {
       await api.saveFullSettings(fullConfig);
-    } catch (e) {
-      console.warn('Backend server cache update notice:', e);
+    } catch (e: any) {
+      console.warn('App server settings update notice:', e.message);
     }
 
-    showToast('All settings categories successfully saved to Cloud Firestore!');
+    showToast('All settings categories successfully saved on the app!');
   };
 
   const setThemeColor = async (color: string) => {

@@ -27,7 +27,6 @@ import { AdminDeliveryTab } from '../components/admin/AdminDeliveryTab';
 import { AdminStoreHeadquartersTab } from '../components/admin/AdminStoreHeadquartersTab';
 import { AdminMarketplaceTab } from '../components/admin/AdminMarketplaceTab';
 import { AdminProductsTab } from '../components/admin/AdminProductsTab';
-import { getAllOrdersFromFirestore } from '../firebase';
 
 export const AdminPage: React.FC = () => {
   const {
@@ -71,31 +70,13 @@ export const AdminPage: React.FC = () => {
 
   const loadOrders = async () => {
     try {
-      let ords: CustomerOrder[] = [];
-      try {
-        const apiOrds = await api.getOrders();
-        if (Array.isArray(apiOrds)) ords = apiOrds;
-      } catch (e) {}
-
-      try {
-        const firestoreOrds = await getAllOrdersFromFirestore();
-        if (firestoreOrds && firestoreOrds.length > 0) {
-          const map = new Map<string, any>();
-          ords.forEach((o) => map.set(o.order_number, o));
-          firestoreOrds.forEach((fo: any) => {
-            const num = fo.orderNumber || fo.order_number || String(fo.id);
-            if (!map.has(num)) {
-              map.set(num, fo);
-            } else {
-              map.set(num, { ...map.get(num), ...fo });
-            }
-          });
-          ords = Array.from(map.values());
-        }
-      } catch (e) {}
-
-      setOrders(ords);
-    } catch (e) {}
+      const apiOrds = await api.getOrders();
+      if (Array.isArray(apiOrds)) {
+        setOrders(apiOrds);
+      }
+    } catch (e) {
+      console.warn('Failed to load orders from WooCommerce:', e);
+    }
   };
 
   useEffect(() => {

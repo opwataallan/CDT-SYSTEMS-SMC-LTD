@@ -29,7 +29,7 @@ import { CustomerOrder, Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { ThemeColorSetting } from '../components/ThemeColorSetting';
 import { OrderReceiptModal } from '../components/OrderReceiptModal';
-import { auth, subscribeToUserOrders, cancelFirestoreOrder } from '../firebase';
+import { auth } from '../firebase';
 
 interface AccountPageProps {
   initialTab?: 'orders' | 'profile' | 'wishlist' | 'theme';
@@ -99,128 +99,36 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
     }
   }, [user]);
 
-  // Load orders for current customer linked to authenticated Firebase UID
+  // Load orders for current customer directly from WooCommerce database
   useEffect(() => {
-    // 1. Wait for Firebase Authentication state to finish loading
-    if (!isFirebaseReady) {
-      return;
-    }
+    const customerEmail = user?.email || firebaseUser?.email || auth.currentUser?.email;
+    const customerPhone = user?.phone;
 
-    // 2. Get current Firebase Auth user UID
-    const currentUid = auth.currentUser?.uid || firebaseUser?.uid;
-
-    // If not authenticated in Firebase Auth, attempt fallback to WooCommerce API with email
-    if (!currentUid) {
-      if (user?.email) {
-        setLoadingOrders(true);
-        api.getOrders({ email: user.email })
-          .then((apiOrders) => {
-            if (Array.isArray(apiOrders)) {
-              setOrders(apiOrders);
-            }
-          })
-          .catch(() => {
-            setOrders([]);
-          })
-          .finally(() => {
-            setLoadingOrders(false);
-          });
-      } else {
-        setOrders([]);
-        setLoadingOrders(false);
-        setOrdersError(null);
-      }
+    if (!customerEmail && !customerPhone) {
+      setOrders([]);
+      setLoadingOrders(false);
       return;
     }
 
     setLoadingOrders(true);
     setOrdersError(null);
 
-    // 3. Query Firestore orders strictly belonging to that UID (where userId == currentUser.uid)
-    const unsubscribe = subscribeToUserOrders(
-      currentUid,
-      (firestoreOrders) => {
-        const mappedOrders: CustomerOrder[] = (firestoreOrders || []).map((ord: any) => ({
-          id: ord.id || ord.order_number || ord.orderNumber || String(Math.random()),
-          order_number: String(ord.order_number || ord.orderNumber || ord.id),
-          orderNumber: String(ord.orderNumber || ord.order_number || ord.id),
-          userId: ord.userId,
-          customerEmail: ord.customerEmail || ord.billing?.email || ord.shipping?.email || '',
-          customerName:
-            ord.customerName ||
-            `${ord.billing?.first_name || ''} ${ord.billing?.last_name || ''}`.trim() ||
-            'Customer',
-          customerPhone: ord.customerPhone || ord.billing?.phone || ord.shipping?.phone || '',
-          status: ord.status || 'pending',
-          paymentStatus:
-            ord.paymentStatus ||
-            ord.payment_details?.status ||
-            (ord.paymentMethod === 'cod' ? 'pending' : 'awaiting_confirmation'),
-          currency: ord.currency || 'UGX',
-          date_created: ord.date_created || ord.createdAt || new Date().toISOString(),
-          createdAt: ord.createdAt || ord.date_created || new Date().toISOString(),
-          updatedAt: ord.updatedAt || new Date().toISOString(),
-          total: Number(ord.total || 0),
-          subtotal: Number(ord.subtotal || ord.total || 0),
-          discount_total: Number(ord.discount_total || 0),
-          shipping_total: Number(ord.shipping_total || 0),
-          line_items: (ord.line_items || ord.items || []).map((it: any) => ({
-            id: it.id || it.productId || 1,
-            product_id: Number(it.productId || it.product_id || 0),
-            name: it.name || 'Product',
-            quantity: Number(it.quantity || 1),
-            price: Number(it.price || it.unitPrice || 0),
-            total: Number(it.total || it.subtotal || (Number(it.price || 0) * Number(it.quantity || 1))),
-            image: it.image || '',
-          })),
-          items: ord.items || ord.line_items || [],
-          billing: ord.billing || {
-            first_name: ord.customerName?.split(' ')[0] || '',
-            last_name: ord.customerName?.split(' ').slice(1).join(' ') || '',
-            email: ord.customerEmail || '',
-            phone: ord.customerPhone || '',
-            district: ord.deliveryDistrict || 'Kampala',
-            city: ord.deliveryDistrict || 'Kampala',
-            address_1: ord.deliveryAddress || '',
-          },
-          shipping: ord.shipping || {
-            first_name: ord.customerName?.split(' ')[0] || '',
-            last_name: ord.customerName?.split(' ').slice(1).join(' ') || '',
-            email: ord.customerEmail || '',
-            phone: ord.customerPhone || '',
-            district: ord.deliveryDistrict || 'Kampala',
-            city: ord.deliveryDistrict || 'Kampala',
-            address_1: ord.deliveryAddress || '',
-          },
-          delivery_zone: ord.deliveryDistrict || ord.delivery_zone || 'Kampala',
-          deliveryAddress: ord.deliveryAddress || ord.shipping?.address_1 || '',
-          deliveryDistrict: ord.deliveryDistrict || ord.shipping?.district || 'Kampala',
-          payment_method: ord.paymentMethod || ord.payment_method || 'cod',
-          paymentMethod: ord.paymentMethod || ord.payment_method || 'cod',
-          payment_method_title: ord.payment_method_title || 'Cash on Delivery',
-          payment_details: ord.payment_details || { status: ord.paymentStatus || 'pending' },
-          timeline: ord.timeline || [],
-          customer_note: ord.customer_note || '',
-          cancelReason: ord.cancelReason || '',
-        }));
-
-        setOrders(mappedOrders);
+    api.getOrders({ email: customerEmail || undefined, phone: customerPhone || undefined })
+      .then((apiOrders) => {
+        if (Array.isArray(apiOrders)) {
+          setOrders(apiOrders);
+        } else {
+          setOrders([]);
+        }
+      })
+      .catch((err) => {
+        console.warn('WooCommerce customer orders fetch notice:', err);
+        setOrders([]);
+      })
+      .finally(() => {
         setLoadingOrders(false);
-        setOrdersError(null);
-      },
-      (err) => {
-        console.warn('Real-time customer orders notice:', err);
-        setOrdersError(
-          err.message?.includes('permission')
-            ? 'Access restricted: Unable to load orders. Please verify your account credentials.'
-            : 'Notice: Could not sync orders from cloud storage.'
-        );
-        setLoadingOrders(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [isFirebaseReady, user?.uid, firebaseUser?.uid]);
+      });
+  }, [user?.email, user?.phone, firebaseUser?.email]);
 
   // Load wishlist items
   useEffect(() => {
@@ -239,10 +147,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
     if (!cancellingOrder) return;
     setIsCancelling(true);
     try {
-      // 1. Cancel in Firestore database
-      await cancelFirestoreOrder(cancellingOrder.order_number, cancelReason);
-
-      // 2. Cancel in API store
+      // Cancel order in WooCommerce backend store database
       const res = await api.cancelOrder(cancellingOrder.order_number, cancelReason);
       if (res.success) {
         showToast(res.message || `Order #${cancellingOrder.order_number} cancelled successfully.`, 'success');

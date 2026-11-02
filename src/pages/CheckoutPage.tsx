@@ -20,8 +20,8 @@ import { CustomerOrder } from '../types';
 import { UGANDA_DISTRICTS, getDistrictDeliveryOptions } from '../data/ugandaDistricts';
 import { DistrictSelector } from '../components/DistrictSelector';
 import { PaymentLandingPage } from '../components/PaymentLandingPage';
+import { auth } from '../firebase';
 import { notificationService } from '../services/notificationService';
-import { auth, saveOrderToFirestore } from '../firebase';
 
 export const CheckoutPage: React.FC = () => {
   const {
@@ -273,13 +273,8 @@ export const CheckoutPage: React.FC = () => {
       const res = await api.createOrder(orderPayload);
 
       if (res.success && res.order) {
-        // If authenticated customer:
-        // 4. Attach UID to the order
-        // 5. Save the order to Firestore
-        // 6. Only after the Firestore write succeeds should the application show the order as successfully placed.
         if (isCustomerAuthenticated && currentAuthUid) {
           res.order.userId = currentAuthUid;
-          await saveOrderToFirestore(res.order, currentAuthUid);
         }
 
         clearCart();

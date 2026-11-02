@@ -678,12 +678,6 @@ export const api = {
 
   async createProduct(product: Partial<Product>): Promise<Product> {
     clientCache.clear();
-    try {
-      const { saveProductToFirestore } = await import('../firebase');
-      await saveProductToFirestore(product);
-    } catch (e) {
-      console.warn('Firestore direct write notice:', e);
-    }
     return safeFetch<Product>('/api/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -693,12 +687,6 @@ export const api = {
 
   async updateProduct(id: number | string, updates: Partial<Product>): Promise<Product> {
     clientCache.clear();
-    try {
-      const { updateProductInFirestore } = await import('../firebase');
-      await updateProductInFirestore(id, updates);
-    } catch (e) {
-      console.warn('Firestore direct update notice:', e);
-    }
     return safeFetch<Product>(`/api/products/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -708,12 +696,6 @@ export const api = {
 
   async deleteProduct(id: number | string): Promise<{ success: boolean; deleted_id: number }> {
     clientCache.clear();
-    try {
-      const { deleteProductInFirestore } = await import('../firebase');
-      await deleteProductInFirestore(id);
-    } catch (e) {
-      console.warn('Firestore direct delete notice:', e);
-    }
     return safeFetch<{ success: boolean; deleted_id: number }>(`/api/products/${id}`, {
       method: 'DELETE',
     }, 'Failed to delete product');
@@ -727,10 +709,6 @@ export const api = {
   },
 
   async createCategory(category: Partial<Category>): Promise<Category> {
-    try {
-      const { saveCategoryToFirestore } = await import('../firebase');
-      await saveCategoryToFirestore(category);
-    } catch (e) {}
     return safeFetch<Category>('/api/categories', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -747,10 +725,6 @@ export const api = {
   },
 
   async deleteCategory(id: number | string): Promise<{ success: boolean }> {
-    try {
-      const { deleteCategoryFromFirestore } = await import('../firebase');
-      await deleteCategoryFromFirestore(id);
-    } catch (e) {}
     return safeFetch<{ success: boolean }>(`/api/categories/${id}`, {
       method: 'DELETE',
     }, 'Failed to delete category');
@@ -880,16 +854,6 @@ export const api = {
     // Invalidate product and category cache so updated stock levels are fetched
     clientCache.invalidate('wc_products');
     clientCache.invalidate('product_');
-
-    // Mirror to Cloud Firestore orders collection
-    if (result && result.order) {
-      try {
-        const { saveOrderToFirestore } = await import('../firebase');
-        await saveOrderToFirestore(result.order);
-      } catch (fbOrderErr) {
-        console.warn('Firestore order mirror notice:', fbOrderErr);
-      }
-    }
 
     return result;
   },

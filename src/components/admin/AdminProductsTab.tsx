@@ -31,7 +31,7 @@ import {
 import { Product, Category, ProductImage, ProductVariation } from '../../types';
 import { api } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
-import { uploadProductImage, seedInitialFirestoreCatalogIfEmpty } from '../../firebase';
+import { uploadProductImage } from '../../firebase';
 
 export const AdminProductsTab: React.FC = () => {
   const { formatPrice, showToast, setCurrentView } = useShop();
