@@ -264,16 +264,26 @@ export type UserRole =
   | 'FINANCE'
   | 'MARKETING'
   | 'CUSTOMER'
+  | 'super_admin'
   | 'admin'
+  | 'shop_manager'
   | 'manager'
-  | 'customer'
-  | 'editor'
+  | 'cashier'
   | 'vendor'
-  | 'vendor_staff';
+  | 'vendor_staff'
+  | 'customer'
+  | 'subscriber'
+  | 'editor';
 
 export interface CustomerUser {
   id: number;
   uid?: string;
+  wordpress_id?: number;
+  wordpress_username?: string;
+  wordpress_roles?: string[];
+  wordpress_user_level?: number;
+  level_label?: string;
+  source?: 'wordpress_api' | 'woocommerce_api' | 'woocommerce_customer' | 'app_store';
   first_name: string;
   last_name: string;
   displayName?: string;
@@ -292,6 +302,8 @@ export interface CustomerUser {
   createdAt?: string;
   last_login?: string;
   updatedAt?: string;
+  orders_count?: number;
+  total_spent?: number;
   addresses: CustomerAddress[];
   wishlist: number[]; // Product IDs
   vendorId?: string | null;

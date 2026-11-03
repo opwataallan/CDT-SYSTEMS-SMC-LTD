@@ -23,12 +23,19 @@ import { hashPassword, encryptField, decryptField } from './security';
 
 export interface UserAccount {
   id: number;
+  wordpress_id?: number;
+  wordpress_username?: string;
+  wordpress_roles?: string[];
+  wordpress_user_level?: number;
+  level_label?: string;
+  source?: 'wordpress_api' | 'woocommerce_api' | 'woocommerce_customer' | 'app_store';
   email: string;
   password_hash: string;
   first_name: string;
   last_name: string;
+  displayName?: string;
   phone: string;
-  role: 'admin' | 'manager' | 'customer' | 'editor' | 'vendor' | 'vendor_staff';
+  role: 'super_admin' | 'admin' | 'shop_manager' | 'manager' | 'cashier' | 'customer' | 'subscriber' | 'editor' | 'vendor' | 'vendor_staff';
   status?: 'active' | 'suspended';
   admin_notes?: string;
   avatar_url?: string;
@@ -39,6 +46,8 @@ export interface UserAccount {
   reset_token?: string;
   reset_token_expires?: number;
   verification_token?: string;
+  orders_count?: number;
+  total_spent?: number;
   addresses: any[];
   wishlist: number[];
   vendor_id?: string;

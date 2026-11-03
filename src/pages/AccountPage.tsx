@@ -405,15 +405,15 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
 
               <form onSubmit={handleLoginSubmit} className="space-y-3.5">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Email Address</label>
+                  <label className="font-bold text-slate-700 block mb-1">WordPress Username or Email</label>
                   <div className="relative">
                     <Mail className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
                     <input
-                      type="email"
+                      type="text"
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="name@example.com"
+                      placeholder="e.g. allansam or opwataallan@gmail.com"
                       className="w-full h-9 pl-9 pr-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
                     />
                   </div>
@@ -749,13 +749,23 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
             {user.first_name?.[0] || 'U'}{user.last_name ? user.last_name[0] : ''}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-base font-black text-slate-900">
                 {user.first_name || 'Customer'} {user.last_name || ''}
               </h1>
               <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-100 text-slate-700 border border-slate-200">
                 {user.role}
               </span>
+              {user.level_label && (
+                <span className="px-2 py-0.5 rounded text-[10px] font-black tracking-wide bg-purple-50 text-purple-700 border border-purple-200">
+                  {user.level_label}
+                </span>
+              )}
+              {user.wordpress_id && (
+                <span className="px-2 py-0.5 rounded text-[10px] font-mono text-slate-500 bg-slate-50 border border-slate-200">
+                  WP ID #{user.wordpress_id}
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-500 mt-0.5">{user.email} • {user.phone || 'No phone set'}</p>
           </div>

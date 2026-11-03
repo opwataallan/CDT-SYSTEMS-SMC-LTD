@@ -65,9 +65,14 @@ interface ShopContextType {
 
   user: CustomerUser | null;
   firebaseUser: FirebaseUser | null;
+  userLevel: number;
+  levelLabel?: string;
   isSuperAdmin: boolean;
+  isShopManager: boolean;
   isAdmin: boolean;
+  isCashier: boolean;
   isVendor: boolean;
+  isCustomer: boolean;
   vendorStoreId?: string;
   isPosAllowed: boolean;
   stores: Store[];
@@ -332,26 +337,54 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  const userLevel = user?.wordpress_user_level !== undefined
+    ? user.wordpress_user_level
+    : (user?.role === 'super_admin' || user?.role === 'SUPER_ADMIN' || user?.email?.toLowerCase() === 'opwataallan@gmail.com' || user?.wordpress_username === 'allansam')
+    ? 10
+    : (user?.role === 'shop_manager' || user?.role === 'manager' || user?.role === 'STORE_MANAGER' || user?.role === 'admin')
+    ? 7
+    : user?.role === 'cashier'
+    ? 3
+    : (user?.role === 'vendor' || user?.role === 'vendor_staff')
+    ? 2
+    : 0;
+
   const isSuperAdmin = Boolean(
     user && (
+      userLevel >= 10 ||
+      user.role === 'super_admin' ||
       user.role === 'SUPER_ADMIN' ||
       user.isSuperAdmin === true ||
+      user.wordpress_username === 'allansam' ||
       (user.email && user.email.trim().toLowerCase() === 'opwataallan@gmail.com')
     )
   );
 
+  const isShopManager = Boolean(
+    isSuperAdmin || (user && (userLevel >= 7 || ['shop_manager', 'manager', 'STORE_MANAGER', 'admin', 'super_admin'].includes(user.role)))
+  );
+
   const isAdmin = Boolean(
-    isSuperAdmin ||
-    (user && (
-      user.role === 'ADMIN' ||
-      user.role === 'admin' ||
-      user.role === 'manager' ||
-      user.role === 'STORE_MANAGER'
-    ))
+    isSuperAdmin || isShopManager || (user && ['ADMIN', 'admin', 'manager', 'STORE_MANAGER', 'super_admin', 'shop_manager'].includes(user.role))
+  );
+
+  const isCashier = Boolean(
+    isAdmin || (user && (userLevel >= 3 || ['cashier', 'pos_operator'].includes(user.role)))
+  );
+
+  const isVendor = Boolean(
+    user && (userLevel === 2 || ['vendor', 'vendor_staff', 'wcfm_vendor', 'seller'].includes(user.role))
+  );
+
+  const isCustomer = Boolean(
+    !isSuperAdmin && !isShopManager && !isVendor && !isCashier
   );
 
   const isPosAllowed = Boolean(
     user && (
+      isSuperAdmin ||
+      isShopManager ||
+      isCashier ||
       user.role === 'admin' ||
       (config?.pos?.enabled !== false && (
         config?.pos?.allowed_roles?.includes(user.role) ||
@@ -1028,9 +1061,14 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSelectedZone,
         user,
         firebaseUser,
+        userLevel,
+        levelLabel: user?.level_label || (userLevel >= 10 ? 'Level 10: Super Administrator' : userLevel >= 7 ? 'Level 7: Shop Manager' : userLevel >= 3 ? 'Level 3: Cashier' : userLevel >= 2 ? 'Level 2: Vendor Partner' : 'Level 0: Customer'),
         isSuperAdmin,
+        isShopManager,
         isAdmin,
-        isVendor: Boolean(user?.role === 'vendor' || user?.role === 'vendor_staff'),
+        isCashier,
+        isVendor,
+        isCustomer,
         vendorStoreId: user?.vendor_id || user?.store_id,
         isPosAllowed,
         stores,

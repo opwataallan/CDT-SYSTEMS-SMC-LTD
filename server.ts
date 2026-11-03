@@ -1437,21 +1437,23 @@ function requireAdmin(req: Request, res: Response, next: NextFunction) {
   }
 
   const role = String(user?.role || '').toLowerCase();
+  const userLevel = Number(user?.wordpress_user_level ?? user?.user_level ?? 0);
   const hasAdminPrivileges =
     user && (
-      ['admin', 'manager', 'super_admin'].includes(role) ||
+      ['admin', 'manager', 'shop_manager', 'super_admin'].includes(role) ||
+      userLevel >= 7 ||
       user.isSuperAdmin === true ||
       user.admin === true ||
       (user.email && user.email.toLowerCase().trim() === 'opwataallan@gmail.com')
     );
 
   if (!hasAdminPrivileges) {
-    return res.status(403).json({ error: 'Administrative privileges required.' });
+    return res.status(403).json({ error: 'Administrative privileges required (WordPress Level 7+ or Administrator role).' });
   }
   next();
 }
 
-// POS Access Control Middleware: Enforces that caller is either an Admin or authorized by Admin from Admin Settings
+// POS Access Control Middleware: Enforces that caller is either an Admin, Shop Manager, Cashier, or authorized by Admin
 function requirePosAccess(req: Request, res: Response, next: NextFunction) {
   const sessionUser = (req as any).user;
   if (!sessionUser) {
@@ -1463,8 +1465,13 @@ function requirePosAccess(req: Request, res: Response, next: NextFunction) {
     return res.status(403).json({ error: 'Account suspended or not found.' });
   }
 
-  // 1. Super Administrator and Store Managers always have full access
-  if (fullUser.role === 'admin' || fullUser.role === 'manager') {
+  const userLevel = Number(fullUser.wordpress_user_level ?? sessionUser.user_level ?? 0);
+
+  // 1. Level 10 (Super Admin), Level 7 (Shop Manager), Level 3 (Cashier) have direct POS register authorization
+  if (
+    userLevel >= 3 ||
+    ['super_admin', 'admin', 'manager', 'shop_manager', 'cashier'].includes(fullUser.role)
+  ) {
     (req as any).posUser = fullUser;
     return next();
   }
@@ -1475,7 +1482,7 @@ function requirePosAccess(req: Request, res: Response, next: NextFunction) {
     return res.status(403).json({ error: 'Point of Sale (POS) system is currently disabled by store administration.' });
   }
 
-  const roleAllowed = Boolean(posConfig?.allowed_roles && posConfig.allowed_roles.includes(fullUser.role));
+  const roleAllowed = Boolean(posConfig?.allowed_roles && posConfig.allowed_roles.includes(fullUser.role as any));
   const emailAllowed = Boolean(
     posConfig?.allowed_user_emails &&
     posConfig.allowed_user_emails.some((e) => e.trim().toLowerCase() === fullUser.email.trim().toLowerCase())
@@ -1487,7 +1494,7 @@ function requirePosAccess(req: Request, res: Response, next: NextFunction) {
   }
 
   return res.status(403).json({
-    error: 'Access Denied: Your account does not have cashier authorization for this POS terminal. Please contact an Administrator to grant you POS access in Admin Settings.',
+    error: 'Access Denied: Your account does not have cashier authorization for this POS terminal. Requires WordPress Level 3 (Cashier) or administrator authorization.',
   });
 }
 
@@ -1671,11 +1678,511 @@ async function startServer() {
   });
 
   // ------------------------------------------
+  // WordPress & WooCommerce Authentication & User Level Resolution Engine
+  // ------------------------------------------
+
+  function mapWordPressUserLevel(wpUser: any) {
+    const roles: string[] = Array.isArray(wpUser.roles)
+      ? wpUser.roles.map((r: string) => String(r).toLowerCase())
+      : wpUser.role
+      ? [String(wpUser.role).toLowerCase()]
+      : [];
+
+    const isSuper =
+      wpUser.is_super_admin === true ||
+      roles.includes('administrator') ||
+      roles.includes('superadmin') ||
+      (wpUser.email && wpUser.email.toLowerCase().trim() === 'opwataallan@gmail.com') ||
+      (wpUser.username && String(wpUser.username).toLowerCase() === 'allansam');
+
+    if (isSuper) {
+      return {
+        role: 'super_admin' as const,
+        user_level: 10,
+        level_label: 'Level 10: Super Administrator',
+        isSuperAdmin: true,
+        isAdmin: true,
+        isCashier: true,
+        isVendor: true,
+        permissions: ['*'],
+      };
+    }
+
+    if (roles.includes('shop_manager') || roles.includes('manager') || roles.includes('store_manager')) {
+      return {
+        role: 'shop_manager' as const,
+        user_level: 7,
+        level_label: 'Level 7: Shop Manager',
+        isSuperAdmin: false,
+        isAdmin: true,
+        isCashier: true,
+        isVendor: true,
+        permissions: ['manage_woocommerce', 'manage_products', 'manage_orders', 'view_reports', 'access_pos'],
+      };
+    }
+
+    if (roles.includes('cashier') || roles.includes('pos_operator')) {
+      return {
+        role: 'cashier' as const,
+        user_level: 3,
+        level_label: 'Level 3: Cashier / POS Operator',
+        isSuperAdmin: false,
+        isAdmin: false,
+        isCashier: true,
+        isVendor: false,
+        permissions: ['access_pos', 'create_pos_orders', 'print_receipts'],
+      };
+    }
+
+    if (roles.includes('vendor') || roles.includes('wcfm_vendor') || roles.includes('dc_vendor') || roles.includes('seller')) {
+      return {
+        role: 'vendor' as const,
+        user_level: 2,
+        level_label: 'Level 2: Vendor Partner',
+        isSuperAdmin: false,
+        isAdmin: false,
+        isCashier: false,
+        isVendor: true,
+        permissions: ['manage_vendor_products', 'view_vendor_orders', 'request_payouts'],
+      };
+    }
+
+    // Default: Customer / Subscriber (Level 0)
+    return {
+      role: 'customer' as const,
+      user_level: 0,
+      level_label: 'Level 0: Customer',
+      isSuperAdmin: false,
+      isAdmin: false,
+      isCashier: false,
+      isVendor: false,
+      permissions: ['shop', 'manage_account', 'view_orders'],
+    };
+  }
+
+  async function authenticateWithWordPressApi(
+    usernameOrEmail: string,
+    password: string
+  ): Promise<{
+    success: boolean;
+    wpUser?: any;
+    error?: string;
+    source?: string;
+  }> {
+    const baseUrl = normalizeWooCommerceUrl(store.config.woocommerce?.store_url || 'https://www.cyberdynamictech.com');
+    const cleanBase = baseUrl.replace(/\/+$/, '');
+    const cleanUser = usernameOrEmail.trim();
+    const cleanPass = password.trim();
+
+    // STRATEGY 1: WordPress Core REST API (/wp-json/wp/v2/users/me with HTTP Basic Auth)
+    try {
+      const basicAuth = Buffer.from(`${cleanUser}:${cleanPass}`).toString('base64');
+      const wpRes = await fetch(`${cleanBase}/wp-json/wp/v2/users/me`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Basic ${basicAuth}`,
+          Accept: 'application/json',
+          'User-Agent': 'CyberDynamicTech-Marketplace-NodeServer/2.0',
+        },
+      });
+
+      if (wpRes.ok) {
+        const data = await wpRes.json();
+        if (data && data.id) {
+          return {
+            success: true,
+            wpUser: data,
+            source: 'wordpress_core_rest_api',
+          };
+        }
+      } else {
+        const errData = await wpRes.json().catch(() => null);
+        if (errData && (errData.code === 'incorrect_password' || errData.code === 'invalid_username')) {
+          return {
+            success: false,
+            error: errData.message ? errData.message.replace(/<[^>]*>/g, '').trim() : 'Invalid WordPress username/email or password.',
+          };
+        }
+      }
+    } catch (err: any) {
+      console.warn('[WP Auth Strategy 1 Error]', err.message);
+    }
+
+    // STRATEGY 2: CDT Marketplace Bridge API (/wp-json/cdt/v1/auth/login)
+    try {
+      const bridgeRes = await fetch(`${cleanBase}/wp-json/cdt/v1/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          email: cleanUser,
+          username: cleanUser,
+          password: cleanPass,
+        }),
+      });
+
+      if (bridgeRes.ok) {
+        const data = await bridgeRes.json();
+        if (data && data.success && data.user) {
+          return {
+            success: true,
+            wpUser: data.user,
+            source: 'cdt_marketplace_bridge',
+          };
+        }
+      }
+    } catch (err: any) {
+      console.warn('[WP Auth Strategy 2 Error]', err.message);
+    }
+
+    // STRATEGY 3: JWT Authentication Plugin (/wp-json/jwt-auth/v1/token)
+    try {
+      const jwtRes = await fetch(`${cleanBase}/wp-json/jwt-auth/v1/token`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: cleanUser,
+          password: cleanPass,
+        }),
+      });
+
+      if (jwtRes.ok) {
+        const jwtData = await jwtRes.json();
+        if (jwtData && (jwtData.token || jwtData.user_email)) {
+          return {
+            success: true,
+            wpUser: {
+              id: jwtData.user_id || jwtData.id || 1,
+              email: jwtData.user_email || cleanUser,
+              name: jwtData.user_display_name || cleanUser,
+              roles: jwtData.user_role ? [jwtData.user_role] : ['customer'],
+            },
+            source: 'jwt_auth_plugin',
+          };
+        }
+      }
+    } catch (err: any) {
+      console.warn('[WP Auth Strategy 3 Error]', err.message);
+    }
+
+    return {
+      success: false,
+      error: 'Authentication failed: Invalid credentials against WordPress/WooCommerce API.',
+    };
+  }
+
+  async function registerCustomerInWooCommerce(customerData: {
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone?: string;
+    password: string;
+  }): Promise<{
+    success: boolean;
+    user?: any;
+    error?: string;
+  }> {
+    const baseUrl = normalizeWooCommerceUrl(store.config.woocommerce?.store_url || 'https://www.cyberdynamictech.com');
+    const cleanBase = baseUrl.replace(/\/+$/, '');
+    const username = customerData.email.split('@')[0] || `cust_${Date.now()}`;
+
+    // STRATEGY 1: Standard WooCommerce REST API (/wp-json/wc/v3/customers)
+    try {
+      const wcPayload = {
+        email: customerData.email,
+        first_name: customerData.first_name,
+        last_name: customerData.last_name || '',
+        username: username,
+        password: customerData.password,
+        billing: {
+          first_name: customerData.first_name,
+          last_name: customerData.last_name || '',
+          email: customerData.email,
+          phone: customerData.phone || '',
+        },
+        shipping: {
+          first_name: customerData.first_name,
+          last_name: customerData.last_name || '',
+        },
+      };
+
+      const wcRes = await fetchWooCommerce('/customers', {
+        method: 'POST',
+        body: JSON.stringify(wcPayload),
+      });
+
+      if (wcRes.ok) {
+        const data = await wcRes.json();
+        if (data && data.id) {
+          return {
+            success: true,
+            user: {
+              id: data.id,
+              wordpress_id: data.id,
+              wordpress_username: data.username || username,
+              email: data.email,
+              first_name: data.first_name || customerData.first_name,
+              last_name: data.last_name || customerData.last_name,
+              phone: data.billing?.phone || customerData.phone || '',
+              role: 'customer',
+              wordpress_roles: ['customer'],
+              wordpress_user_level: 0,
+              level_label: 'Level 0: Customer',
+              source: 'woocommerce_api',
+            },
+          };
+        }
+      } else {
+        const errData = await wcRes.json().catch(() => null);
+        if (errData && errData.message) {
+          if (errData.code === 'registration-error-email-exists' || errData.message.includes('already registered') || errData.message.includes('already exists')) {
+            return {
+              success: false,
+              error: 'An account with this email address already exists in WooCommerce. Please sign in.',
+            };
+          }
+        }
+      }
+    } catch (err: any) {
+      console.warn('[WooCommerce Customer Registration Strategy 1 Error]', err.message);
+    }
+
+    // STRATEGY 2: CDT Marketplace Bridge API (/wp-json/cdt/v1/auth/register)
+    try {
+      const bridgeRes = await fetch(`${cleanBase}/wp-json/cdt/v1/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(customerData),
+      });
+
+      if (bridgeRes.ok) {
+        const data = await bridgeRes.json();
+        if (data && data.success && data.user) {
+          return {
+            success: true,
+            user: data.user,
+          };
+        }
+      }
+    } catch (err: any) {
+      console.warn('[WooCommerce Customer Registration Strategy 2 Error]', err.message);
+    }
+
+    return {
+      success: false,
+      error: 'Failed to create customer account in WooCommerce backend.',
+    };
+  }
+
+  async function fetchAllUsersFromWordPressApi(): Promise<{
+    success: boolean;
+    users: UserAccount[];
+    count: number;
+    sources: { wordpress: number; customers: number; local: number };
+  }> {
+    const baseUrl = normalizeWooCommerceUrl(store.config.woocommerce?.store_url || 'https://www.cyberdynamictech.com');
+    const cleanBase = baseUrl.replace(/\/+$/, '');
+    const userMap = new Map<string, UserAccount>();
+
+    // 1. Add all local user accounts into map
+    store.users.forEach((u) => {
+      const key = u.email.toLowerCase().trim();
+      if (key) userMap.set(key, u);
+    });
+
+    let wpCount = 0;
+    let custCount = 0;
+
+    // 2. Fetch from CDT Bridge API if active (/wp-json/cdt/v1/users)
+    try {
+      const bridgeRes = await fetch(`${cleanBase}/wp-json/cdt/v1/users`);
+      if (bridgeRes.ok) {
+        const bridgeData = await bridgeRes.json();
+        if (bridgeData && Array.isArray(bridgeData.users)) {
+          bridgeData.users.forEach((bu: any) => {
+            const email = (bu.email || `${bu.wordpress_username || 'user'}@cyberdynamictech.com`).toLowerCase().trim();
+            wpCount++;
+            const existing = userMap.get(email);
+            const levelInfo = mapWordPressUserLevel(bu);
+
+            const mappedUser: UserAccount = {
+              id: bu.id || (existing ? existing.id : store.users.length + wpCount + 100),
+              wordpress_id: bu.id || bu.wordpress_id,
+              wordpress_username: bu.wordpress_username || bu.username,
+              wordpress_roles: bu.wordpress_roles || bu.roles || [levelInfo.role],
+              wordpress_user_level: bu.wordpress_user_level !== undefined ? bu.wordpress_user_level : levelInfo.user_level,
+              level_label: bu.level_label || levelInfo.level_label,
+              source: 'wordpress_api',
+              email: email,
+              password_hash: existing ? existing.password_hash : hashPassword('WpUserSecurePass!2025'),
+              first_name: bu.first_name || bu.displayName || 'WordPress User',
+              last_name: bu.last_name || '',
+              displayName: bu.displayName || `${bu.first_name || ''} ${bu.last_name || ''}`.trim(),
+              phone: encryptField(bu.phone || ''),
+              role: levelInfo.role as any,
+              status: 'active',
+              is_email_verified: true,
+              two_factor_enabled: false,
+              created_at: bu.created_at || new Date().toISOString(),
+              avatar_url: bu.avatar_url || '',
+              orders_count: bu.orders_count || 0,
+              total_spent: bu.total_spent || 0,
+              addresses: existing ? existing.addresses : [],
+              wishlist: existing ? existing.wishlist : [],
+              permissions: levelInfo.permissions,
+            };
+
+            userMap.set(email, mappedUser);
+          });
+        }
+      }
+    } catch (err: any) {
+      console.warn('[Fetch WP Users Bridge Notice]', err.message);
+    }
+
+    // 3. Fetch from WordPress Core REST API (/wp-json/wp/v2/users?per_page=100)
+    try {
+      const wpCoreRes = await fetch(`${cleanBase}/wp-json/wp/v2/users?per_page=100`);
+      if (wpCoreRes.ok) {
+        const wpCoreUsers = await wpCoreRes.json();
+        if (Array.isArray(wpCoreUsers)) {
+          wpCoreUsers.forEach((wcu: any) => {
+            const wpEmail = (wcu.email || `${wcu.slug || wcu.name || 'wp_user'}@cyberdynamictech.com`).toLowerCase().trim();
+            wpCount++;
+            const existing = userMap.get(wpEmail);
+            const isSuper = wcu.is_super_admin === true || wcu.slug === 'allansam' || wpEmail.includes('opwata');
+            const isVendor = String(wcu.link || '').includes('/store/') || String(wcu.name || '').toLowerCase().includes('store');
+
+            let role: any = 'customer';
+            let level = 0;
+            let label = 'Level 0: Customer';
+
+            if (isSuper) {
+              role = 'super_admin';
+              level = 10;
+              label = 'Level 10: Super Administrator';
+            } else if (isVendor) {
+              role = 'vendor';
+              level = 2;
+              label = 'Level 2: Vendor Partner';
+            }
+
+            const mappedUser: UserAccount = {
+              id: wcu.id || (existing ? existing.id : store.users.length + wpCount + 200),
+              wordpress_id: wcu.id,
+              wordpress_username: wcu.slug || wcu.name,
+              wordpress_roles: isSuper ? ['administrator'] : (isVendor ? ['vendor'] : ['subscriber']),
+              wordpress_user_level: level,
+              level_label: label,
+              source: 'wordpress_api',
+              email: existing ? existing.email : wpEmail,
+              password_hash: existing ? existing.password_hash : hashPassword('WpUserSecurePass!2025'),
+              first_name: existing?.first_name || wcu.name || 'WordPress User',
+              last_name: existing?.last_name || '',
+              displayName: wcu.name,
+              phone: existing?.phone || encryptField('+256779743101'),
+              role: role,
+              status: 'active',
+              is_email_verified: true,
+              two_factor_enabled: false,
+              created_at: existing?.created_at || new Date().toISOString(),
+              avatar_url: wcu.avatar_urls?.['96'] || wcu.avatar_urls?.['48'] || '',
+              addresses: existing ? existing.addresses : [],
+              wishlist: existing ? existing.wishlist : [],
+              permissions: isSuper ? ['*'] : [],
+            };
+
+            userMap.set(wpEmail, mappedUser);
+          });
+        }
+      }
+    } catch (err: any) {
+      console.warn('[Fetch WP Users Core Notice]', err.message);
+    }
+
+    // 4. Extract Customers from live/cached WooCommerce Orders
+    try {
+      store.orders.forEach((ord: any) => {
+        const email = (ord.billing?.email || ord.shipping?.email || '').trim().toLowerCase();
+        if (!email || email === 'orders@cyberdynamictech.com') return;
+
+        if (!userMap.has(email)) {
+          custCount++;
+          const newCust: UserAccount = {
+            id: store.users.length + custCount + 500,
+            email: email,
+            password_hash: hashPassword('CustomerPass!2025'),
+            first_name: ord.billing?.first_name || 'Customer',
+            last_name: ord.billing?.last_name || '',
+            displayName: `${ord.billing?.first_name || ''} ${ord.billing?.last_name || ''}`.trim() || 'Customer',
+            phone: encryptField(ord.billing?.phone || ord.shipping?.phone || ''),
+            role: 'customer',
+            wordpress_roles: ['customer'],
+            wordpress_user_level: 0,
+            level_label: 'Level 0: Customer',
+            source: 'woocommerce_customer',
+            status: 'active',
+            is_email_verified: true,
+            two_factor_enabled: false,
+            created_at: ord.date_created || ord.createdAt || new Date().toISOString(),
+            orders_count: 1,
+            total_spent: Number(ord.total) || 0,
+            addresses: [
+              {
+                id: 'addr_order_1',
+                type: 'shipping',
+                first_name: ord.billing?.first_name || 'Customer',
+                last_name: ord.billing?.last_name || '',
+                phone: ord.billing?.phone || '',
+                email: email,
+                district: ord.delivery_zone || ord.billing?.state || 'Kampala',
+                city: ord.billing?.city || 'Kampala',
+                address_1: ord.billing?.address_1 || ord.shipping?.address_1 || '',
+                is_default: true,
+              },
+            ],
+            wishlist: [],
+          };
+          userMap.set(email, newCust);
+        } else {
+          const u = userMap.get(email)!;
+          u.orders_count = (u.orders_count || 0) + 1;
+          u.total_spent = (u.total_spent || 0) + (Number(ord.total) || 0);
+        }
+      });
+    } catch (err: any) {
+      console.warn('[Extract Customers from Orders Notice]', err.message);
+    }
+
+    // Update store.users array in memory & database.json
+    const mergedUsers = Array.from(userMap.values());
+    store.users = mergedUsers;
+    store.saveDatabaseToDisk();
+
+    return {
+      success: true,
+      users: mergedUsers,
+      count: mergedUsers.length,
+      sources: {
+        wordpress: wpCount,
+        customers: custCount,
+        local: store.users.length,
+      },
+    };
+  }
+
+  // ------------------------------------------
   // Authentication & User Management APIs
   // ------------------------------------------
 
-  // Register Customer
-  app.post('/api/auth/register', (req: Request, res: Response) => {
+  // Register Customer (Created directly in WooCommerce Backend DB via API)
+  app.post('/api/auth/register', async (req: Request, res: Response) => {
     try {
       const {
         first_name,
@@ -1720,38 +2227,67 @@ async function startServer() {
         return res.status(400).json({ error: phoneCheck.error });
       }
 
-      const existingUser = store.users.find((u) => u.email.toLowerCase() === emailCheck.value!);
+      const cleanEmail = emailCheck.value!;
+      const existingUser = store.users.find((u) => u.email.toLowerCase() === cleanEmail);
       if (existingUser) {
         return res.status(409).json({ error: 'An account with this email address already exists.' });
       }
 
-      // 3. Strict Whitelist Creation (Prevents Mass Assignment of role, status, etc.)
+      // 3. Register Customer in WooCommerce REST API database
+      let wpCustomerId: number | undefined;
+      let wpUsername: string | undefined;
+      const wcResult = await registerCustomerInWooCommerce({
+        email: cleanEmail,
+        first_name: firstNameCheck.value!,
+        last_name: lastNameCheck.value || '',
+        phone: phoneCheck.value || '',
+        password,
+      });
+
+      if (wcResult.success && wcResult.user) {
+        wpCustomerId = wcResult.user.id || wcResult.user.wordpress_id;
+        wpUsername = wcResult.user.wordpress_username;
+      } else if (wcResult.error && wcResult.error.includes('already exists')) {
+        return res.status(409).json({ error: wcResult.error });
+      }
+
+      // 4. Strict Whitelist Creation & Local Store Cache
       const newUser: UserAccount = {
-        id: store.users.length + 100,
-        email: emailCheck.value!,
+        id: wpCustomerId || store.users.length + 100,
+        wordpress_id: wpCustomerId,
+        wordpress_username: wpUsername || cleanEmail.split('@')[0],
+        wordpress_roles: ['customer'],
+        wordpress_user_level: 0,
+        level_label: 'Level 0: Customer',
+        source: 'woocommerce_api',
+        email: cleanEmail,
         password_hash: hashPassword(password),
         first_name: firstNameCheck.value!,
         last_name: lastNameCheck.value || '',
-        phone: encryptField(phoneCheck.value || ''), // Encrypted at rest
-        role: 'customer', // Strictly enforced server-side
+        displayName: `${firstNameCheck.value!} ${lastNameCheck.value || ''}`.trim(),
+        phone: encryptField(phoneCheck.value || ''),
+        role: 'customer',
         status: 'active',
         is_email_verified: false,
         two_factor_enabled: false,
         created_at: new Date().toISOString(),
         addresses: [],
         wishlist: [],
+        permissions: ['shop', 'manage_account', 'view_orders'],
       };
 
       store.users.push(newUser);
+      store.saveDatabaseToDisk();
 
-      // 4. Issue 12-hour session token in httpOnly cookie
+      // 5. Issue 12-hour session token in httpOnly cookie
       const token = createSessionToken(
         {
           userId: newUser.id,
           email: newUser.email,
           role: newUser.role,
+          userLevel: newUser.wordpress_user_level ?? 0,
         },
-        12 // 12 hours
+        12
       );
 
       res.cookie('cdt_session', token, {
@@ -1762,19 +2298,27 @@ async function startServer() {
         path: '/',
       });
 
+      res.cookie('session_token', token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        maxAge: 12 * 3600 * 1000,
+        path: '/',
+      });
+
       logAudit({
         user_email: newUser.email,
-        action: 'USER_REGISTER',
+        action: 'USER_REGISTER_WOOCOMMERCE',
         category: 'Authentication',
-        details: `Customer account registered for ${newUser.email}`,
+        details: `Customer account registered in WooCommerce API for ${newUser.email} (WP ID: ${wpCustomerId || 'local'})`,
         status: 'success',
       });
 
-      // 5. Response Trimming: Never leak session token or internal fields in the response JSON
       res.status(201).json({
         success: true,
         user: store.getSafeUser(newUser),
-        message: 'Account registered successfully.',
+        token,
+        message: 'Account registered successfully in WooCommerce store.',
       });
     } catch (err: any) {
       res.status(500).json({ error: 'Registration failed', message: err.message });
@@ -1905,101 +2449,160 @@ async function startServer() {
     }
   });
 
-  // Login
-  app.post('/api/auth/login', (req: Request, res: Response) => {
+  // Login (Authenticates via WordPress / WooCommerce API & Maps User Levels)
+  app.post('/api/auth/login', async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required.' });
+        return res.status(400).json({ error: 'Email/username and password are required.' });
       }
 
-      const emailCheck = validateEmail(email);
-      if (!emailCheck.valid) {
-        return res.status(400).json({ error: 'Invalid email address format.' });
-      }
-
-      const cleanEmail = emailCheck.value!;
+      const inputIdentity = String(email).trim();
       const cleanPass = String(password).trim();
+      const isEmailFormat = inputIdentity.includes('@');
+      const cleanEmail = isEmailFormat ? inputIdentity.toLowerCase() : '';
 
-      // Find user account
-      let user = store.users.find((u) => u.email.toLowerCase() === cleanEmail);
+      // STRATEGY 1: Primary Authentication via WordPress / WooCommerce API
+      const wpAuth = await authenticateWithWordPressApi(inputIdentity, cleanPass);
 
-      // Auto-create or link primary Super Administrator account if accessing
-      if (!user && (cleanEmail === 'admin@cyberdynamictech.com' || cleanEmail.includes('admin'))) {
-        user = {
-          id: store.users.length + 1,
-          email: cleanEmail,
-          password_hash: hashPassword(cleanPass),
-          first_name: 'Store',
-          last_name: 'Administrator',
-          phone: encryptField('+256779743101'),
-          role: 'admin',
-          status: 'active',
-          admin_notes: 'Super Administrator account for Cyber Dynamic Technologies.',
-          is_email_verified: true,
-          two_factor_enabled: false,
-          created_at: new Date().toISOString(),
-          addresses: [
-            {
-              id: 'addr_default',
-              type: 'shipping',
-              first_name: 'Store',
-              last_name: 'Administrator',
-              phone: '+256779743101',
-              email: cleanEmail,
-              district: 'Kampala',
-              city: 'Kampala Central',
-              address_1: 'Kampala',
-              is_default: true,
-            },
-          ],
-          wishlist: [101, 102],
-        };
-        store.users.push(user);
-      }
+      let user: UserAccount | undefined;
 
-      if (!user) {
+      if (wpAuth.success && wpAuth.wpUser) {
+        const wpData = wpAuth.wpUser;
+        const levelInfo = mapWordPressUserLevel(wpData);
+        const resolvedEmail = (wpData.email || cleanEmail || `${wpData.slug || wpData.username || 'user'}@cyberdynamictech.com`).toLowerCase().trim();
+
+        // Find existing user in store by WordPress ID or email
+        user = store.users.find(
+          (u) => (u.wordpress_id && u.wordpress_id === wpData.id) || u.email.toLowerCase() === resolvedEmail
+        );
+
+        if (!user) {
+          user = {
+            id: wpData.id || store.users.length + 100,
+            wordpress_id: wpData.id,
+            wordpress_username: wpData.username || wpData.slug || inputIdentity,
+            wordpress_roles: wpData.roles || [levelInfo.role],
+            wordpress_user_level: levelInfo.user_level,
+            level_label: levelInfo.level_label,
+            source: 'wordpress_api',
+            email: resolvedEmail,
+            password_hash: hashPassword(cleanPass),
+            first_name: wpData.first_name || wpData.name?.split(' ')[0] || 'User',
+            last_name: wpData.last_name || wpData.name?.split(' ').slice(1).join(' ') || '',
+            displayName: wpData.name || wpData.display_name,
+            phone: encryptField(wpData.billing?.phone || '+256779743101'),
+            role: levelInfo.role,
+            status: 'active',
+            is_email_verified: true,
+            two_factor_enabled: false,
+            created_at: new Date().toISOString(),
+            avatar_url: wpData.avatar_urls?.['96'] || wpData.avatar_urls?.['48'] || '',
+            addresses: [],
+            wishlist: [],
+            permissions: levelInfo.permissions,
+          };
+          store.users.push(user);
+        } else {
+          // Update WordPress level and roles
+          user.wordpress_id = wpData.id || user.wordpress_id;
+          user.wordpress_username = wpData.username || wpData.slug || user.wordpress_username;
+          user.wordpress_roles = wpData.roles || user.wordpress_roles || [levelInfo.role];
+          user.wordpress_user_level = levelInfo.user_level;
+          user.level_label = levelInfo.level_label;
+          user.role = levelInfo.role;
+          user.source = 'wordpress_api';
+          user.password_hash = hashPassword(cleanPass); // Cache latest validated password hash
+          if (wpData.avatar_urls?.['96']) user.avatar_url = wpData.avatar_urls['96'];
+        }
+
+        store.saveDatabaseToDisk();
+
         logAudit({
-          user_email: email,
-          action: 'LOGIN_FAILED_NO_ACCOUNT',
+          user_email: user.email,
+          action: 'WP_API_LOGIN_SUCCESS',
           category: 'Authentication',
-          details: `Authentication failed: account does not exist for ${email}`,
-          status: 'warning',
+          details: `Authenticated via WordPress API as ${user.level_label} (${user.role}) - WP ID: ${user.wordpress_id}`,
+          status: 'success',
         });
-        return res.status(401).json({
-          error: 'Invalid email or password. Please verify your credentials or register an account.',
-        });
+      } else {
+        // STRATEGY 2: Fallback for local accounts / offline mode / dev seed accounts
+        user = store.users.find(
+          (u) =>
+            u.email.toLowerCase() === (cleanEmail || inputIdentity.toLowerCase()) ||
+            u.wordpress_username?.toLowerCase() === inputIdentity.toLowerCase()
+        );
+
+        // Auto-create local super administrator fallback if matching primary admin credentials
+        if (!user && (cleanEmail === 'admin@cyberdynamictech.com' || inputIdentity === 'allansam')) {
+          user = {
+            id: store.users.length + 1,
+            email: cleanEmail || 'admin@cyberdynamictech.com',
+            wordpress_username: 'allansam',
+            wordpress_roles: ['administrator'],
+            wordpress_user_level: 10,
+            level_label: 'Level 10: Super Administrator',
+            source: 'wordpress_api',
+            password_hash: hashPassword(cleanPass),
+            first_name: 'Allan',
+            last_name: 'Sam',
+            phone: encryptField('+256779743101'),
+            role: 'super_admin',
+            status: 'active',
+            admin_notes: 'Super Administrator account for Cyber Dynamic Technologies.',
+            is_email_verified: true,
+            two_factor_enabled: false,
+            created_at: new Date().toISOString(),
+            addresses: [],
+            wishlist: [101, 102],
+            permissions: ['*'],
+          };
+          store.users.push(user);
+        }
+
+        if (!user) {
+          logAudit({
+            user_email: inputIdentity,
+            action: 'LOGIN_FAILED_NO_ACCOUNT',
+            category: 'Authentication',
+            details: `Authentication failed: ${wpAuth.error || 'Account does not exist.'}`,
+            status: 'warning',
+          });
+          return res.status(401).json({
+            error: wpAuth.error || 'Invalid WordPress username/email or password.',
+          });
+        }
+
+        // Verify password hash for fallback
+        const isValid = verifyPassword(cleanPass, user.password_hash);
+        if (!isValid) {
+          logAudit({
+            user_email: inputIdentity,
+            action: 'LOGIN_FAILED',
+            category: 'Authentication',
+            details: `Failed authentication attempt for ${inputIdentity}`,
+            status: 'warning',
+          });
+          return res.status(401).json({
+            error: wpAuth.error || 'Invalid username/email or password.',
+          });
+        }
       }
 
       if (user.status === 'suspended') {
         return res.status(403).json({ error: 'Account suspended. Please contact store management.' });
       }
 
-      // Password hash verification
-      const isValid = verifyPassword(cleanPass, user.password_hash);
-
-      if (!isValid) {
-        logAudit({
-          user_email: email,
-          action: 'LOGIN_FAILED',
-          category: 'Authentication',
-          details: `Failed authentication attempt for ${email}`,
-          status: 'warning',
-        });
-        return res.status(401).json({
-          error: 'Invalid email or password.',
-        });
-      }
-
       user.last_login = new Date().toISOString();
 
-      // Issue 12-hour session token in httpOnly cookie with vendor metadata
+      // Issue 12-hour session token with userLevel and role
       const token = createSessionToken(
         {
           userId: user.id,
           email: user.email,
           role: user.role,
+          userLevel: user.wordpress_user_level !== undefined ? user.wordpress_user_level : 0,
           vendorId: user.vendor_id || user.store_id,
           storeId: user.store_id || user.vendor_id,
           permissions: user.permissions,
@@ -2027,16 +2630,15 @@ async function startServer() {
         user_email: user.email,
         action: 'LOGIN_SUCCESS',
         category: 'Authentication',
-        details: `User signed in successfully as ${user.role}`,
+        details: `User signed in successfully: ${user.level_label || user.role} (${user.email})`,
         status: 'success',
       });
 
-      // Response Trimming: Only safe user payload returned, token stored strictly in httpOnly cookie
       res.json({
         success: true,
         user: store.getSafeUser(user),
         token,
-        message: 'Signed in successfully.',
+        message: `Signed in successfully as ${user.level_label || user.role}.`,
       });
     } catch (err: any) {
       res.status(500).json({ error: 'Login failed', message: err.message });
@@ -2849,9 +3451,48 @@ async function startServer() {
     res.json({ logs: auditLogs });
   });
 
-  // Admin Users List
-  app.get('/api/admin/users', requireAdmin, (req: Request, res: Response) => {
-    res.json({ users: store.users.map((u) => store.getSafeUser(u)) });
+  // Admin Users List (Fetches all users from WordPress & WooCommerce API)
+  app.get('/api/admin/users', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      // Sync fresh from WordPress API if store has few or unmapped users or if requested
+      const shouldSync = req.query.sync === 'true' || store.users.length < 5 || !store.users.some((u) => u.wordpress_id);
+      if (shouldSync) {
+        await fetchAllUsersFromWordPressApi();
+      }
+      res.json({
+        users: store.users.map((u) => store.getSafeUser(u)),
+        total: store.users.length,
+      });
+    } catch (err: any) {
+      res.json({
+        users: store.users.map((u) => store.getSafeUser(u)),
+        total: store.users.length,
+        warning: err.message,
+      });
+    }
+  });
+
+  // Admin Manual Sync WordPress Users API
+  app.post('/api/admin/users/sync-wordpress', requireAdmin, async (req: Request, res: Response) => {
+    try {
+      const result = await fetchAllUsersFromWordPressApi();
+      logAudit({
+        user_email: (req as any).user?.email || 'admin',
+        action: 'WP_USERS_SYNC',
+        category: 'User Management',
+        details: `Synced ${result.count} users from WordPress & WooCommerce API (WP: ${result.sources.wordpress}, Customers: ${result.sources.customers})`,
+        status: 'success',
+      });
+      res.json({
+        success: true,
+        count: result.count,
+        sources: result.sources,
+        users: result.users.map((u) => store.getSafeUser(u)),
+        message: `Successfully synchronized ${result.count} users from WordPress backend API.`,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to sync users from WordPress API', message: err.message });
+    }
   });
 
   // Admin Change User Role

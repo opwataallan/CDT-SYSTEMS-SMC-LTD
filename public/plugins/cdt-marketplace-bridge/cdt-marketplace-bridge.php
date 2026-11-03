@@ -47,6 +47,27 @@ class CDT_Marketplace_Bridge {
             'callback'            => [$this, 'get_status'],
             'permission_callback' => '__return_true',
         ]);
+
+        // 4. Authenticate User via WordPress API
+        register_rest_route(self::ROUTE_NAMESPACE, '/auth/login', [
+            'methods'             => 'POST',
+            'callback'            => [$this, 'auth_login'],
+            'permission_callback' => '__return_true',
+        ]);
+
+        // 5. Register Customer via WooCommerce API
+        register_rest_route(self::ROUTE_NAMESPACE, '/auth/register', [
+            'methods'             => 'POST',
+            'callback'            => [$this, 'auth_register'],
+            'permission_callback' => '__return_true',
+        ]);
+
+        // 6. Fetch All WordPress Users and WooCommerce Customers with User Levels
+        register_rest_route(self::ROUTE_NAMESPACE, '/users', [
+            'methods'             => 'GET',
+            'callback'            => [$this, 'get_all_users'],
+            'permission_callback' => [$this, 'verify_permission'],
+        ]);
     }
 
     public function verify_permission($request) {
@@ -193,6 +214,219 @@ class CDT_Marketplace_Bridge {
             'orders_count'       => $orders_count,
             'woocommerce_active' => class_exists('WooCommerce'),
             'version'            => '2.1.0',
+        ], 200);
+    }
+
+    public function auth_login($request) {
+        $params = $request->get_json_params() ?: $request->get_params();
+        $username_or_email = sanitize_text_field($params['email'] ?? $params['username'] ?? '');
+        $password = (string) ($params['password'] ?? '');
+
+        if (empty($username_or_email) || empty($password)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'error'   => 'Username/email and password are required.',
+            ], 400);
+        }
+
+        $user = wp_authenticate($username_or_email, $password);
+
+        if (is_wp_error($user)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'error'   => $user->get_error_message(),
+                'code'    => $user->get_error_code(),
+            ], 401);
+        }
+
+        $roles = (array) $user->roles;
+        $is_super = is_super_admin($user->ID) || in_array('administrator', $roles, true);
+        $user_level = 0;
+        $level_label = 'Level 0: Customer';
+        $app_role = 'customer';
+
+        if ($is_super) {
+            $user_level = 10;
+            $level_label = 'Level 10: Super Administrator';
+            $app_role = 'super_admin';
+        } elseif (in_array('shop_manager', $roles, true)) {
+            $user_level = 7;
+            $level_label = 'Level 7: Shop Manager';
+            $app_role = 'shop_manager';
+        } elseif (in_array('cashier', $roles, true) || in_array('pos_operator', $roles, true)) {
+            $user_level = 3;
+            $level_label = 'Level 3: Cashier / POS Operator';
+            $app_role = 'cashier';
+        } elseif (in_array('wcfm_vendor', $roles, true) || in_array('dc_vendor', $roles, true) || in_array('vendor', $roles, true)) {
+            $user_level = 2;
+            $level_label = 'Level 2: Vendor Partner';
+            $app_role = 'vendor';
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => 'Authenticated successfully via WordPress API.',
+            'user'    => [
+                'id'                   => $user->ID,
+                'wordpress_id'         => $user->ID,
+                'wordpress_username'   => $user->user_login,
+                'email'                => $user->user_email,
+                'first_name'           => get_user_meta($user->ID, 'first_name', true) ?: $user->display_name,
+                'last_name'            => get_user_meta($user->ID, 'last_name', true) ?: '',
+                'displayName'          => $user->display_name,
+                'phone'                => get_user_meta($user->ID, 'billing_phone', true) ?: '',
+                'role'                 => $app_role,
+                'wordpress_roles'      => $roles,
+                'wordpress_user_level' => $user_level,
+                'level_label'          => $level_label,
+                'isSuperAdmin'         => $is_super,
+                'admin'                => ($user_level >= 7),
+                'avatar_url'           => get_avatar_url($user->ID),
+                'source'               => 'wordpress_api',
+            ],
+        ], 200);
+    }
+
+    public function auth_register($request) {
+        $params = $request->get_json_params() ?: $request->get_params();
+        $email = sanitize_email($params['email'] ?? '');
+        $password = (string) ($params['password'] ?? '');
+        $first_name = sanitize_text_field($params['first_name'] ?? '');
+        $last_name = sanitize_text_field($params['last_name'] ?? '');
+        $phone = sanitize_text_field($params['phone'] ?? '');
+
+        if (empty($email) || !is_email($email) || empty($password)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'error'   => 'Valid email and password are required.',
+            ], 400);
+        }
+
+        if (email_exists($email)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'error'   => 'An account with this email address already exists in WordPress/WooCommerce.',
+            ], 409);
+        }
+
+        $username = sanitize_user(explode('@', $email)[0]);
+        if (username_exists($username)) {
+            $username .= '_' . wp_rand(10, 999);
+        }
+
+        if (function_exists('wc_create_new_customer')) {
+            $user_id = wc_create_new_customer($email, $username, $password, [
+                'first_name' => $first_name,
+                'last_name'  => $last_name,
+            ]);
+        } else {
+            $user_id = wp_create_user($username, $password, $email);
+            if (!is_wp_error($user_id)) {
+                wp_update_user([
+                    'ID'         => $user_id,
+                    'first_name' => $first_name,
+                    'last_name'  => $last_name,
+                    'role'       => 'customer',
+                ]);
+            }
+        }
+
+        if (is_wp_error($user_id)) {
+            return new WP_REST_Response([
+                'success' => false,
+                'error'   => $user_id->get_error_message(),
+            ], 400);
+        }
+
+        if (!empty($phone)) {
+            update_user_meta($user_id, 'billing_phone', $phone);
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => 'Customer registered successfully in WooCommerce database.',
+            'user'    => [
+                'id'                   => $user_id,
+                'wordpress_id'         => $user_id,
+                'wordpress_username'   => $username,
+                'email'                => $email,
+                'first_name'           => $first_name,
+                'last_name'            => $last_name,
+                'phone'                => $phone,
+                'role'                 => 'customer',
+                'wordpress_roles'      => ['customer'],
+                'wordpress_user_level' => 0,
+                'level_label'          => 'Level 0: Customer',
+                'isSuperAdmin'         => false,
+                'admin'                => false,
+                'source'               => 'woocommerce_customer',
+            ],
+        ], 201);
+    }
+
+    public function get_all_users($request) {
+        $wp_users = get_users([
+            'number'  => 300,
+            'orderby' => 'registered',
+            'order'   => 'DESC',
+        ]);
+
+        $formatted = [];
+        foreach ($wp_users as $u) {
+            $roles = (array) $u->roles;
+            $is_super = is_super_admin($u->ID) || in_array('administrator', $roles, true);
+            $user_level = 0;
+            $level_label = 'Level 0: Customer';
+            $app_role = 'customer';
+
+            if ($is_super) {
+                $user_level = 10;
+                $level_label = 'Level 10: Super Administrator';
+                $app_role = 'super_admin';
+            } elseif (in_array('shop_manager', $roles, true)) {
+                $user_level = 7;
+                $level_label = 'Level 7: Shop Manager';
+                $app_role = 'shop_manager';
+            } elseif (in_array('cashier', $roles, true) || in_array('pos_operator', $roles, true)) {
+                $user_level = 3;
+                $level_label = 'Level 3: Cashier / POS Operator';
+                $app_role = 'cashier';
+            } elseif (in_array('wcfm_vendor', $roles, true) || in_array('dc_vendor', $roles, true) || in_array('vendor', $roles, true)) {
+                $user_level = 2;
+                $level_label = 'Level 2: Vendor Partner';
+                $app_role = 'vendor';
+            }
+
+            $order_count = function_exists('wc_get_customer_order_count') ? wc_get_customer_order_count($u->ID) : 0;
+            $total_spent = function_exists('wc_get_customer_total_spent') ? wc_get_customer_total_spent($u->ID) : 0;
+
+            $formatted[] = [
+                'id'                   => $u->ID,
+                'wordpress_id'         => $u->ID,
+                'wordpress_username'   => $u->user_login,
+                'email'                => $u->user_email,
+                'first_name'           => get_user_meta($u->ID, 'first_name', true) ?: $u->display_name,
+                'last_name'            => get_user_meta($u->ID, 'last_name', true) ?: '',
+                'displayName'          => $u->display_name,
+                'phone'                => get_user_meta($u->ID, 'billing_phone', true) ?: '',
+                'role'                 => $app_role,
+                'wordpress_roles'      => $roles,
+                'wordpress_user_level' => $user_level,
+                'level_label'          => $level_label,
+                'isSuperAdmin'         => $is_super,
+                'admin'                => ($user_level >= 7),
+                'avatar_url'           => get_avatar_url($u->ID),
+                'orders_count'         => $order_count,
+                'total_spent'          => $total_spent,
+                'created_at'           => $u->user_registered,
+                'source'               => 'wordpress_api',
+            ];
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'count'   => count($formatted),
+            'users'   => $formatted,
         ], 200);
     }
 

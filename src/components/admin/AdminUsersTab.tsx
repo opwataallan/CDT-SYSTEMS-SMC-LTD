@@ -18,21 +18,79 @@ import {
   AlertTriangle,
   Store,
   Plus,
+  ArrowUpDown,
+  ShoppingBag,
+  ExternalLink,
+  Crown,
+  Database,
 } from 'lucide-react';
 import { CustomerUser, UserRole } from '../../types';
 import { api } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
 
 export const AdminUsersTab: React.FC = () => {
-  const { showToast, config, updateCategorySettings } = useShop();
+  const { showToast, config, updateCategorySettings, formatPrice } = useShop();
   const [users, setUsers] = useState<CustomerUser[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [search, setSearch] = useState('');
+  const [selectedLevelFilter, setSelectedLevelFilter] = useState<number | 'all'>('all');
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
+  // Edit Modal State
+  const [editingUser, setEditingUser] = useState<CustomerUser | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [editForm, setEditForm] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    role: 'customer' as UserRole,
+    status: 'active' as 'active' | 'suspended',
+    is_email_verified: true,
+    admin_notes: '',
+    address_1: '',
+    district: 'Kampala',
+    city: 'Kampala',
+  });
+
+  const loadUsers = async (sync: boolean = false) => {
+    setLoading(true);
+    try {
+      const res = await api.getAdminUsers(sync);
+      setUsers(res.users);
+    } catch (err: any) {
+      showToast('Could not load user accounts: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSyncWordPress = async () => {
+    setIsSyncing(true);
+    try {
+      const res = await api.syncWordPressUsers();
+      if (res.success && Array.isArray(res.users)) {
+        setUsers(res.users);
+        showToast(
+          `Synced ${res.count} users from WordPress & WooCommerce! (WP Authors/Admins: ${res.sources.wordpress}, Customers: ${res.sources.customers})`
+        );
+      }
+    } catch (err: any) {
+      showToast('WordPress API sync notice: ' + err.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
   const isPosAllowedForUser = (u: CustomerUser) => {
-    if (u.role === 'admin') return true;
-    const allowedRoles = config.pos?.allowed_roles || ['admin', 'manager'];
+    const level = u.wordpress_user_level ?? (u.role === 'admin' || u.role === 'super_admin' ? 10 : u.role === 'cashier' ? 3 : 0);
+    if (level >= 3 || u.role === 'admin' || u.role === 'super_admin' || u.role === 'cashier') return true;
+    const allowedRoles = config.pos?.allowed_roles || ['admin', 'manager', 'cashier', 'super_admin'];
     if (allowedRoles.includes(u.role)) return true;
     const allowedEmails = config.pos?.allowed_user_emails || [];
     return allowedEmails.map((e) => e.toLowerCase()).includes(u.email.toLowerCase());
@@ -58,39 +116,6 @@ export const AdminUsersTab: React.FC = () => {
       showToast('Failed to update POS access: ' + err.message);
     }
   };
-
-  // Edit Modal State
-  const [editingUser, setEditingUser] = useState<CustomerUser | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [editForm, setEditForm] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    phone: '',
-    role: 'customer' as UserRole,
-    status: 'active' as 'active' | 'suspended',
-    is_email_verified: true,
-    admin_notes: '',
-    address_1: '',
-    district: 'Kampala',
-    city: 'Kampala',
-  });
-
-  const loadUsers = async () => {
-    setLoading(true);
-    try {
-      const res = await api.getAdminUsers();
-      setUsers(res.users);
-    } catch (err: any) {
-      showToast('Could not load user accounts: ' + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadUsers();
-  }, []);
 
   const openEditModal = (u: CustomerUser) => {
     setEditingUser(u);
@@ -169,21 +194,89 @@ export const AdminUsersTab: React.FC = () => {
     }
   };
 
+  const getUserLevelBadge = (u: CustomerUser) => {
+    const level = u.wordpress_user_level !== undefined ? u.wordpress_user_level : (
+      u.role === 'super_admin' || u.role === 'admin' ? 10 :
+      u.role === 'shop_manager' || u.role === 'manager' ? 7 :
+      u.role === 'cashier' ? 3 :
+      u.role === 'vendor' ? 2 : 0
+    );
+
+    switch (level) {
+      case 10:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-900 border border-purple-200 shadow-xs">
+            <Crown className="w-3 h-3 text-purple-600" />
+            <span>Level 10: Super Admin</span>
+          </span>
+        );
+      case 7:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-900 border border-blue-200">
+            <Shield className="w-3 h-3 text-blue-600" />
+            <span>Level 7: Store Manager</span>
+          </span>
+        );
+      case 3:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+            <Store className="w-3 h-3 text-amber-600" />
+            <span>Level 3: Cashier / POS</span>
+          </span>
+        );
+      case 2:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-200">
+            <Store className="w-3 h-3 text-emerald-600" />
+            <span>Level 2: Vendor Partner</span>
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
+            <span>Level 0: Customer</span>
+          </span>
+        );
+    }
+  };
+
   const safeUsers = Array.isArray(users) ? users : [];
+
+  // Filter users by search term and selected user level
   const filtered = safeUsers.filter((u) => {
     const q = search.toLowerCase();
-    return (
+    const matchesSearch =
       (u.email || '').toLowerCase().includes(q) ||
       (u.first_name || '').toLowerCase().includes(q) ||
       (u.last_name || '').toLowerCase().includes(q) ||
+      (u.wordpress_username || '').toLowerCase().includes(q) ||
       (u.role || '').toLowerCase().includes(q) ||
-      (u.phone || '').toLowerCase().includes(q)
+      (u.phone || '').toLowerCase().includes(q);
+
+    if (!matchesSearch) return false;
+
+    if (selectedLevelFilter === 'all') return true;
+
+    const level = u.wordpress_user_level !== undefined ? u.wordpress_user_level : (
+      u.role === 'super_admin' || u.role === 'admin' ? 10 :
+      u.role === 'shop_manager' || u.role === 'manager' ? 7 :
+      u.role === 'cashier' ? 3 :
+      u.role === 'vendor' ? 2 : 0
     );
+
+    return level === selectedLevelFilter;
   });
+
+  // Calculate user level distribution
+  const countLevel10 = safeUsers.filter((u) => (u.wordpress_user_level ?? 0) >= 10 || u.role === 'super_admin' || u.role === 'admin').length;
+  const countLevel7 = safeUsers.filter((u) => (u.wordpress_user_level === 7) || u.role === 'shop_manager' || u.role === 'manager').length;
+  const countLevel3 = safeUsers.filter((u) => (u.wordpress_user_level === 3) || u.role === 'cashier').length;
+  const countLevel2 = safeUsers.filter((u) => (u.wordpress_user_level === 2) || u.role === 'vendor').length;
+  const countLevel0 = safeUsers.filter((u) => (u.wordpress_user_level === 0 || u.wordpress_user_level === undefined) && !['super_admin', 'admin', 'shop_manager', 'manager', 'cashier', 'vendor'].includes(u.role)).length;
 
   return (
     <div id="admin-users-management" className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden space-y-4 p-5">
-      {/* Tab Header */}
+      {/* Tab Header & WordPress Sync Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
         <div>
           <div className="flex items-center gap-2">
@@ -191,86 +284,223 @@ export const AdminUsersTab: React.FC = () => {
               <Users className="w-4 h-4" />
             </span>
             <h2 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
-              User Accounts & Administrative Profile Editor
+              WordPress & WooCommerce User Directory
             </h2>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Exclusive administrator authority: view, edit profiles, adjust roles, verify identities, and manage account statuses.
+            Connected to WordPress REST API (<span className="font-mono text-slate-700">cyberdynamictech.com</span>). Granular access enforced by User Levels (10, 7, 3, 2, 0).
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="relative">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search user by name, email, phone..."
+              placeholder="Search by name, email, @username..."
               className="h-8 pl-8 pr-3 text-xs border border-slate-200 rounded-lg focus:outline-hidden focus:border-[#007f19]"
             />
           </div>
 
           <button
-            onClick={loadUsers}
+            onClick={() => handleSyncWordPress()}
+            disabled={isSyncing || loading}
+            className="h-8 px-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-lg flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors disabled:opacity-50"
+            title="Fetch all users from WordPress core and WooCommerce customer database via API"
+          >
+            <Database className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>{isSyncing ? 'Syncing...' : 'Sync WordPress API'}</span>
+          </button>
+
+          <button
+            onClick={() => loadUsers(false)}
             disabled={loading}
             className="h-8 px-3 border border-slate-200 hover:bg-slate-50 text-slate-600 font-bold text-xs rounded-lg flex items-center gap-1.5 cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-[#007f19] ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh</span>
+            <span>Reload</span>
           </button>
         </div>
+      </div>
+
+      {/* User Levels Filter Tabs */}
+      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+        <button
+          onClick={() => setSelectedLevelFilter('all')}
+          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            selectedLevelFilter === 'all'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+          }`}
+        >
+          <span>All Users</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/20">
+            {safeUsers.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setSelectedLevelFilter(10)}
+          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            selectedLevelFilter === 10
+              ? 'bg-purple-700 text-white shadow-xs'
+              : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
+          }`}
+        >
+          <Crown className="w-3 h-3" />
+          <span>Level 10: Super Admins</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-purple-200 text-purple-900">
+            {countLevel10}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setSelectedLevelFilter(7)}
+          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            selectedLevelFilter === 7
+              ? 'bg-blue-700 text-white shadow-xs'
+              : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'
+          }`}
+        >
+          <Shield className="w-3 h-3" />
+          <span>Level 7: Shop Managers</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-blue-200 text-blue-900">
+            {countLevel7}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setSelectedLevelFilter(3)}
+          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            selectedLevelFilter === 3
+              ? 'bg-amber-700 text-white shadow-xs'
+              : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+          }`}
+        >
+          <Store className="w-3 h-3" />
+          <span>Level 3: Cashiers</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-200 text-amber-900">
+            {countLevel3}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setSelectedLevelFilter(2)}
+          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            selectedLevelFilter === 2
+              ? 'bg-emerald-700 text-white shadow-xs'
+              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+          }`}
+        >
+          <Store className="w-3 h-3" />
+          <span>Level 2: Vendors</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-emerald-200 text-emerald-900">
+            {countLevel2}
+          </span>
+        </button>
+
+        <button
+          onClick={() => setSelectedLevelFilter(0)}
+          className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            selectedLevelFilter === 0
+              ? 'bg-slate-700 text-white shadow-xs'
+              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+          }`}
+        >
+          <Users className="w-3 h-3" />
+          <span>Level 0: Customers</span>
+          <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 text-slate-800">
+            {countLevel0}
+          </span>
+        </button>
       </div>
 
       {/* Directory Table */}
       {loading ? (
         <div className="py-12 text-center text-xs text-slate-400 space-y-2">
           <RefreshCw className="w-5 h-5 text-[#007f19] animate-spin mx-auto" />
-          <p>Loading user directory...</p>
+          <p>Loading WordPress & WooCommerce user directory...</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="py-12 text-center text-xs text-slate-400">No matching user accounts found.</div>
+        <div className="py-12 text-center text-xs text-slate-400">
+          No matching user accounts found for the selected filter.
+        </div>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50 text-slate-600 font-bold text-[11px] uppercase tracking-wider">
-                <th className="py-2.5 px-3">Customer / User</th>
-                <th className="py-2.5 px-3">Contact Details</th>
-                <th className="py-2.5 px-3">Role</th>
-                <th className="py-2.5 px-3">POS Access</th>
+                <th className="py-2.5 px-3">User & Identity</th>
+                <th className="py-2.5 px-3">WordPress User Level</th>
+                <th className="py-2.5 px-3">Store Role</th>
+                <th className="py-2.5 px-3">Orders & Spend</th>
+                <th className="py-2.5 px-3">POS Register</th>
                 <th className="py-2.5 px-3">Status</th>
-                <th className="py-2.5 px-3">Verification</th>
-                <th className="py-2.5 px-3 text-right">Admin Actions</th>
+                <th className="py-2.5 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.map((u) => {
                 const isSuspended = u.status === 'suspended';
+                const wpUserLevel = u.wordpress_user_level !== undefined ? u.wordpress_user_level : (
+                  u.role === 'super_admin' || u.role === 'admin' ? 10 :
+                  u.role === 'shop_manager' || u.role === 'manager' ? 7 :
+                  u.role === 'cashier' ? 3 :
+                  u.role === 'vendor' ? 2 : 0
+                );
+
                 return (
                   <tr key={u.id} className="hover:bg-slate-50/70 transition-colors">
+                    {/* User Profile */}
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center shrink-0">
-                          {u.first_name ? u.first_name.charAt(0).toUpperCase() : 'U'}
-                        </div>
+                        {u.avatar_url ? (
+                          <img
+                            src={u.avatar_url}
+                            alt={u.first_name || 'User'}
+                            className="w-8 h-8 rounded-full object-cover shrink-0 border border-slate-200 shadow-xs"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center shrink-0 border border-slate-300">
+                            {u.first_name ? u.first_name.charAt(0).toUpperCase() : 'U'}
+                          </div>
+                        )}
                         <div>
                           <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                            <span>{u.first_name} {u.last_name}</span>
-                            {u.id === 1 && (
-                              <span className="text-[9px] font-black uppercase px-1.5 py-0.2 rounded bg-purple-100 text-purple-800">
-                                Primary Admin
+                            <span>
+                              {u.displayName || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'WordPress User'}
+                            </span>
+                            {u.wordpress_username && (
+                              <span className="text-[10px] font-mono font-medium text-slate-500 bg-slate-100 px-1 py-0.2 rounded">
+                                @{u.wordpress_username}
                               </span>
                             )}
                           </div>
-                          <span className="text-[10px] text-slate-400">ID #{u.id} • Registered {u.created_at ? new Date(u.created_at).toLocaleDateString() : 'Active'}</span>
+                          <div className="text-[11px] text-slate-500 font-mono flex items-center gap-1">
+                            <Mail className="w-3 h-3 text-slate-400" />
+                            <span>{u.email}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-400 flex items-center gap-1">
+                            {u.wordpress_id ? (
+                              <span className="text-purple-600 font-medium">WP ID #{u.wordpress_id}</span>
+                            ) : (
+                              <span>ID #{u.id}</span>
+                            )}
+                            <span>•</span>
+                            <span>{u.source === 'wordpress_api' ? 'WP Core' : u.source === 'woocommerce_api' ? 'WooCommerce' : 'Marketplace'}</span>
+                          </div>
                         </div>
                       </div>
                     </td>
+
+                    {/* WordPress User Level */}
                     <td className="py-3 px-3">
-                      <div className="text-slate-700 font-mono text-[11px]">{u.email}</div>
-                      <div className="text-[10px] text-slate-400">{u.phone || 'No phone on file'}</div>
+                      {getUserLevelBadge(u)}
                     </td>
+
+                    {/* Security Role Selector */}
                     <td className="py-3 px-3">
                       <select
                         value={u.role}
@@ -278,17 +508,39 @@ export const AdminUsersTab: React.FC = () => {
                         onChange={(e) => handleQuickRoleChange(u.id, e.target.value as UserRole)}
                         className="h-7 px-2 bg-white border border-slate-200 rounded text-xs font-bold text-slate-700 focus:outline-hidden focus:border-[#007f19] cursor-pointer disabled:opacity-50"
                       >
-                        <option value="customer">Customer</option>
+                        <option value="super_admin">Level 10: Super Admin</option>
+                        <option value="admin">Level 10: Administrator</option>
+                        <option value="shop_manager">Level 7: Shop Manager</option>
+                        <option value="manager">Level 7: Manager</option>
+                        <option value="cashier">Level 3: Cashier</option>
+                        <option value="vendor">Level 2: Vendor</option>
                         <option value="editor">Editor</option>
-                        <option value="manager">Store Manager</option>
-                        <option value="admin">Administrator</option>
+                        <option value="customer">Level 0: Customer</option>
                       </select>
                     </td>
+
+                    {/* Orders & Total Spend */}
                     <td className="py-3 px-3">
-                      {u.role === 'admin' ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <div className="flex items-center gap-1 text-slate-800 font-medium">
+                        <ShoppingBag className="w-3 h-3 text-slate-400" />
+                        <span>{u.orders_count || 0} orders</span>
+                      </div>
+                      <div className="text-[11px] font-bold text-slate-900">
+                        {formatPrice(u.total_spent || 0)}
+                      </div>
+                    </td>
+
+                    {/* POS Register Access */}
+                    <td className="py-3 px-3">
+                      {wpUserLevel >= 10 || u.role === 'admin' || u.role === 'super_admin' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-200">
                           <Lock className="w-2.5 h-2.5" />
-                          <span>Admin Access</span>
+                          <span>Admin Auto</span>
+                        </span>
+                      ) : wpUserLevel >= 7 || u.role === 'shop_manager' || u.role === 'cashier' ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200">
+                          <Store className="w-2.5 h-2.5" />
+                          <span>Staff POS</span>
                         </span>
                       ) : isPosAllowedForUser(u) ? (
                         <button
@@ -298,20 +550,22 @@ export const AdminUsersTab: React.FC = () => {
                           title="Click to revoke POS terminal access"
                         >
                           <Store className="w-3 h-3 text-cyan-700" />
-                          <span>Authorized (Revoke)</span>
+                          <span>Authorized</span>
                         </button>
                       ) : (
                         <button
                           type="button"
                           onClick={() => toggleUserPosAccess(u.email)}
                           className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 hover:bg-cyan-100 text-slate-600 hover:text-cyan-800 border border-slate-200 transition-colors cursor-pointer"
-                          title="Click to authorize this user for POS terminal access"
+                          title="Click to authorize this user for POS counter checkout"
                         >
                           <Plus className="w-2.5 h-2.5" />
-                          <span>Grant POS Access</span>
+                          <span>Grant POS</span>
                         </button>
                       )}
                     </td>
+
+                    {/* Status */}
                     <td className="py-3 px-3">
                       {isSuspended ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
@@ -325,19 +579,8 @@ export const AdminUsersTab: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-3">
-                      {u.is_email_verified ? (
-                        <span className="text-[11px] font-bold text-[#007f19] flex items-center gap-1">
-                          <UserCheck className="w-3.5 h-3.5" />
-                          <span>Verified</span>
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-amber-600 font-bold flex items-center gap-1">
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          <span>Unverified</span>
-                        </span>
-                      )}
-                    </td>
+
+                    {/* Edit Profile */}
                     <td className="py-3 px-3 text-right">
                       <button
                         onClick={() => openEditModal(u)}
@@ -345,7 +588,7 @@ export const AdminUsersTab: React.FC = () => {
                         title="Edit User Profile"
                       >
                         <Edit className="w-3 h-3" />
-                        <span>Edit Profile</span>
+                        <span>Edit</span>
                       </button>
                     </td>
                   </tr>
@@ -368,10 +611,10 @@ export const AdminUsersTab: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-black tracking-tight">
-                    Admin Profile Editor: User #{editingUser.id}
+                    Profile & Level Editor: {editingUser.displayName || `${editingUser.first_name} ${editingUser.last_name}`}
                   </h3>
                   <p className="text-[11px] text-slate-400">
-                    Administrator changes override all frontend customer defaults immediately.
+                    {editingUser.wordpress_id ? `WordPress User ID #${editingUser.wordpress_id} (@${editingUser.wordpress_username || 'user'})` : `Local ID #${editingUser.id}`}
                   </p>
                 </div>
               </div>
@@ -432,16 +675,20 @@ export const AdminUsersTab: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-slate-100">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Security Role</label>
+                  <label className="font-bold text-slate-700 block mb-1">Security Role & Level</label>
                   <select
                     value={editForm.role}
                     onChange={(e) => setEditForm({ ...editForm, role: e.target.value as UserRole })}
                     className="w-full h-8.5 px-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-hidden focus:border-[#007f19]"
                   >
-                    <option value="customer">Customer</option>
+                    <option value="super_admin">Level 10: Super Admin</option>
+                    <option value="admin">Level 10: Administrator</option>
+                    <option value="shop_manager">Level 7: Shop Manager</option>
+                    <option value="manager">Level 7: Manager</option>
+                    <option value="cashier">Level 3: Cashier</option>
+                    <option value="vendor">Level 2: Vendor Partner</option>
                     <option value="editor">Editor</option>
-                    <option value="manager">Store Manager</option>
-                    <option value="admin">Administrator</option>
+                    <option value="customer">Level 0: Customer</option>
                   </select>
                 </div>
 
@@ -449,96 +696,94 @@ export const AdminUsersTab: React.FC = () => {
                   <label className="font-bold text-slate-700 block mb-1">Account Access Status</label>
                   <select
                     value={editForm.status}
-                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value as any })}
+                    onChange={(e) => setEditForm({ ...editForm, status: e.target.value as 'active' | 'suspended' })}
                     className="w-full h-8.5 px-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-hidden focus:border-[#007f19]"
                   >
-                    <option value="active">Active (Normal Access)</option>
+                    <option value="active">Active (Full Access)</option>
                     <option value="suspended">Suspended (Blocked)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Email Verification</label>
-                  <div className="flex items-center h-8.5 gap-2">
-                    <input
-                      type="checkbox"
-                      id="edit_is_verified"
-                      checked={editForm.is_email_verified}
-                      onChange={(e) => setEditForm({ ...editForm, is_email_verified: e.target.checked })}
-                      className="w-4 h-4 rounded text-[#007f19] focus:ring-[#007f19]"
-                    />
-                    <label htmlFor="edit_is_verified" className="text-xs font-bold text-slate-700 cursor-pointer">
-                      Mark as Verified
-                    </label>
-                  </div>
+                  <label className="font-bold text-slate-700 block mb-1">Identity Verification</label>
+                  <select
+                    value={editForm.is_email_verified ? 'verified' : 'unverified'}
+                    onChange={(e) => setEditForm({ ...editForm, is_email_verified: e.target.value === 'verified' })}
+                    className="w-full h-8.5 px-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-hidden focus:border-[#007f19]"
+                  >
+                    <option value="verified">Verified Identity</option>
+                    <option value="unverified">Unverified</option>
+                  </select>
                 </div>
               </div>
 
-              {/* Delivery Address Section */}
-              <div className="pt-2 border-t border-slate-100 space-y-2">
-                <label className="font-black text-slate-800 uppercase tracking-wider text-[11px] block">
-                  Default Kampala Delivery Address
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <div className="sm:col-span-2">
-                    <input
-                      type="text"
-                      value={editForm.address_1}
-                      onChange={(e) => setEditForm({ ...editForm, address_1: e.target.value })}
-                      placeholder="Plot, Building, Street in Kampala"
-                      className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-[#007f19]"
-                    />
-                  </div>
-                  <div>
-                    <select
-                      value={editForm.district}
-                      onChange={(e) => setEditForm({ ...editForm, district: e.target.value, city: e.target.value })}
-                      className="w-full h-8.5 px-2 bg-white border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-[#007f19]"
-                    >
-                      <option value="Kampala Central (Nakasero, Kololo, CBD, Kamwokya)">Kampala Central</option>
-                      <option value="Nakawa Division (Ntinda, Naguru, Bugolobi, Kyambogo)">Nakawa Division</option>
-                      <option value="Makindye Division (Kabalagala, Kansanga, Munyonyo)">Makindye Division</option>
-                      <option value="Kawempe Division (Kisaasi, Komamboga, Kalerwe)">Kawempe Division</option>
-                      <option value="Rubaga Division (Mengo, Namirembe, Lubaga)">Rubaga Division</option>
-                      <option value="Greater Kampala / Wakiso (Kira, Nansana, Namugongo)">Greater Kampala / Wakiso</option>
-                      <option value="Entebbe Road Corridor (Lubowa, Seguku, Kajjansi)">Entebbe Road Corridor</option>
-                      <option value="Mukono / Jinja Road Corridor (Bweyogerere, Seeta)">Mukono Corridor</option>
-                      <option value="Kampala">Kampala</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              {/* Admin Private Remarks */}
-              <div className="pt-2 border-t border-slate-100">
-                <label className="font-bold text-slate-700 block mb-1">
-                  Administrator Internal Notes (Audited)
-                </label>
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Internal Administrator Notes</label>
                 <textarea
-                  rows={2}
                   value={editForm.admin_notes}
                   onChange={(e) => setEditForm({ ...editForm, admin_notes: e.target.value })}
-                  placeholder="Private remarks about this user, special pricing agreements, or warranty terms..."
+                  placeholder="Record customer support, account flags, or security notes..."
+                  rows={2}
                   className="w-full p-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-[#007f19]"
                 />
               </div>
 
-              {/* Action Buttons */}
-              <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-2.5">
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-[#007f19]" />
+                  <span>Primary Delivery Location (Uganda)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-0.5">District</label>
+                    <input
+                      type="text"
+                      value={editForm.district}
+                      onChange={(e) => setEditForm({ ...editForm, district: e.target.value })}
+                      placeholder="Kampala, Wakiso..."
+                      className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-[#007f19]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-0.5">City / Division</label>
+                    <input
+                      type="text"
+                      value={editForm.city}
+                      onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
+                      placeholder="Central, Nakawa..."
+                      className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-[#007f19]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-600 block mb-0.5">Street Address / Landmark</label>
+                    <input
+                      type="text"
+                      value={editForm.address_1}
+                      onChange={(e) => setEditForm({ ...editForm, address_1: e.target.value })}
+                      placeholder="Plot / Street / Building"
+                      className="w-full h-8 px-2.5 border border-slate-200 rounded-lg text-xs focus:outline-hidden focus:border-[#007f19]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Action Buttons */}
+              <div className="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={closeEditModal}
-                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-lg cursor-pointer transition-colors"
+                  disabled={isSaving}
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold rounded-lg cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="px-5 py-2 bg-[#007f19] hover:bg-[#006013] text-white font-black text-xs rounded-lg flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-5 py-2 bg-[#007f19] hover:bg-[#007f19]/90 text-white font-bold rounded-lg flex items-center gap-1.5 cursor-pointer shadow-xs transition-colors disabled:opacity-50"
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span>{isSaving ? 'Saving Changes...' : 'Save User Profile'}</span>
+                  <span>{isSaving ? 'Saving...' : 'Save Profile Changes'}</span>
                 </button>
               </div>
             </form>

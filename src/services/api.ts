@@ -430,8 +430,18 @@ export const api = {
     return safeFetch('/api/admin/audit-logs', { method: 'GET' }, 'Failed to retrieve audit logs');
   },
 
-  async getAdminUsers(): Promise<{ users: CustomerUser[] }> {
-    return safeFetch('/api/admin/users', { method: 'GET' }, 'Failed to retrieve users');
+  async getAdminUsers(sync: boolean = false): Promise<{ users: CustomerUser[]; total?: number }> {
+    return safeFetch(`/api/admin/users${sync ? '?sync=true' : ''}`, { method: 'GET' }, 'Failed to retrieve users');
+  },
+
+  async syncWordPressUsers(): Promise<{
+    success: boolean;
+    count: number;
+    sources: { wordpress: number; customers: number; local: number };
+    users: CustomerUser[];
+    message: string;
+  }> {
+    return safeFetch('/api/admin/users/sync-wordpress', { method: 'POST' }, 'Failed to sync users from WordPress API');
   },
 
   async updateUserRole(id: number, role: UserRole): Promise<{ success: boolean; user: CustomerUser }> {

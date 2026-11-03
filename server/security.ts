@@ -36,6 +36,7 @@ export interface SessionPayload {
   userId: number;
   email: string;
   role: string;
+  userLevel?: number;
   vendorId?: string;
   storeId?: string;
   permissions?: string[];
