@@ -55,6 +55,7 @@ export interface Product {
   price: number;
   regular_price: number;
   sale_price?: number;
+  price_html?: string;
   discount_percent?: number;
   on_sale: boolean;
   stock_status: 'instock' | 'outofstock' | 'onbackorder';
@@ -83,7 +84,7 @@ export interface Product {
   profit_margin?: number;
   status?: 'published' | 'draft' | 'archived';
   product_type?: 'physical' | 'digital';
-  tags?: string[];
+  tags?: Array<string | { id?: number; name?: string; slug?: string }>;
   low_stock_threshold?: number;
   weight?: string;
   dimensions?: { length?: string; width?: string; height?: string };

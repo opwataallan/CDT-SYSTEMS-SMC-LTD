@@ -20,7 +20,6 @@ import { CustomerOrder } from '../types';
 import { UGANDA_DISTRICTS, getDistrictDeliveryOptions } from '../data/ugandaDistricts';
 import { DistrictSelector } from '../components/DistrictSelector';
 import { PaymentLandingPage } from '../components/PaymentLandingPage';
-import { auth } from '../firebase';
 import { notificationService } from '../services/notificationService';
 
 export const CheckoutPage: React.FC = () => {
@@ -260,21 +259,17 @@ export const CheckoutPage: React.FC = () => {
         line_items: cart,
       };
 
-      // 1. Check Firebase Authentication
-      // 2. Confirm whether authenticated user exists
-      const currentAuthUid = auth.currentUser?.uid || (user?.uid && typeof user.uid === 'string' ? user.uid : undefined);
-      const isCustomerAuthenticated = Boolean(currentAuthUid);
-
-      // 3. Attach Firebase UID to payload if authenticated
-      if (isCustomerAuthenticated && currentAuthUid) {
-        (orderPayload as any).userId = currentAuthUid;
+      // Attach authenticated store / WordPress user ID to order
+      if (user?.id) {
+        (orderPayload as any).userId = user.id;
+        (orderPayload as any).customer_id = user.wordpress_id || user.id;
       }
 
       const res = await api.createOrder(orderPayload);
 
       if (res.success && res.order) {
-        if (isCustomerAuthenticated && currentAuthUid) {
-          res.order.userId = currentAuthUid;
+        if (user?.id) {
+          res.order.userId = String(user.id);
         }
 
         clearCart();

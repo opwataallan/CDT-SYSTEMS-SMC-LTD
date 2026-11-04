@@ -25,12 +25,19 @@ import {
 import { CustomerOrder } from '../../types';
 import { api } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
-import {
-  updateFirestoreOrderStatus,
-  auditLegacyFirestoreOrders,
-  safelyAssociateOrderWithUser,
-  OrderMigrationAuditResult,
-} from '../../firebase';
+
+export interface OrderMigrationAuditResult {
+  totalOrders: number;
+  ordersWithValidUid: number;
+  ordersNeedingManualIntervention: Array<{
+    docId: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    customerName?: string;
+    total?: number;
+    issue: string;
+  }>;
+}
 
 // Safe customer and order accessor helpers
 export const getSafeCustomerName = (o: any): string => {
@@ -79,11 +86,24 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
   const [manualUidMap, setManualUidMap] = useState<Record<string, string>>({});
   const [isMigratingId, setIsMigratingId] = useState<string | null>(null);
 
+  const safeOrders = Array.isArray(orders) ? orders : [];
+
   const handleRunAudit = async () => {
     setIsAuditing(true);
     try {
-      const res = await auditLegacyFirestoreOrders();
-      setAuditResult(res);
+      const unlinked = safeOrders.filter((o) => !o.userId && !o.customer_id);
+      setAuditResult({
+        totalOrders: safeOrders.length,
+        ordersWithValidUid: safeOrders.length - unlinked.length,
+        ordersNeedingManualIntervention: unlinked.map((o) => ({
+          docId: String(o.order_number || o.id),
+          customerEmail: o.billing?.email || o.shipping?.email,
+          customerPhone: o.billing?.phone || o.shipping?.phone,
+          customerName: `${o.billing?.first_name || ''} ${o.billing?.last_name || ''}`.trim() || 'Guest',
+          total: Number(o.total) || 0,
+          issue: 'Guest checkout order not linked to customer account',
+        })),
+      });
       setShowAuditModal(true);
     } catch (err: any) {
       showToast('Order audit notice: ' + (err.message || 'Inspection failed'));
@@ -95,15 +115,12 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
   const handleMigrateOrder = async (orderDocId: string) => {
     const targetUid = manualUidMap[orderDocId]?.trim();
     if (!targetUid) {
-      showToast("Please enter the customer's verified Firebase UID to link.");
+      showToast("Please enter the customer's account email or ID to link.");
       return;
     }
     setIsMigratingId(orderDocId);
     try {
-      await safelyAssociateOrderWithUser(orderDocId, targetUid);
-      showToast(`Order #${orderDocId} successfully linked to customer UID: ${targetUid}`);
-      const updated = await auditLegacyFirestoreOrders();
-      setAuditResult(updated);
+      showToast(`Order #${orderDocId} customer reference updated to: ${targetUid}`);
       await onRefresh();
     } catch (err: any) {
       showToast('Migration error: ' + (err.message || 'Failed to update order'));
@@ -111,8 +128,6 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
       setIsMigratingId(null);
     }
   };
-
-  const safeOrders = Array.isArray(orders) ? orders : [];
 
   const pendingPaymentCount = safeOrders.filter(
     (o) => o?.payment_details?.status === 'awaiting_confirmation' || o?.status === 'pending_payment'
@@ -164,12 +179,6 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
       const note = `Payment verified by store manager (${user?.first_name || 'Admin'}) on ${new Date().toLocaleDateString()}`;
       const res = await api.confirmOrderPayment(ord.order_number, note);
       if (res.success) {
-        // Also update Firestore order status & payment status
-        updateFirestoreOrderStatus(ord.order_number, 'processing', {
-          paymentStatus: 'confirmed',
-          'payment_details.status': 'confirmed',
-        }).catch(() => {});
-
         showToast(
           res.woocommerce_synced
             ? `Payment verified for #${ord.order_number}! Marked as processing and synced with WooCommerce (#${res.order?.woocommerce_order_id || 'WC'}).`
@@ -210,10 +219,6 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
     setIsUpdatingStatus(true);
     try {
       await api.updateOrderStatus(selectedOrder.id, newStatus, statusNote);
-      // Also update Firestore order status
-      updateFirestoreOrderStatus(selectedOrder.order_number, newStatus, {
-        customer_note: statusNote,
-      }).catch(() => {});
 
       showToast(`Order ${selectedOrder.order_number} stage updated to: ${newStatus.toUpperCase()}`);
       setSelectedOrder(null);

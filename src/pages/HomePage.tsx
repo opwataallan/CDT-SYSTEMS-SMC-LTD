@@ -33,15 +33,15 @@ import { TopDealsSlider } from '../components/TopDealsSlider';
 import { useShop } from '../context/ShopContext';
 import { api } from '../services/api';
 import { Product, Category, HeroBanner } from '../types';
-import { INITIAL_HERO_BANNERS } from '../data/cyberCatalog';
+import { INITIAL_HERO_BANNERS, INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/cyberCatalog';
 import { stripHtmlToPlainText } from '../utils/sanitizeWooCommerceHtml';
 
 export const HomePage: React.FC = () => {
   const { setCurrentView, products: shopProducts, categories: shopCategories, addToCart, formatPrice, config, isAdmin } = useShop();
 
-  // Products and categories loaded exclusively from API
-  const [products, setProducts] = useState<Product[]>(() => (shopProducts && shopProducts.length > 0 ? shopProducts : []));
-  const [categories, setCategories] = useState<Category[]>(() => (shopCategories && shopCategories.length > 0 ? shopCategories : []));
+  // Products and categories initialized from seed or cache, refreshed continuously from live WooCommerce API
+  const [products, setProducts] = useState<Product[]>(() => (shopProducts && shopProducts.length > 0 ? shopProducts : INITIAL_PRODUCTS));
+  const [categories, setCategories] = useState<Category[]>(() => (shopCategories && shopCategories.length > 0 ? shopCategories : INITIAL_CATEGORIES));
   const [heroBanners, setHeroBanners] = useState<HeroBanner[]>(() => INITIAL_HERO_BANNERS);
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<'all' | 'laptops' | 'printers' | 'networking'>('all');
@@ -56,10 +56,12 @@ export const HomePage: React.FC = () => {
   const catScrollLeftRef = useRef(0);
   const catHasMovedRef = useRef(false);
 
-  // Fetch initial catalog data from live API (up to 5,000 products)
+  // Fetch initial catalog data from live API (rapid 100 products fetch)
   useEffect(() => {
-    setIsLoadingCatalog(true);
-    api.getProducts({ limit: 5000 }).then((res) => {
+    if (products.length === 0) {
+      setIsLoadingCatalog(true);
+    }
+    api.getProducts({ limit: 100 }).then((res) => {
       if (res && Array.isArray(res.products) && res.products.length > 0) {
         setProducts(res.products);
       }

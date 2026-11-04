@@ -31,7 +31,6 @@ import {
 import { Product, Category, ProductImage, ProductVariation } from '../../types';
 import { api } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
-import { uploadProductImage } from '../../firebase';
 
 export const AdminProductsTab: React.FC = () => {
   const { formatPrice, showToast, setCurrentView } = useShop();
@@ -465,21 +464,35 @@ export const AdminProductsTab: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+      showToast('Please select a valid image file');
+      return;
+    }
+
     setIsUploadingImage(true);
     try {
-      const downloadUrl = await uploadProductImage(file);
-      const newImg: ProductImage = {
-        id: Date.now(),
-        src: downloadUrl,
-        name: file.name,
-        alt: name || 'Product image',
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string;
+        const newImg: ProductImage = {
+          id: Date.now(),
+          src: dataUrl,
+          name: file.name,
+          alt: name || 'Product image',
+        };
+        setImages((prev) => [...prev, newImg]);
+        showToast('Image attached successfully.');
+        setIsUploadingImage(false);
       };
-      setImages((prev) => [...prev, newImg]);
-      showToast('Image uploaded to Firebase Storage.');
+      reader.onerror = () => {
+        showToast('Failed to read image file');
+        setIsUploadingImage(false);
+      };
+      reader.readAsDataURL(file);
     } catch (err: any) {
       showToast(`Upload failed: ${err.message}`);
-    } finally {
       setIsUploadingImage(false);
+    } finally {
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };

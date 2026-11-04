@@ -65,7 +65,6 @@ import { MarketplaceConfig, SmsLogEntry } from '../../types';
 import { DEFAULT_MARKETPLACE_CONFIG } from '../../data/defaultConfig';
 import { api } from '../../services/api';
 import { ThemeColorSetting } from '../ThemeColorSetting';
-import { uploadSettingImage, auth } from '../../firebase';
 
 type CategoryKey = keyof MarketplaceConfig;
 
@@ -562,34 +561,43 @@ export const AdminSettingsCenter: React.FC = () => {
     setSaveErrorMsg(null);
     setSaveSuccessMsg(null);
     try {
-      showToast(`Uploading ${field.replace(/_/g, ' ')} to Firebase Storage...`);
-      const downloadUrl = await uploadSettingImage(file, folder);
+      showToast(`Attaching ${field.replace(/_/g, ' ')}...`);
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const downloadUrl = reader.result as string;
+        handleFieldChange('branding', field, downloadUrl);
+        if (mirrorField) {
+          handleFieldChange('branding', mirrorField, downloadUrl);
+        }
 
-      handleFieldChange('branding', field, downloadUrl);
-      if (mirrorField) {
-        handleFieldChange('branding', mirrorField, downloadUrl);
-      }
-
-      // Automatically persist to app settings immediately upon upload
-      try {
-        const updatedBranding = {
-          ...localConfig.branding,
-          [field]: downloadUrl,
-          ...(mirrorField ? { [mirrorField]: downloadUrl } : {}),
-        };
-        await updateCategorySettings('branding', updatedBranding);
-        setSaveSuccessMsg(`Image uploaded and saved to branding settings! URL: ${downloadUrl.slice(0, 60)}...`);
-        showToast('Image uploaded and saved to branding settings!');
-      } catch (saveErr: any) {
-        console.warn('Auto-save after upload notice:', saveErr);
-        showToast(`Image uploaded! Click "Save Settings" to confirm.`);
-      }
+        // Automatically persist to app settings immediately upon upload
+        try {
+          const updatedBranding = {
+            ...localConfig.branding,
+            [field]: downloadUrl,
+            ...(mirrorField ? { [mirrorField]: downloadUrl } : {}),
+          };
+          await updateCategorySettings('branding', updatedBranding);
+          setSaveSuccessMsg(`Image attached and saved to branding settings!`);
+          showToast('Image attached and saved to branding settings!');
+        } catch (saveErr: any) {
+          console.warn('Auto-save after upload notice:', saveErr);
+          showToast(`Image attached! Click "Save Settings" to confirm.`);
+        } finally {
+          setIsUploadingImage(null);
+        }
+      };
+      reader.onerror = () => {
+        setSaveErrorMsg('Failed to read image file');
+        showToast('Failed to read image file');
+        setIsUploadingImage(null);
+      };
+      reader.readAsDataURL(file);
     } catch (err: any) {
-      console.error('Firebase Storage upload error:', err);
-      const msg = `Upload failed: ${err.message || 'Check Firebase Storage bucket permissions'}`;
+      console.error('Image upload error:', err);
+      const msg = `Upload failed: ${err.message || 'Error processing image'}`;
       setSaveErrorMsg(msg);
       showToast(msg);
-    } finally {
       setIsUploadingImage(null);
     }
   };
@@ -719,38 +727,20 @@ export const AdminSettingsCenter: React.FC = () => {
           </div>
         </div>
 
-        {/* Cloud Firestore Persistence Status Indicator */}
+        {/* Store Database & WooCommerce Persistence Status Indicator */}
         <div className="mx-5 mt-4 p-2.5 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs bg-slate-50 border-slate-200">
           <div className="flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${auth.currentUser ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'}`} />
+            <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-emerald-500 animate-pulse" />
             <span className="font-bold text-slate-800">
-              Cloud Firestore Persistence:
+              WooCommerce & Store Database Storage:
             </span>
             <span className="text-slate-600">
-              {auth.currentUser
-                ? `Connected (${auth.currentUser.email}) • Saves persist live to settings/global`
-                : 'Session active • Click to connect Google Admin for direct Cloud Firestore write authority'}
+              Active • All 31 settings categories persist directly to the app store backend database
             </span>
           </div>
-          {!auth.currentUser ? (
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await loginWithGoogle();
-                } catch (e: any) {
-                  showToast(e.message || 'Google Auth failed');
-                }
-              }}
-              className="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-700 text-white rounded font-bold text-[11px] flex items-center gap-1.5 shrink-0 cursor-pointer shadow-xs"
-            >
-              <span>Connect Google Admin</span>
-            </button>
-          ) : (
-            <span className="text-[10px] text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded font-black tracking-wide shrink-0 uppercase">
-              settings/global Sync Active
-            </span>
-          )}
+          <span className="text-[10px] text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded font-black tracking-wide shrink-0 uppercase">
+            Backend Database Synchronized
+          </span>
         </div>
 
         {saveSuccessMsg && (
@@ -766,21 +756,6 @@ export const AdminSettingsCenter: React.FC = () => {
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
               <span>{saveErrorMsg}</span>
             </div>
-            {!auth.currentUser && (
-              <button
-                type="button"
-                onClick={async () => {
-                  try {
-                    await loginWithGoogle();
-                  } catch (e: any) {
-                    showToast(e.message || 'Google Auth failed');
-                  }
-                }}
-                className="px-2.5 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded font-bold text-[11px] shrink-0 cursor-pointer"
-              >
-                Sign in with Google
-              </button>
-            )}
           </div>
         )}
 

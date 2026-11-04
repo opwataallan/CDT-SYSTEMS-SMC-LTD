@@ -135,7 +135,1048 @@ export const INITIAL_CATEGORIES: Category[] = [
 
 // Rich Initial Product Catalog (Comprehensive High-Quality Dummy Products)
 // Live WooCommerce Product Catalog (Exclusively fetched from live WooCommerce API)
-export const INITIAL_PRODUCTS: Product[] = [];
+export const INITIAL_PRODUCTS: Product[] = [
+  {
+    "id": 4768,
+    "name": "MTN WAKANET MIFI",
+    "slug": "mtn-wakanet-mifi-2",
+    "permalink": "https://www.cyberdynamictech.com/product/mtn-wakanet-mifi-2/",
+    "featured": false,
+    "description": "<p style=\"text-align: left\" data-mce-style=\"text-align: left;\"><br data-mce-bogus=\"1\"></p>",
+    "short_description": "MTN WAKANET MIFI",
+    "sku": "CDT-4768",
+    "price": 50000,
+    "regular_price": 50000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;50,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 112,
+        "name": "NETWORKING",
+        "slug": "networking"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4767,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/10/download.webp",
+        "name": "download",
+        "alt": "MTN WAKANET MIFI"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4765,
+    "name": "DELL 24&#8243; P2424HT FRAMELESS MONITOR",
+    "slug": "dell-24-p2424ht-frameless-monitor",
+    "permalink": "https://www.cyberdynamictech.com/product/dell-24-p2424ht-frameless-monitor/",
+    "featured": false,
+    "description": "<p>Stay productive, no matter where you work. Reduce harmful blue light with this sleek 23.8-inch FHD monitor featuring ComfortView Plus technology.</p>\n<p>Comfort without sacrificing color: Optimize eye comfort with ComfortView Plus, an always-on, built-in screen that reduces potentially harmful blue light emissions while delivering excellent color accuracy.<br />\nExtensive connectivity: Easily connect to a variety of devices with extensive connectivity ports, including DisplayPort, HDMI, VGA and 4x SuperSpeed USB 5Gbps.<br />\nProductive at every level: Easy Arrange allows you to easily tile multiple applications across one or more screens with 38 pre-set window partitions and the ability to personalize up to five windows, giving you improved multitasking abilities.</p>\n<p>Display</p>\n<p>23.8”</p>\n<p>Resolution</p>\n<p>Full HD (1080p) 1920 x 1080</p>\n<p>Aspect Ratio</p>\n<p>16:9</p>\n<p>Backlight</p>\n<p>W-LED</p>\n<p>Dimensions</p>\n<p>·         21.2 in x 7.1 in x 19.5 in &#8211; with stand</p>\n<p>Refresh Rate</p>\n<p>60 kHz</p>\n<p>Power usage</p>\n<p>120v 12w</p>\n<p>Connectivity</p>\n<p>Interfaces</p>\n<p>·         DisplayPort</p>\n<p>·         VGA</p>\n<p>·         HDMI</p>\n<p>·         USB 3.2 Gen 1 upstream</p>\n<p>·         4 x USB 3.2 Gen 1 downstream</p>",
+    "short_description": "DELL 24&#8243; P2424HT MONITOR REFURBISHED GRADE A",
+    "sku": "CDT-4765",
+    "price": 550000,
+    "regular_price": 550000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;550,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 19,
+        "name": "DESKTOPS",
+        "slug": "desktops"
+      },
+      {
+        "id": 25,
+        "name": "MONITORS",
+        "slug": "monitors"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4764,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/09/834534.jpg",
+        "name": "2026/09/834534.jpg",
+        "alt": "DELL 24&#8243; P2424HT FRAMELESS MONITOR"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4762,
+    "name": "HP EliteDesk 800 G1 USDT",
+    "slug": "hp-elitedesk-800-g1-usdt",
+    "permalink": "https://www.cyberdynamictech.com/product/hp-elitedesk-800-g1-usdt/",
+    "featured": false,
+    "description": "<p>HP EliteDesk 800 G1is designed to perform, impress, and protect. This sleek HP EliteDesk helps you power through to business success while allowing customized deployment. Indeed, the 800 G1 is one of your solutions for diverse business demands. Feel free to multitask and move your business forward with the Intel Core i5 processors. Furthermore, you can quickly open new files, switch applications, and enjoy less wait time with solid-state drives options. Keep it secure, keep it simple. IT efficiency reigns supreme when it’s backed by a full portfolio of HP Client Security12 and Intel vPro7 management features. Count on the support you need to get long-term value out of your investment. This work-ready PC is designed for a long lifecycle.</p>\n<p>HP EliteDesk 800 G1 USDT can be used for:<br />\nInternet, emailing &amp; word processing,<br />\nSocial Media; Twitter, Facebook &amp; YouTube,<br />\nLatest Microsoft Office (Outlook, Word, Excel, PowerPoint etc),<br />\nSage &amp; Other payroll and accounting programs, or other software alike,<br />\nHigh Intensity graphic design, architecture &amp; engineering work<br />\nHigh Performance Games</p>\n<p>Product Specifications<br />\nModel:\tHP EliteDesk 800 G1\tHard Drive Capacity:\t500 GB<br />\nColour:\tBlack\tGPU:\tIntel HD Graphics<br />\nOperating System:\tWindows 10 Pro\tStorage Type:\tHDD (Hard Disk Drive)<br />\nGraphics Processing Type:\tIntegrated/On-Board Graphics\tRAM Size:\t8 GB<br />\nConnectivity:\tUSB 2.0, USB 3.0, VGA, DisplayPort\tBrand:\tHP<br />\nSeries:\tHP EliteDesk\tForm Factor:\tUSDT<br />\nType:\tDesktop\tMost Suitable For:\tCorporate Business, Small Business, Casual Computing, Industrial, Office<br />\nMaximum RAM Capacity:\t16\tProcessor:\tIntel Core i5 4th Gen.<br />\nFeatures:\tOptical Drive, Free Wi-Fi dongle included\tSeller Warranty\t12 Months</p>",
+    "short_description": "HP EliteDesk 800 G1 USDT Refurbished Intel Core i5-4th Gen 3.2GHz RAM: 8GB RAM DDR3 Hard Drive: 500 GB HDD Windows 10 Pro",
+    "sku": "CDT-4762",
+    "price": 450000,
+    "regular_price": 450000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;450,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 19,
+        "name": "DESKTOPS",
+        "slug": "desktops"
+      }
+    ],
+    "tags": [
+      {
+        "id": 263,
+        "name": "#hp",
+        "slug": "hp"
+      },
+      {
+        "id": 289,
+        "name": "desktops",
+        "slug": "desktops"
+      }
+    ],
+    "images": [
+      {
+        "id": 4760,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/09/834519.jpg",
+        "name": "2026/09/834519.jpg",
+        "alt": "HP EliteDesk 800 G1 USDT"
+      },
+      {
+        "id": 4761,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/09/834518.jpg",
+        "name": "2026/09/834518.jpg",
+        "alt": "HP EliteDesk 800 G1 USDT"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4743,
+    "name": "Dell Latitude E7440",
+    "slug": "dell-latitude-e7440",
+    "permalink": "https://www.cyberdynamictech.com/product/dell-latitude-e7440/",
+    "featured": false,
+    "description": "<table class=\"w-fit min-w-(--thread-content-width)\" dir=\"auto\" data-start=\"332\" data-end=\"1550\">\n<thead data-start=\"332\" data-end=\"359\">\n<tr data-start=\"332\" data-end=\"359\">\n<th class=\"last:pe-10\" data-start=\"332\" data-end=\"348\" data-col-size=\"sm\">Specification</th>\n<th class=\"last:pe-10\" data-start=\"348\" data-end=\"359\" data-col-size=\"md\">Details</th>\n</tr>\n</thead>\n<tbody data-start=\"370\" data-end=\"1550\">\n<tr data-start=\"370\" data-end=\"405\">\n<td data-start=\"370\" data-end=\"382\" data-col-size=\"sm\"><strong data-start=\"372\" data-end=\"381\">Model</strong></td>\n<td data-start=\"382\" data-end=\"405\" data-col-size=\"md\">Dell Latitude E7440</td>\n</tr>\n<tr data-start=\"406\" data-end=\"455\">\n<td data-start=\"406\" data-end=\"419\" data-col-size=\"sm\"><strong data-start=\"408\" data-end=\"418\">Series</strong></td>\n<td data-col-size=\"md\" data-start=\"419\" data-end=\"455\">Latitude 7000 Series / Ultrabook</td>\n</tr>\n<tr data-start=\"456\" data-end=\"528\">\n<td data-start=\"456\" data-end=\"472\" data-col-size=\"sm\"><strong data-start=\"458\" data-end=\"471\">Processor</strong></td>\n<td data-start=\"472\" data-end=\"528\" data-col-size=\"md\">Intel Core <strong data-start=\"485\" data-end=\"503\">4th Generation</strong> — i3 / i5 / i7 options</td>\n</tr>\n<tr data-start=\"529\" data-end=\"574\">\n<td data-start=\"529\" data-end=\"546\" data-col-size=\"sm\"><strong data-start=\"531\" data-end=\"545\">Common CPU</strong></td>\n<td data-col-size=\"md\" data-start=\"546\" data-end=\"574\">Core i5-4200U / i5-4300U</td>\n</tr>\n<tr data-start=\"575\" data-end=\"634\">\n<td data-start=\"575\" data-end=\"591\" data-col-size=\"sm\"><strong data-start=\"577\" data-end=\"590\">CPU Cores</strong></td>\n<td data-col-size=\"md\" data-start=\"591\" data-end=\"634\">2 cores / 4 threads on common i5 models</td>\n</tr>\n<tr data-start=\"635\" data-end=\"668\">\n<td data-start=\"635\" data-end=\"645\" data-col-size=\"sm\"><strong data-start=\"637\" data-end=\"644\">RAM</strong></td>\n<td data-start=\"645\" data-end=\"668\" data-col-size=\"md\">DDR3/DDR3L 1600 MHz</td>\n</tr>\n<tr data-start=\"669\" data-end=\"706\">\n<td data-start=\"669\" data-end=\"688\" data-col-size=\"sm\"><strong data-start=\"671\" data-end=\"687\">RAM capacity</strong></td>\n<td data-start=\"688\" data-end=\"706\" data-col-size=\"md\">Up to <strong data-start=\"696\" data-end=\"704\">16GB</strong></td>\n</tr>\n<tr data-start=\"707\" data-end=\"737\">\n<td data-start=\"707\" data-end=\"723\" data-col-size=\"sm\"><strong data-start=\"709\" data-end=\"722\">RAM slots</strong></td>\n<td data-start=\"723\" data-end=\"737\" data-col-size=\"md\">2 × SODIMM</td>\n</tr>\n<tr data-start=\"738\" data-end=\"769\">\n<td data-start=\"738\" data-end=\"752\" data-col-size=\"sm\"><strong data-start=\"740\" data-end=\"751\">Display</strong></td>\n<td data-start=\"752\" data-end=\"769\" data-col-size=\"md\"><strong data-start=\"754\" data-end=\"767\">14.0-inch</strong></td>\n</tr>\n<tr data-start=\"770\" data-end=\"831\">\n<td data-start=\"770\" data-end=\"795\" data-col-size=\"sm\"><strong data-start=\"772\" data-end=\"794\">Resolution options</strong></td>\n<td data-col-size=\"md\" data-start=\"795\" data-end=\"831\">1366×768 HD or 1920×1080 Full HD</td>\n</tr>\n</tbody>\n</table>",
+    "short_description": "Specification Details Model Dell Latitude E7440 Series Latitude 7000 Series / Ultrabook Processor Intel Core 4th Generation — i3 / i5 / i7 options Common CPU Core i5-4200U / i5-4300U CPU Cores 2 cores / 4 threads on common i5 models RAM DDR3/DDR3L 1600 MHz RAM capacity Up to 16GB RAM slots 2 × SODIMM Display 14.0-inch Resolution options 1366×768 HD or 1920×1080 Full HD",
+    "sku": "CDT-4743",
+    "price": 800000,
+    "regular_price": 800000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;800,000</span>",
+    "on_sale": false,
+    "stock_status": "outofstock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 21,
+        "name": "LAPTOPS",
+        "slug": "laptops"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4746,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/09/IMG_0037.webp",
+        "name": "IMG_0037",
+        "alt": "Dell Latitude E7440"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4720,
+    "name": "EPSON L3110 Printer- REFURBISHED",
+    "slug": "epson-l3110-printer-refurbished",
+    "permalink": "https://www.cyberdynamictech.com/product/epson-l3110-printer-refurbished/",
+    "featured": false,
+    "description": "<p>Save more with Epson’s economical and multifunctional printing solutions for business—the EcoTank L3110—built to bring down costs, and bring up productivity. The integrated ink tank enables spill-free, error-free refilling with individual bottles that have designated nozzles. Other features include borderless 4R printing and an ultra-high yield of 7,500 coloured and 4,500 black-and-white pages.</p>\n<p>Cost per print- 7 paise (Black) and 18 paise (Colour)<br />Compact integrated tank design<br />High yield ink bottles<br />Spill-free, error-free refilling<br />Borderless printing up to 4R</p>\n<p>Scanner Type:<br />Flatbed colour image scanner<br />Sensor Type:<br />CIS<br />Optical Resolution:<br />600 x 1200 dpi<br />Maximum Scan Area:<br />216 x 297 mm (8.5 x 11.7&#8243;)<br />Scanner Bit Depth (Colour):<br />48-bit input, 24-bit output<br />Scanner Bit Depth (Grayscale):<br />16-bit input, 8-bit output<br />Scanner Bit Depth (Black &amp; White):<br />16-bit input, 1-bit output<br />Consumables:<br />Black Ink Bottle:<br />4,500 pages *5<br />Cyan Ink Bottle:<br />7,500 (Composite Yield) *5<br />Magenta Ink Bottle:<br />7,500 (Composite Yield) *5<br />Yellow Ink Bottle:<br />7,500 (Composite Yield) *5</p>",
+    "short_description": "REFURBISHED-L3110 Multifunction Color InkTank Printer",
+    "sku": "CDT-4720",
+    "price": 650000,
+    "regular_price": 650000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;650,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 296,
+        "name": "EPSON",
+        "slug": "epson"
+      },
+      {
+        "id": 23,
+        "name": "PRINTERS",
+        "slug": "printers"
+      }
+    ],
+    "tags": [
+      {
+        "id": 299,
+        "name": "color",
+        "slug": "color"
+      },
+      {
+        "id": 297,
+        "name": "epson",
+        "slug": "epson"
+      },
+      {
+        "id": 217,
+        "name": "New Product",
+        "slug": "new-product"
+      },
+      {
+        "id": 298,
+        "name": "printer",
+        "slug": "printer"
+      }
+    ],
+    "images": [
+      {
+        "id": 4718,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/786647.jpg",
+        "name": "2026/08/786647.jpg",
+        "alt": "EPSON L3110 Printer- REFURBISHED"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4666,
+    "name": "HP LaserJet Pro MFP M128fn",
+    "slug": "hp-laserjet-pro-mfp-m128fn",
+    "permalink": "https://www.cyberdynamictech.com/product/hp-laserjet-pro-mfp-m128fn/",
+    "featured": false,
+    "description": "<p>HP LaserJet Pro MFP M128fn — Multifunction Mono Laser Printer</p>\n<p>🔥 Key Features<br />\n4-in-1 functionality: Print, Copy, Scan &amp; Fax<br />\nPrint speed: Up to 20 pages per minute<br />\nPrint resolution: Up to 600 × 600 dpi<br />\nAutomatic Document Feeder (ADF): 35 sheets<br />\nPaper input: 150 sheets<br />\nOutput capacity: Up to 100 sheets<br />\nScanner: Flatbed + ADF<br />\nOptical scan resolution: Up to 1200 dpi<br />\nCopy speed: Up to 20 copies per minute<br />\nCopy quantity: Up to 99 copies<br />\nFax: 33.6 kbps with up to 500-page memory<br />\nMemory: 128 MB<br />\nConnectivity: USB 2.0 + built-in Fast Ethernet<br />\nToner: HP 88A / CC388A<br />\nMonthly duty cycle: Up to 8,000 pages<br />\nDisplay: 2-line LCD<br />\nDuplex printing: Manual<br />\nColour: Black &amp; White printing<br />\nHP confirms these specifications for the M128fn.</p>\n<p>💼 Perfect For<br />\n✔ Offices &amp; businesses<br />\n✔ Schools and institutions<br />\n✔ Printing shops<br />\n✔ SACCOs and NGOs<br />\n✔ Government offices<br />\n✔ Home offices<br />\n✔ Businesses handling invoices, reports, forms and documents<br />\n💡 Why Choose the HP M128fn?<br />\nGet printing, copying, scanning and faxing from one dependable machine. Its laser technology delivers crisp black-and-white documents, while the 35-sheet ADF makes processing multiple pages much easier.<br />\nOrder yours today from CYBER DYNAMIC TECHNOLOGIES.<br />\nWebsite: www.cyberdynamictech.com⁠�<br />\nCall: 0394 760459<br />\nWhatsApp: 0779 743101<br />\nNote: The M128fn does not have built-in Wi-Fi; network connectivity is provided through Ethernet. �</p>\n<p>HP LaserJet Pro MFP M128fn — Multifunction Mono Laser Printer<br />\nPrint • Copy • Scan • Fax | Fast • Reliable • Professional<br />\nThe HP LaserJet Pro MFP M128fn is a practical all-in-one monochrome laser printer designed for offices, businesses, schools, shops and home users who need fast, sharp and reliable document printing. With printing, copying, scanning and faxing in one compact machine, it helps reduce the need for multiple devices.</p>",
+    "short_description": "HP LaserJet Pro MFP M128fn — Multifunction Mono Laser Printer",
+    "sku": "CDT-4666",
+    "price": 950000,
+    "regular_price": 950000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;950,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 23,
+        "name": "PRINTERS",
+        "slug": "printers"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4664,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/783147.jpg",
+        "name": "2026/08/783147.jpg",
+        "alt": "HP LaserJet Pro MFP M128fn"
+      },
+      {
+        "id": 4665,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/783146.jpg",
+        "name": "2026/08/783146.jpg",
+        "alt": "HP LaserJet Pro MFP M128fn"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4646,
+    "name": "Sun King HomePlus Pro Solar",
+    "slug": "sun-king-homeplus-pro-solar",
+    "permalink": "https://www.cyberdynamictech.com/product/sun-king-homeplus-pro-solar/",
+    "featured": false,
+    "description": "<p>The HomePlus Pro is a solar home system that is designed to provide comprehensive lighting and phone charging for families and businesses without access to electricity.</p>\n<p>The large battery and solar panel provide reliable phone charging and lighting.</p>\n<p>A battery management system automatically dims the lamps and pauses phone charging when the battery charge is low, providing extended lighting for several hours until sunrise.</p>\n<p>What’s in the box<br />\nWhat&#8217;s in the box;</p>\n<p>1 x solar panel</p>\n<p>4x 240 Lumens Tube Lights</p>\n<p>1 x USB-A phone charging port</p>\n<p>38.4 Wh LFP Battery</p>",
+    "short_description": "Sun King HomePlus Pro Solar Home Light System",
+    "sku": "CDT-4646",
+    "price": 350000,
+    "regular_price": 350000,
+    "sale_price": 310000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;350,000</span>",
+    "on_sale": true,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 26,
+        "name": "ELECTRONICS",
+        "slug": "electronics"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4644,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/769118.jpg",
+        "name": "2026/08/769118.jpg",
+        "alt": "Sun King HomePlus Pro Solar"
+      },
+      {
+        "id": 4645,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/769117.jpg",
+        "name": "2026/08/769117.jpg",
+        "alt": "Sun King HomePlus Pro Solar"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4549,
+    "name": "Intel i7 3770K SUPER GAMING DESKTOP",
+    "slug": "intel-i7-3770k-gtx-1080-8gb-32gb-ram-desktop-pc",
+    "permalink": "https://www.cyberdynamictech.com/product/intel-i7-3770k-gtx-1080-8gb-32gb-ram-desktop-pc/",
+    "featured": false,
+    "description": "<p>An excellent 1080p gaming PC. Rocking an Intel i7 3770K clocked @ 3.9GHz CPU and an Nvidia GTX 1080 8GB graphics card gets you speed &amp; power that dominates the most popular games. This PC comes with 32GB RAM, 500GB SSD &amp; 1TB HDD giving you the speed and space packed in this budget-friendly Gaming PC.</p>\n<p>1080p Gaming Performance;</p>\n<p>Fortnite: 220FPS</p>\n<p>Apex Legends: 120FPS<br />\nCOD Warzone: 80FPS</p>\n<p>Valorant: 220FPS</p>\n<p>GTA V: 80FPS</p>\n<p>Other Games: 60-80FPS</p>",
+    "short_description": "Intel i7 3770K + GTX 1080 8GB + 32GB RAM | Desktop PC",
+    "sku": "CDT-4549",
+    "price": 4500000,
+    "regular_price": 4500000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;4,500,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 19,
+        "name": "DESKTOPS",
+        "slug": "desktops"
+      }
+    ],
+    "tags": [
+      {
+        "id": 51,
+        "name": "Computers",
+        "slug": "computers"
+      }
+    ],
+    "images": [
+      {
+        "id": 4546,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/722813qez1GEx51785908738.png",
+        "name": "2026/08/722813qez1GEx51785908738.png",
+        "alt": "Intel i7 3770K SUPER GAMING DESKTOP"
+      },
+      {
+        "id": 4545,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/722823sHpuQIgi1785908729.png",
+        "name": "2026/08/722823sHpuQIgi1785908729.png",
+        "alt": "Intel i7 3770K SUPER GAMING DESKTOP"
+      },
+      {
+        "id": 4547,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/7228190tsAoMRK1785908747.png",
+        "name": "2026/08/7228190tsAoMRK1785908747.png",
+        "alt": "Intel i7 3770K SUPER GAMING DESKTOP"
+      },
+      {
+        "id": 4548,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/08/722824RDUC5Vmc1785908756.png",
+        "name": "2026/08/722824RDUC5Vmc1785908756.png",
+        "alt": "Intel i7 3770K SUPER GAMING DESKTOP"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4532,
+    "name": "Epson L382/L386/L486 Resetter",
+    "slug": "epson-l382-l386-l486-resetter",
+    "permalink": "https://www.cyberdynamictech.com/product/epson-l382-l386-l486-resetter/",
+    "featured": false,
+    "description": "<p>Reset Waste Ink Pad Counter<br />\nEEPROM initial setting<br />\nInitial Ink Charge<br />\nHead ID Setting<br />\nTop margin Adjustment<br />\nBi-D Adjustment<br />\nUSB ID Input<br />\nCleaning the Print Head</p>\n<p>Put Adjustment Program to Antivirus Ignore list or Disable Antivirus. Then Run the program.</p>\n<p>Epson L382/L386/L486 AdjProg or Epson L382/L386/L486 Adjustment Program or Epson L382/L386/L486 Adj Program, is a middleware developed by third-party software to supply for Epson L382/L386/L486 printer, making printer continuous printing without error.<br />\n– Epson L382/L386/L486 Adjustment Program enables to perform maintenance</p>",
+    "short_description": "Epson L382/L386/L486 Resetter",
+    "sku": "CDT-4532",
+    "price": 10000,
+    "regular_price": 10000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;10,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 17,
+        "name": "OTHERS",
+        "slug": "others"
+      },
+      {
+        "id": 24,
+        "name": "SOFTWARE",
+        "slug": "software"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4530,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/07/686115FUlKV3l51784464593.jpg",
+        "name": "2026/07/686115FUlKV3l51784464593.jpg",
+        "alt": "Epson L382/L386/L486 Resetter"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4510,
+    "name": "HP LaserJet Pro M1132 MFP Monochrome Laser Printer",
+    "slug": "hp-laserjet-pro-m1132-mfp-monochrome-laser-printer",
+    "permalink": "https://www.cyberdynamictech.com/product/hp-laserjet-pro-m1132-mfp-monochrome-laser-printer/",
+    "featured": false,
+    "description": "<p>HP LaserJet Pro M1132 MFP Monochrome Laser Printer<br />\nFast, Reliable &amp; Compact All-in-One Laser Printer<br />\nThe HP LaserJet Pro M1132 MFP is a compact monochrome laser printer designed for homes, offices, schools, and small businesses. It combines printing, copying, and scanning in one reliable machine, delivering sharp black-and-white documents with fast print speeds and low operating costs.<br />\nIts space-saving design, easy setup, and energy-efficient performance make it an ideal choice for everyday office tasks.<br />\nKey Features<br />\n✅ Print, Copy &amp; Scan (3-in-1)<br />\n✅ Monochrome Laser Printing<br />\n✅ Print Speed: Up to 18 pages per minute<br />\n✅ Print Resolution: Up to 600 × 600 dpi<br />\n✅ Flatbed Color Scanner<br />\n✅ USB 2.0 Connectivity<br />\n✅ Energy-efficient HP Auto-On/Auto-Off Technology<br />\n✅ Compact design suitable for home and office use<br />\n✅ High-quality, professional text output<br />\nSpecifications<br />\nBrand: HP<br />\nModel: LaserJet Pro M1132 MFP<br />\nFunctions: Print, Copy, Scan<br />\nPrint Technology: Laser<br />\nPrint Color: Black &amp; White (Monochrome)<br />\nConnectivity: USB 2.0<br />\nPaper Size: A4, A5, B5, Letter, Legal<br />\nMonthly Duty Cycle: Up to 8,000 pages<br />\nRecommended Monthly Volume: 250–2,000 pages<br />\nIdeal For<br />\nOffices<br />\nSchools<br />\nBusinesses<br />\nRetail Shops<br />\nHome Users<br />\nCyber Cafés<br />\nPackage Includes<br />\nHP LaserJet Pro M1132 MFP Printer<br />\nPower Cable<br />\nUSB Cable (if included)<br />\nStarter Toner Cartridge<br />\nUser Guide<br />\nWhy Choose This Printer?<br />\nFast and reliable performance<br />\nCrisp, professional-quality prints<br />\nLow maintenance costs<br />\nEasy to operate<br />\nDurable HP build quality<br />\nPerfect for everyday document printing</p>",
+    "short_description": "HP LaserJet Pro M1132 MFP Monochrome Laser Printer",
+    "sku": "CDT-4510",
+    "price": 850000,
+    "regular_price": 950000,
+    "sale_price": 850000,
+    "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;950,000</span></del> <span class=\"screen-reader-text\">Original price was: UGX&nbsp;950,000.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;850,000</span></ins><span class=\"screen-reader-text\">Current price is: UGX&nbsp;850,000.</span>",
+    "on_sale": true,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 23,
+        "name": "PRINTERS",
+        "slug": "printers"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4511,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/07/654262fHLMyjH21783429801.jpg",
+        "name": "2026/07/654262fHLMyjH21783429801.jpg",
+        "alt": "HP LaserJet Pro M1132 MFP Monochrome Laser Printer"
+      },
+      {
+        "id": 4512,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/07/655654Wu5plqRS1783429818.png",
+        "name": "2026/07/655654Wu5plqRS1783429818.png",
+        "alt": "HP LaserJet Pro M1132 MFP Monochrome Laser Printer"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4473,
+    "name": "Hp Elitebook 850",
+    "slug": "hp-elitebook-850-3",
+    "permalink": "https://www.cyberdynamictech.com/product/hp-elitebook-850-3/",
+    "featured": false,
+    "description": "Hp Elitebook 850",
+    "short_description": "Hp Elitebook 850",
+    "sku": "CDT-4473",
+    "price": 1500000,
+    "regular_price": 2000000,
+    "sale_price": 1500000,
+    "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;2,000,000</span></del> <span class=\"screen-reader-text\">Original price was: UGX&nbsp;2,000,000.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;1,500,000</span></ins><span class=\"screen-reader-text\">Current price is: UGX&nbsp;1,500,000.</span>",
+    "on_sale": true,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 21,
+        "name": "LAPTOPS",
+        "slug": "laptops"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4472,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/06/633853QFGYw41r1782302724.jpg",
+        "name": "2026/06/633853QFGYw41r1782302724.jpg",
+        "alt": "Hp Elitebook 850"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4411,
+    "name": "SAMSUNG A06",
+    "slug": "samsung-a06",
+    "permalink": "https://www.cyberdynamictech.com/product/samsung-a06/",
+    "featured": false,
+    "description": "<p>Samsung Galaxy A06</p>\n<p>Experience smooth performance and reliable connectivity with the Samsung Galaxy A06. Designed for everyday use, the Galaxy A06 features a large immersive display, long-lasting battery, and powerful cameras to keep you connected, productive, and entertained throughout the day.</p>\n<p>Key Features:</p>\n<p>• Large HD+ Display for an immersive viewing experience</p>\n<p>• Powerful Octa-Core Processor for smooth multitasking</p>\n<p>• High-Resolution Rear Camera for clear photos and videos</p>\n<p>• Long-Lasting 5000mAh Battery</p>\n<p>• Fast Charging Support</p>\n<p>• Ample Storage with expandable memory support</p>\n<p>• Secure and user-friendly Samsung One UI</p>\n<p>Whether you&#8217;re browsing, streaming, gaming, or capturing memories, the Samsung Galaxy A06 delivers dependable performance at an affordable price.</p>\n<p>Available now from CYBER DYNAMIC TECHNOLOGIES.</p>\n<p>Contact: 0394760459 / 0742689706</p>\n<p>Website: www.cyberdynamictech.com</p>",
+    "short_description": "SAMSUNG A06",
+    "sku": "CDT-4411",
+    "price": 450000,
+    "regular_price": 450000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;450,000</span>",
+    "on_sale": false,
+    "stock_status": "outofstock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 22,
+        "name": "PHONES",
+        "slug": "phones"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4412,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/06/download-1.webp",
+        "name": "SAMSUNG A06",
+        "alt": "SAMSUNG A06"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4409,
+    "name": "TCL 40&#8243; Smart TV – Full HD Entertainment at Its Best",
+    "slug": "tcl-40-smart-tv-full-hd-entertainment-at-its-best",
+    "permalink": "https://www.cyberdynamictech.com/product/tcl-40-smart-tv-full-hd-entertainment-at-its-best/",
+    "featured": false,
+    "description": "<p>Experience immersive entertainment with the TCL 40-Inch Smart TV, designed to bring your favorite movies, sports, and shows to life in stunning Full HD clarity. Featuring a sleek modern design, vibrant LED display, and smart connectivity, this TV gives you easy access to popular streaming platforms such as YouTube, Netflix, Prime Video, and more.</p>\n<p>With built-in Wi-Fi, multiple HDMI and USB ports, and a user-friendly smart interface, the TCL 40-Inch Smart TV allows seamless connection to gaming consoles, decoders, sound systems, and other devices. Its powerful audio output and crystal-clear picture quality make it perfect for living rooms, bedrooms, offices, and entertainment spaces.</p>\n<p>Key Features:<br />\n• 40-Inch Full HD (1080p) LED Display<br />\n• Smart TV with Built-in Wi-Fi<br />\n• Access to Popular Streaming Apps<br />\n• Multiple HDMI &amp; USB Connectivity Ports<br />\n• Clear, Vibrant Colors and Sharp Images<br />\n• Slim, Modern, and Space-Saving Design<br />\n• Compatible with External Audio Devices and Gaming Consoles</p>\n<p>Upgrade your home entertainment experience with the TCL 40-Inch Smart TV — the perfect combination of quality, performance, and affordability.</p>",
+    "short_description": "TCL 40&#8243; Smart TV – Full HD Entertainment at Its Best",
+    "sku": "CDT-4409",
+    "price": 800000,
+    "regular_price": 900000,
+    "sale_price": 800000,
+    "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;900,000</span></del> <span class=\"screen-reader-text\">Original price was: UGX&nbsp;900,000.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;800,000</span></ins><span class=\"screen-reader-text\">Current price is: UGX&nbsp;800,000.</span>",
+    "on_sale": true,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 27,
+        "name": "TVS",
+        "slug": "tvs"
+      }
+    ],
+    "tags": [
+      {
+        "id": 266,
+        "name": "#display",
+        "slug": "display"
+      },
+      {
+        "id": 28,
+        "name": "HDMI",
+        "slug": "hdmi"
+      },
+      {
+        "id": 217,
+        "name": "New Product",
+        "slug": "new-product"
+      },
+      {
+        "id": 186,
+        "name": "Television",
+        "slug": "television"
+      }
+    ],
+    "images": [
+      {
+        "id": 4408,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/06/590727.jpg",
+        "name": "2026/06/590727.jpg",
+        "alt": "TCL 40&#8243; Smart TV – Full HD Entertainment at Its Best"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4372,
+    "name": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier",
+    "slug": "conica-minolta-bizhub-c454e-colour-photocopier",
+    "permalink": "https://www.cyberdynamictech.com/product/conica-minolta-bizhub-c454e-colour-photocopier/",
+    "featured": false,
+    "description": "<p>The Konica Minolta bizhub C454e is a high-performance A3 color multifunction printer (MFP) designed for medium to large offices. It combines printing, copying, scanning, and optional faxing in one compact and professional document management system. Built for productivity and reliability, the C454e delivers fast color and black-and-white output while supporting advanced workflow and security features.</p>\n<p>Konica Minolta bizhub C454e – Product Description</p>\n<p>Key Features<br />\nPrint, Copy, Scan, and Optional Fax<br />\nColor and Black &amp; White printing<br />\n45 pages per minute (A4) output speed<br />\n22 pages per minute (A3) printing<br />\n9-inch color multi-touch display for easy operation<br />\nDual-scan document feeder with scan speeds up to 160 images per minute<br />\nAutomatic duplex (double-sided) printing and scanning<br />\nSupports paper sizes from A6 to SRA3, including banner printing up to 1.2 meters<br />\nLarge expandable paper capacity for high-volume office work</p>\n<p>Feature<br />\nSpecification<br />\nPrint Speed<br />\n45 ppm (A4 color &amp; mono)<br />\nA3 Speed<br />\n22 ppm<br />\nPrint Resolution<br />\nUp to 1200 × 1200 dpi<br />\nCopy Resolution<br />\n600 × 600 dpi<br />\nWarm-up Time<br />\nApprox. 25 sec<br />\nFirst Print Time<br />\n4.6 sec mono / 5.5 sec color<br />\nMemory<br />\n2 GB RAM<br />\nStorage<br />\n250 GB HDD<br />\nPaper Capacity<br />\n1,150 sheets standard, up to 6,650 sheets max<br />\nConnectivity<br />\nUSB 2.0, Gigabit Ethernet<br />\nSupported Formats<br />\nA6–SRA3, custom sizes, banner printing<br />\nPaper Weight<br />\n52–300 gsm</p>\n<p><strong>Konica Minolta bizhub C454e – Smart, fast, and reliable A3 color multifunction printer delivering 45 ppm performance, advanced scanning, and intuitive touchscreen operation for demanding office environments.</strong></p>\n<p>Ideal For<br />\nThe C454e is suitable for:<br />\nCorporate offices<br />\nSchools and universities<br />\nPrint rooms<br />\nGovernment and administrative offices<br />\nBusinesses needing high-volume color printing and scanning with professional quality</p>\n<p>Productivity &amp; Workflow<br />\nThe bizhub C454e is designed to streamline office workflows. Users can:<br />\nScan directly to Email, USB, FTP, SMB, or network folders<br />\nPrint PDF, TIFF, XPS, and Microsoft Office files<br />\nStore documents in built-in user boxes<br />\nCustomize workflows using the touch interface and downloadable applications<br />\nUse secure and authenticated printing for confidential documents</p>",
+    "short_description": "**Konica Minolta bizhub C454e – Smart, fast, and reliable A3 color multifunction printer delivering 45 ppm performance, advanced scanning, and intuitive touchscreen operation for demanding office environments.**",
+    "sku": "CDT-4372",
+    "price": 5450000,
+    "regular_price": 6500000,
+    "sale_price": 5450000,
+    "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;6,500,000</span></del> <span class=\"screen-reader-text\">Original price was: UGX&nbsp;6,500,000.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;5,450,000</span></ins><span class=\"screen-reader-text\">Current price is: UGX&nbsp;5,450,000.</span>",
+    "on_sale": true,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 23,
+        "name": "PRINTERS",
+        "slug": "printers"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4367,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571581.jpg",
+        "name": "2026/05/571581.jpg",
+        "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+      },
+      {
+        "id": 4368,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571587.jpg",
+        "name": "2026/05/571587.jpg",
+        "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+      },
+      {
+        "id": 4369,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571593.jpg",
+        "name": "2026/05/571593.jpg",
+        "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+      },
+      {
+        "id": 4370,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571590.jpg",
+        "name": "2026/05/571590.jpg",
+        "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+      },
+      {
+        "id": 4371,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571584.jpg",
+        "name": "2026/05/571584.jpg",
+        "alt": "CONICA MINOLTA BIZHUB C454E-Colour Photocopier"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4366,
+    "name": "TCL 43 inch Android SmartTV",
+    "slug": "tcl-43-inch-android-smarttv",
+    "permalink": "https://www.cyberdynamictech.com/product/tcl-43-inch-android-smarttv/",
+    "featured": false,
+    "description": "<p>TCL 43 ,Brilliant QLED Display for Vivid Colors Full HD Tv ,Experience Exceptional Picture Quality with the TCL 43S5K QLED Full HD Tv.</p>\n<p>Full HD Resolution with enhanced clarity .Enjoy Crisp with Clear Viewing  experience with 192*1080 Full HD Resolution</p>\n<p>Dolby Audio for immersive Sound ,Feel the Action With Dolby Sound Delivering Clear  dialogue rich bass and Surround Sound like Performance Perfect for movies Sports and gaming ,the Tv Brings Cinema quality Sound right into your home.</p>\n<p>Google Tv with Personalised  Content.</p>\n<p>Key Features<br />\nImmersive HDR10 for deeper Contast and clear details .</p>\n<p>Power full 24W Doulby Audio for cinematic Sound</p>\n<p>Smart google Tv Os with google cast built in access your favourite Streaming apps voice Control and Seamless casting for mobile device all powered by google inuitive google Tv Platforms .</p>\n<p>Tailored viewing modes for gaming ,movies and Sports mode.</p>\n<p>Elegant Metallic Bezel less Slim Design Sleek Modern and Space Saving ,the bazel less frame enhance your viewing area while Elevating your home decor .</p>\n<p>Versatile Connectivity ,Stay with 3 HDMI ports,2 USB ports , wifi Ethernet and Bluetooth v5.0 Perfect for gaming Consoles Sound Bars and others.</p>",
+    "short_description": "TCL 43 Inch Smart android Tv , HDR 10 Google TV ,Full HD Dolby Audio,Game Mode,Multiple Eye qled Care w ith Slim Design 2025 Model, YouTube, Netflix, Hifi, Prime Video Chromcast, Built in Free to air Decorder4k &#8211; Black",
+    "sku": "CDT-4366",
+    "price": 780000,
+    "regular_price": 780000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;780,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 27,
+        "name": "TVS",
+        "slug": "tvs"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4373,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571599.png",
+        "name": "2026/05/571599.png",
+        "alt": "TCL 43 inch Android SmartTV"
+      },
+      {
+        "id": 4365,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571578.jpg",
+        "name": "2026/05/571578.jpg",
+        "alt": "TCL 43 inch Android SmartTV"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 1,
+    "average_rating": 2,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4359,
+    "name": "Car &amp; Motorcycle GPS Tracker",
+    "slug": "car-motorcycle-gps-tracker",
+    "permalink": "https://www.cyberdynamictech.com/product/car-motorcycle-gps-tracker/",
+    "featured": false,
+    "description": "<p>Protect your car or motorcycle from theft with real-time GPS tracking and remote engine cut-off. Monitor your vehicle live from your phone, receive instant alerts if it moves without permission, and review trip history anytime. This smart tracker helps you stay in control and protect your investment.</p>\n<p>Key Security Benefits</p>\n<p>Real-Time Location Tracking – See your vehicle live on your mobile phone map anytime.<br />\nRemote Engine Cut-Off – Stop the engine from your app in case of theft.<br />\nInstant Movement Alerts – Get notified if your car or motorcycle is moved unexpectedly.<br />\nGeo-Fence Alerts – Receive alerts when the vehicle enters or leaves a set area.<br />\nTrip Playback History – Review routes, stops, and driving patterns anytime.<br />\nHidden Installation – Device can be safely concealed inside the vehicle.<br />\nEasy Mobile App Monitoring</p>\n<p>Monitor everything from your smartphone using a free mobile app (Android &amp; iPhone).</p>\n<p>✔ Live tracking<br />\n✔ Speed monitoring<br />\n✔ Route history<br />\n✔ Alarm notifications<br />\n✔ Engine cut-off control</p>\n<p>Designed for Use in Uganda<br />\nThis GPS tracker works reliably across Uganda using MTN or Airtel SIM cards. It provides stable tracking in cities, highways, and rural areas. Suitable for personal cars, bodas (motorcycles), and fleet vehicles.</p>\n<p>No complicated setup — just insert a SIM card and connect.</p>\n<p>Installation &amp; Use</p>\n<p>Professional installation is recommended for the engine cut-off feature. The device connects to the vehicle’s power system and can be hidden safely inside the dashboard area.</p>\n<p>What’s in the Box</p>\n<p>• GPS Tracking Device<br />\n• Wiring Harness<br />\n• Engine Cut-Off Relay<br />\n• User Manual</p>\n<p>Technical Specifications<br />\n• Positioning: GPS + LBS + AGPS<br />\n• GPS Accuracy: Up to 5 meters<br />\n• Voltage Range: 9V–90V<br />\n• Waterproof Rating: IPX5<br />\n• Built-in Battery Backup<br />\n• Alarm Types: Vibration, Power Cut, Geo-Fence, Overspeed</p>\n<p>Why Buy From Us?<br />\n✔ Used by vehicle owners across Uganda<br />\n✔ Free app hosting — no monthly tracking subscription<br />\n✔ Reliable tracking performance<br />\n✔ Ideal for personal, boda &amp; fleet vehicle security</p>\n<p>Key Features<br />\nCar/Motorbike  GPS tracker with remote engine cutoff APP monitoring</p>\n<p>Product properties:</p>\n<p>Material: anti-lock braking system (ABS)<br />\nModel: CY03A<br />\nMemory: 0 (m)<br />\nGPS positioning accuracy: 5 (meters)<br />\nAlarm mode: vibration alarm, power failure alarm, mobile alarm, fence alarm, overspeed alarm.<br />\nDimensions: 77.7<em>28.8</em>16 (mm)<br />\nBattery type: polymer battery<br />\nBattery life: 8 (hours)<br />\nWaterproof function: IPX5<br />\nAntenna type: integrated<br />\nExternal power supply as power supply: 9-90 V<br />\nMap function: Google/Baidu/Google<br />\nGPS tracking device for car/motorcycle/scooter</p>",
+    "short_description": "Car &amp; Motorcycle GPS Tracker for Vehicles – Anti-Theft Real-Time Tracking with Engine Cut-Off – Free App Hosting",
+    "sku": "CDT-4359",
+    "price": 185000,
+    "regular_price": 185000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;185,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 17,
+        "name": "OTHERS",
+        "slug": "others"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4360,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571184.png",
+        "name": "2026/05/571184.png",
+        "alt": "Car &amp; Motorcycle GPS Tracker"
+      },
+      {
+        "id": 4355,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571170.jpg",
+        "name": "2026/05/571170.jpg",
+        "alt": "Car &amp; Motorcycle GPS Tracker"
+      },
+      {
+        "id": 4354,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571174.jpg",
+        "name": "2026/05/571174.jpg",
+        "alt": "Car &amp; Motorcycle GPS Tracker"
+      },
+      {
+        "id": 4356,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571173-1.jpg",
+        "name": "2026/05/571173-1.jpg",
+        "alt": "Car &amp; Motorcycle GPS Tracker"
+      },
+      {
+        "id": 4357,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571172.jpg",
+        "name": "2026/05/571172.jpg",
+        "alt": "Car &amp; Motorcycle GPS Tracker"
+      },
+      {
+        "id": 4358,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571171.jpg",
+        "name": "2026/05/571171.jpg",
+        "alt": "Car &amp; Motorcycle GPS Tracker"
+      },
+      {
+        "id": 4361,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571184-1.png",
+        "name": "2026/05/571184-1.png",
+        "alt": "Car &amp; Motorcycle GPS Tracker"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4352,
+    "name": "foldable/ Portable Washing Machine,y",
+    "slug": "foldable-portable-washing-machiney",
+    "permalink": "https://www.cyberdynamictech.com/product/foldable-portable-washing-machiney/",
+    "featured": false,
+    "description": "<p>Attention】The mini washing machine is designed special for small items as like baby clothes ,underwear,sock,towels ,fruits vegetables and pet supplies and other small things which can&#8217;t wash sweaters and large clothes.Please be aware that this washing machine does not include a dehydration function and a dryer function. This mini washer is not intended to replace a full-sized washing machine.</p>\n<p>【Folding Design &amp; Larger Capacity 】 Measuring 11.6 x 11.6 x 11.4inches when unfolded and 11.6 x 11.6 x 5.7 inches when folded.Washing Capacity is 2.64 LB / 8L, 3 baby t-shirts or 6 under wears or 10 pairs of socks in one load.Perfect for travelers, small spaces, and busy families with babies, pets, or patients.</p>\n<p>【Super convenient and Cost-Saving】Our mini portable washing machine is the epitome of super savings and convenience. The washing cycle time is only ten minutes, while the water consumption is as low as 1.32 gallons, and power consumption is as low as 0.003 kWh. This means you can save both time and money while getting your laundry done quickly and efficiently. Our product is designed with your convenience and cost-savings in mind.&#8221;</p>\n<p>Durable and Eco-Friendly Materials】Our mini washing machine is designed to last, thanks to its durable and eco-friendly materials. Made of high-quality ABS and TPR materials, making it a great choice for washing personal items, baby items, pet items, fruits, and vegetables.It can handle up to 2kg of clothing weight (when filled with water) and effectively removes dirt, leaving your clothes looking clean and fresh.</p>\n<p>【Easy to operate &amp; Three Modes】Compact simple washing machine has a semi-automatic cleaning function and is equipped with 3 washing modes .By long-pressing switch button for 2 seconds, the mode can be switched on or off. Clicking on the switch button once will set the washing mode to standard for a duration of 10 minutes. Pressing the switch button again will switch to a 15-minute washing mode. Similarly, pressing the switch button will convert the dehydration mode for 2 minutes.</p>\n<p>Key Features</p>\n<p>Washing Rated Capacity:8L<br />\nOutput voltage: DC12V<br />\nWaterproof Grade:IPX4<br />\nWashing Capacity and Power:Semi-Automatic Cleaning Function 110V-240V</p>",
+    "short_description": "foldable/ Portable Washing Machine,y",
+    "sku": "CDT-4352",
+    "price": 180000,
+    "regular_price": 180000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;180,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 17,
+        "name": "OTHERS",
+        "slug": "others"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4345,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571087.jpg",
+        "name": "2026/05/571087.jpg",
+        "alt": "foldable/ Portable Washing Machine,y"
+      },
+      {
+        "id": 4346,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571084.jpg",
+        "name": "2026/05/571084.jpg",
+        "alt": "foldable/ Portable Washing Machine,y"
+      },
+      {
+        "id": 4347,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571085.jpg",
+        "name": "2026/05/571085.jpg",
+        "alt": "foldable/ Portable Washing Machine,y"
+      },
+      {
+        "id": 4348,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571086.jpg",
+        "name": "2026/05/571086.jpg",
+        "alt": "foldable/ Portable Washing Machine,y"
+      },
+      {
+        "id": 4349,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571089.jpg",
+        "name": "2026/05/571089.jpg",
+        "alt": "foldable/ Portable Washing Machine,y"
+      },
+      {
+        "id": 4350,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571090.jpg",
+        "name": "2026/05/571090.jpg",
+        "alt": "foldable/ Portable Washing Machine,y"
+      },
+      {
+        "id": 4351,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/571088.jpg",
+        "name": "2026/05/571088.jpg",
+        "alt": "foldable/ Portable Washing Machine,y"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4318,
+    "name": "Hp LaserJet Pro 4003dn Printer &#8211; White",
+    "slug": "hp-laserjet-pro-4003dn-printer-white",
+    "permalink": "https://www.cyberdynamictech.com/product/hp-laserjet-pro-4003dn-printer-white/",
+    "featured": false,
+    "description": "<p>The HP LaserJet 4003dn Printer is a high-performance printing solution designed for black and white printing tasks. With its print-only functionality, it focuses on producing high-quality monochrome documents efficiently. Featuring network connectivity, it allows seamless printing from multiple devices within the same network, enhancing productivity in shared office environments. Its sleek white design adds a modern touch to any workspace or office setting. Ideal for users who prioritize network printing capabilities, the HP LaserJet Pro 4003dn Printer offers reliability, speed, and versatility for business and professional use.</p>\n<p>Technical Specifications</p>\n<p>Functions</p>\n<p>Print<br />\nPrint Speed</p>\n<p>Black (ISO, letter): Up to 42 ppm 1<br />\nBlack (ISO, A4): Up to 40 ppm 1<br />\nFirst Page Out</p>\n<p>Black (letter, ready): As fast as 6.1 sec 2<br />\nBlack (A4, ready): As fast as 6.3 sec 2<br />\nColor (letter, ready): 2<br />\nColor (A4, ready): 2<br />\nDuty Cycle (Monthly)</p>\n<p>Letter: Up to 80,000 pages<br />\nA4: Up to 80,000 pages<br />\nRecommended Monthly Page Volume</p>\n<p>750 to 4,000<br />\nPrint Quality (Best)</p>\n<p>Black: Fine Lines (1200 x 1200 dpi)<br />\nPrint Languages</p>\n<p>HP PCL 6, HP PCL 5e, HP postscript level 3 emulation, PDF, URF, PWG Raster<br />\nPrint Technology</p>\n<p>Laser<br />\nConnectivity, Standard</p>\n<p>1 Hi-Speed USB 2.0; 1 host USB at rear side; Gigabit Ethernet 10/100/1000BASE-T network; 802.3az(EEE)<br />\nMobile Printing Capability</p>\n<p>HP Smart App; Apple AirPrint™; Mopria™ Certified<br />\nNetwork Capabilities</p>\n<p>Yes, via built-in 10/100/1000Base-TX Ethernet, Gigabit; Auto-crossover Ethernet; Authentication via 802.1X (does not apply to D bundles)<br />\nMinimum System Requirements</p>\n<p>For Macintosh: 2 GB available hard drive space; Internet connection or USB port Internet browser. For additional OS hardware requirements see apple.com<br />\nFor Windows: 2 GB available hard disk space; Internet connection or USB port Internet browser. For additional OS hardware requirements see microsoft.com<br />\nDisplay</p>\n<p>2-line backlit LCD graphic display<br />\nProcessor Speed</p>\n<p>1200 MHz<br />\nMaximum Memory</p>\n<p>256 MB<br />\nMemory</p>\n<p>256 MB<br />\nInternal Storage</p>\n<p>None<br />\nStorage</p>\n<p>Optional Job storage via external rear host USB port (Minimum 16 GB)<br />\nCompatible Operating Systems</p>\n<p>Windows 11; Windows 10; Android; iOS; Mobile OS; macOS 10.15 Catalina; macOS 11 Big Sur; macOS 12 Monterey; macOS 13 Ventura; Chrome OS<br />\nPaper Handling Input, Standard</p>\n<p>100-sheet multipurpose Tray 1, 250-sheet input Tray 2<br />\nPaper Handling Output, Standard</p>\n<p>150-sheet output bin<br />\nPaper Handling Input, Optional</p>\n<p>Optional third 550-sheet tray<br />\nFinished Output Handling</p>\n<p>Sheetfed<br />\nMedia Types</p>\n<p>Paper (plain, EcoFFICIENT, light, heavy, bond, colored, letterhead, preprinted, prepunched, recycled, rough); envelopes; labels<br />\nMedia Sizes, Custom</p>\n<p>Tray 1: 76 x 127 to 216 x 356 mm; Tray 2, optional Tray 3: 104.9 x 148.5 to 2165.9 x 356.6 mm<br />\nPower Consumption</p>\n<p>495 watts (active printing), 5.5 watts (ready), 0.5 watts (sleep), 0.5 (Auto Off/Wake on LAN, enabled at shipment), 0.05 watts (Auto-off/Manual-on), 0.05 (Manual Off) (Power requirements are based on the country/region where the printer is sold. Do not convert operating voltages. This will damage the printer and void the product warranty.)<br />\nPower</p>\n<p>110-volt input voltage: 110 to 127 VAC (+/- 10%), 50/60 Hz (+/- 2 Hz); 220-volt input voltage: 220 to 240 VAC (+/- 10%), 50/60 Hz (+/- 2 Hz) (Not dual voltage, product varies by part number with # Option code identifier)<br />\nOperating Humidity Range</p>\n<p>10 to 80% RH<br />\nRecommended Operating Humidity Range</p>\n<p>30 to 70% RH<br />\nOperating Temperature Range</p>\n<p>10 to 32.5°C<br />\n50 to 91°F<br />\nBlue Angel Compliant</p>\n<p>No, please refer to the ECI (Ecolabel Comparison Information) document<br />\nTypical Electricity Consumption (TEC) Number</p>\n<p>5 (Typical Electricity Consumption (TEC) rating represents the typical electricity consumed by a product during 1 week, measured in kilowatt-hours (kWh).)<br />\nEnergy Savings Feature Technology</p>\n<p>HP Auto-On/Auto-Off Technology; Instant-on Technology; EcoSmart black toner; Power save<br />\nEcolabels</p>\n<p>IT ECO Declaration (EPEAT® registered where applicable. EPEAT registration varies by country. See http://www.epeat.net for registration status by country.)<br />\nEnergy Star Certified</p>\n<p>No<br />\nSafety</p>\n<p>IEC 60950-1:2005 +A1:2009 +A2:2013; IEC 62368-1:2014 / EN 62368-1:2014; IEC 60825-1:2014 / EN 60825-1:2014; IEC 62479:2010 / EN 62479:2010<br />\nSecurity Management</p>\n<p>Management security: SNMP v1 v2 v3, SSL/TLS (HTTPS), 802.1x authentication; wireless network security: WPA (Wi-Fi Protected Access) WPA2 WPA3, WEP encryption (64 and 128 bit), 802.1x authentication (EAP-PEAP, LEAP, EAP-TLS) with RADIUS servers<br />\nHP Security Manager; Optional Smart Security; HP Secure Print and Insights<br />\nMinimum Dimensions (W x D x H)</p>\n<p>381 x 357 x 216 mm (Without trays and covers not extended)<br />\nMaximum Dimensions (W x D x H)</p>\n<p>381 x 634 x 241 mm (Without trays and covers not extended)<br />\nWeight</p>\n<p>8.56 kg<br />\nWhat&#8217;s in the Box</p>\n<p>HP LaserJet 4003dn Printer; Preinstalled HP Black Original LaserJet Toner Cartridge (3,050 pages); Getting Started Guide; Support Flyer; Warranty Guide; Regulatory Flyer; Power cord<br />\nNumber of Print Cartridges</p>\n<p>1 (black)<br />\nReplacement Cartridges</p>\n<p>HP 151A Black Original LaserJet Toner Cartridge (~3,050 pages), W1510A; HP 151X Black Original LaserJet Toner Cartridge (~9,700 pages), W1510X<br />\nKey Features<br />\nFunctions: Print Only<br />\nPrint Speed: Up to 42 ppm<br />\nPrint Quality (Black, Best): Fine Lines (1200 x 1200 dpi)<br />\nConnectivity, Standard: 1 Hi-Speed USB 2.0; 1 host USB at rear side; Gigabit Ethernet 10/100/1000BASE-T network; 802.3az(EEE)<br />\nDuty Cycle (Monthly, Letter): Up to 80,000 pages<br />\nPaper Handling Input, Standard: 100-sheet multipurpose Tray 1, 250-sheet input Tray 2<br />\nPrint Technology: Laser</p>",
+    "short_description": "Hp LaserJet Pro 4003dn Printer &#8211; White",
+    "sku": "CDT-4318",
+    "price": 1300000,
+    "regular_price": 1300000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;1,300,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 23,
+        "name": "PRINTERS",
+        "slug": "printers"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4315,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562719.jpg",
+        "name": "2026/05/562719.jpg",
+        "alt": "Hp LaserJet Pro 4003dn Printer &#8211; White"
+      },
+      {
+        "id": 4316,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562718.jpg",
+        "name": "2026/05/562718.jpg",
+        "alt": "Hp LaserJet Pro 4003dn Printer &#8211; White"
+      },
+      {
+        "id": 4317,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562720.jpg",
+        "name": "2026/05/562720.jpg",
+        "alt": "Hp LaserJet Pro 4003dn Printer &#8211; White"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4314,
+    "name": "Hp Dvr M141w Multifunction LaserJet Printer",
+    "slug": "hp-dvr-m141w-multifunction-laserjet-printer",
+    "permalink": "https://www.cyberdynamictech.com/product/hp-dvr-m141w-multifunction-laserjet-printer/",
+    "featured": false,
+    "description": "<p>he HP LaserJet MFP M141w Printer  is a reliable all-in-one device that can print, copy, and scan at speeds of up to 21 pages per minute. With a first-page-out time of as fast as 8.3 seconds, this printer is ideal for busy work environments.</p>\n<p>It features a duty cycle of up to 8,000 pages per month and can handle a recommended monthly page volume of 100 to 1,000 pages. The printer produces high-quality black prints with a resolution of up to 600 x 600 dpi using laser technology.</p>\n<p>The HP LaserJet MFP M141w Printer comes with 64 MB of memory and is compatible with various operating systems, including Windows 11, Windows 10, macOS Catalina, and Linux. It also supports mobile printing via the HP Smart App, Apple Air Print, and Mopria, making it easy to print from your smartphone or tablet.</p>\n<p>In terms of connectivity, the printer has a Hi-Speed USB port and 802.11b/g/n Wi-Fi radio, allowing you to connect to your network wirelessly. The 150-sheet input tray and 100-sheet output bin can handle various media types such as plain paper, envelopes, and postcards.</p>\n<p>Overall, the HP LaserJet MFP M141w Printer is a versatile and efficient device that can meet the printing, copying, and scanning needs of your business or home office.</p>\n<p>Key Features<br />\nFunctions: Print, copy, scan<br />\nPrint speed: Up to 21 ppm (black, ISO letter)<br />\nFirst page out: As fast as 8.3 sec (black, letter, ready)<br />\nDuplex printing: No<br />\nDuty cycle: Up to 8,000 pages/month (letter, A4)<br />\nRecommended monthly page volume: 100-1000<br />\nPrint quality: Up to 600 x 600 dpi (black, best)<br />\nPrint technology: Laser<br />\nConnectivity: Hi-Speed USB, Wi-Fi, BLE<br />\nMobile printing capability: HP Smart App, Apple AirPrint, Mopria Certified, Wi-Fi Direct Printing<br />\nWireless capability: Yes<br />\nDisplay: ICON LCD, LED<br />\nProcessor speed: 500 MHz<br />\nMemory: 64 MB<br />\nPaper handling: 150-sheet input tray, 100-sheet outpu<br />\nWhat’s in the box<br />\nM141w Multifunction LaserJet Printer<br />\nSpecifications</p>\n<p>Weight (kg): 1</p>\n<p>Certifications: Australian Made|AFRDI Leather|PEFC Timber Certificate|FSC &#8211; Forest Stewardship Council|PEFC &#8211; Programme for the Endorsement of Forest Certification|GECA &#8211; Good Environmental Choice Australia|Fair Trade|AFRDI &#8211; Australian Furnishing Research &amp; Development Institute|Eco Friendly|ASTM Certified|Organic|Suitable For Allergics|Made in Morocco|Swiss Made|Hong Kong Made|Made in Turkey</p>\n<p>Color: wrafasv</p>",
+    "short_description": "Hp Dvr M141w Multifunction LaserJet Printer",
+    "sku": "CDT-4314",
+    "price": 850000,
+    "regular_price": 850000,
+    "price_html": "<span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;850,000</span>",
+    "on_sale": false,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 23,
+        "name": "PRINTERS",
+        "slug": "printers"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4311,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562708.jpg",
+        "name": "2026/05/562708.jpg",
+        "alt": "Hp Dvr M141w Multifunction LaserJet Printer"
+      },
+      {
+        "id": 4312,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562707.jpg",
+        "name": "2026/05/562707.jpg",
+        "alt": "Hp Dvr M141w Multifunction LaserJet Printer"
+      },
+      {
+        "id": 4313,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562706.jpg",
+        "name": "2026/05/562706.jpg",
+        "alt": "Hp Dvr M141w Multifunction LaserJet Printer"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  },
+  {
+    "id": 4310,
+    "name": "Hp EliteBook Core I5 8th Gen",
+    "slug": "hp-elitebook-core-i5-8th-gen",
+    "permalink": "https://www.cyberdynamictech.com/product/hp-elitebook-core-i5-8th-gen/",
+    "featured": false,
+    "description": "<p>HP EliteBook  Laptop<br />\nThe HP Elitebook  Laptop is designed for modern mobile professionals. It offers a highly secure and manageable system with powerful collaboration tools that enables the enterprise workforce to be more productive and secure on the go or in the office.</p>\n<p>The HP  Elitebook Laptop is designed for modern mobile professionals. It offers a highly secure and manageable system with powerful collaboration tools that enables the enterprise workforce to be more productive and secure on the go or in the office.<br />\nThe 14″ display features a Full HD 1920 x 1080 resolution and a 16:9 aspect ratio. The IPS panel provides wider viewing angles while the anti-glare coating helps reduce glare.</p>\n<p>The system is powered by an 8th Gen 1.6 GHz Intel Core i5-8365U Quad-Core processor. It also has 16GB of DDR4 RAM, a 512GB M.2 NVMe PCIe SSD, Gigabit Ethernet, Wi-Fi 6 (802.11ax), Bluetooth 5.0, Thunderbolt 3, USB Type-A, and a docking connector. In the event that you need to restore the system, this EliteBook has  HP Sure Recovery storage, which is an automated operating system recovery solution integrated into the hardware and firmware.</p>\n<p>Windows 10 Pro (64-bit) includes all of the features of Windows 10 Home plus many designed specifically for business users, including Hyper-V virtualization, BitLocker disk encryption, and remote desktop access. Devices will also be able to join domains and the Azure Active Directory, and they can even access a specialized version of the Windows Store featuring custom, company-specific applications.</p>\n<p>Brilliant Design<br />\nThis ultraslim and distinctively designed aluminum laptop with its anti-glare display adapts to most environments for an improved viewing experience when you work.</p>\n<p>Built On a Secure Foundation<br />\nProtect your system against the evolving malware threats of the future, with self-healing and manageable hardware-enforced security solutions from HP. From the BIOS to the browser, HP Sure Start Gen5 and HP Sure Click help keep you secure.</p>\n<p>Crystal Clear Collaboration<br />\nCalls sound clear and crisp with advanced collaboration features like HP Noise Cancellation. Loud top-firing speakers produce rich sound. The world-facing third microphone and collaboration keys help make calls productive.</p>\n<p>Key Features<br />\nFHD Display<br />\nCore i5 8th Gen<br />\n8GB DDR4 Ram<br />\n256 GB SSD Storage<br />\nWindows 11 Pro<br />\nLasting Battery</p>\n<p>6 months warranty but not on power.</p>",
+    "short_description": "Hp EliteBook Core I5 8th Gen, 8GB Ram, 256GB SSD, &#8211; Silver (6MTHS WRTY) Renewed Grade A",
+    "sku": "CDT-4310",
+    "price": 1250000,
+    "regular_price": 1600000,
+    "sale_price": 1250000,
+    "price_html": "<del aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;1,600,000</span></del> <span class=\"screen-reader-text\">Original price was: UGX&nbsp;1,600,000.</span><ins aria-hidden=\"true\"><span class=\"woocommerce-Price-amount amount\"><span class=\"woocommerce-Price-currencySymbol\">UGX</span>&nbsp;1,250,000</span></ins><span class=\"screen-reader-text\">Current price is: UGX&nbsp;1,250,000.</span>",
+    "on_sale": true,
+    "stock_status": "instock",
+    "stock_quantity": 15,
+    "manage_stock": true,
+    "categories": [
+      {
+        "id": 21,
+        "name": "LAPTOPS",
+        "slug": "laptops"
+      }
+    ],
+    "tags": [],
+    "images": [
+      {
+        "id": 4306,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562696.jpg",
+        "name": "2026/05/562696.jpg",
+        "alt": "Hp EliteBook Core I5 8th Gen"
+      },
+      {
+        "id": 4307,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562705.jpg",
+        "name": "2026/05/562705.jpg",
+        "alt": "Hp EliteBook Core I5 8th Gen"
+      },
+      {
+        "id": 4309,
+        "src": "https://www.cyberdynamictech.com/wp-content/uploads/2026/05/562684.jpg",
+        "name": "2026/05/562684.jpg",
+        "alt": "Hp EliteBook Core I5 8th Gen"
+      }
+    ],
+    "attributes": [],
+    "rating_count": 0,
+    "average_rating": 0,
+    "brand": "Cyber Dynamic Technologies",
+    "weight": "1.5 kg",
+    "warranty": "1 Year Warranty Included"
+  }
+];
 
 export const INITIAL_DELIVERY_ZONES: DeliveryZone[] = [
   {

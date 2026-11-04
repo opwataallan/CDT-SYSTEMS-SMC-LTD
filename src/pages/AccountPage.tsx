@@ -29,7 +29,6 @@ import { CustomerOrder, Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { ThemeColorSetting } from '../components/ThemeColorSetting';
 import { OrderReceiptModal } from '../components/OrderReceiptModal';
-import { auth } from '../firebase';
 
 interface AccountPageProps {
   initialTab?: 'orders' | 'profile' | 'wishlist' | 'theme';
@@ -38,11 +37,8 @@ interface AccountPageProps {
 export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' }) => {
   const {
     user,
-    firebaseUser,
-    isFirebaseReady,
     isAdmin,
     login,
-    loginWithGoogle,
     register,
     logoutUser,
     updateUserProfile,
@@ -101,7 +97,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
 
   // Load orders for current customer directly from WooCommerce database
   useEffect(() => {
-    const customerEmail = user?.email || firebaseUser?.email || auth.currentUser?.email;
+    const customerEmail = user?.email;
     const customerPhone = user?.phone;
 
     if (!customerEmail && !customerPhone) {
@@ -128,7 +124,7 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
       .finally(() => {
         setLoadingOrders(false);
       });
-  }, [user?.email, user?.phone, firebaseUser?.email]);
+  }, [user?.email, user?.phone]);
 
   // Load wishlist items
   useEffect(() => {
@@ -290,19 +286,8 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
     }
   };
 
-  // 1. Wait for Firebase Authentication state to finish loading
-  if (!isFirebaseReady) {
-    return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4">
-        <div className="w-10 h-10 border-3 border-cyan-600 border-t-transparent rounded-full animate-spin mx-auto" />
-        <h2 className="text-sm font-bold text-slate-800">Verifying Account Authentication...</h2>
-        <p className="text-xs text-slate-500">Checking Firebase security session.</p>
-      </div>
-    );
-  }
-
-  // 2. If user is not logged in: show auth card
-  if (!user && !auth.currentUser) {
+  // If user is not logged in: show auth card
+  if (!user) {
     return (
       <div className="max-w-md mx-auto px-4 py-12">
         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-panel-lg space-y-5">
@@ -360,48 +345,6 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
           {/* SIGN IN FORM */}
           {authMode === 'login' && (
             <div className="space-y-4 text-xs">
-              {/* Firebase Google Sign In */}
-              <button
-                type="button"
-                onClick={async () => {
-                  setAuthLoading(true);
-                  setAuthError(null);
-                  try {
-                    await loginWithGoogle();
-                  } catch (err: any) {
-                    setAuthError(err.message || 'Google sign-in failed');
-                  } finally {
-                    setAuthLoading(false);
-                  }
-                }}
-                disabled={authLoading}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
-                Continue with Google
-              </button>
-
-              <div className="relative flex items-center justify-center my-3">
-                <div className="border-t border-slate-200 w-full" />
-                <span className="bg-white px-2 text-[11px] text-slate-400 font-medium absolute">or continue with email</span>
-              </div>
 
               <form onSubmit={handleLoginSubmit} className="space-y-3.5">
                 <div>
@@ -483,49 +426,6 @@ export const AccountPage: React.FC<AccountPageProps> = ({ initialTab = 'orders' 
           {/* REGISTER FORM */}
           {authMode === 'register' && (
             <div className="space-y-4 text-xs">
-              {/* Firebase Google Sign In */}
-              <button
-                type="button"
-                onClick={async () => {
-                  setAuthLoading(true);
-                  setAuthError(null);
-                  try {
-                    await loginWithGoogle();
-                  } catch (err: any) {
-                    setAuthError(err.message || 'Google sign-up failed');
-                  } finally {
-                    setAuthLoading(false);
-                  }
-                }}
-                disabled={authLoading}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg text-xs font-bold text-slate-700 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
-                  />
-                </svg>
-                Continue with Google
-              </button>
-
-              <div className="relative flex items-center justify-center my-3">
-                <div className="border-t border-slate-200 w-full" />
-                <span className="bg-white px-2 text-[11px] text-slate-400 font-medium absolute">or register with email</span>
-              </div>
-
               <form onSubmit={handleRegisterSubmit} className="space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-2">
                 <div>

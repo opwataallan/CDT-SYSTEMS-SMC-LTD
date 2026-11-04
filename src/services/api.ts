@@ -22,7 +22,7 @@ import {
   VendorStaff,
 } from '../types';
 import { getStoredReviewsForProduct, saveLocalProductReview } from '../data/initialReviews';
-import { INITIAL_CATEGORIES } from '../data/cyberCatalog';
+import { INITIAL_CATEGORIES, INITIAL_PRODUCTS } from '../data/cyberCatalog';
 import { clientCache } from '../utils/apiCache';
 
 // Support optional custom backend URL (for cPanel static hosting proxying to Node or external API)
@@ -61,18 +61,11 @@ async function safeFetch<T = any>(
     ...((init?.headers as Record<string, string>) || {}),
   };
 
-  // Automatically attach authenticated token if available (from localStorage or Firebase Auth)
+  // Automatically attach authenticated token if available from session/localStorage
   try {
     const storedToken = typeof localStorage !== 'undefined' ? localStorage.getItem('cdt_token') : null;
     if (storedToken && !headers['Authorization']) {
       headers['Authorization'] = `Bearer ${storedToken}`;
-    }
-    const { auth } = await import('../firebase');
-    if (auth?.currentUser && !headers['Authorization']) {
-      const token = await auth.currentUser.getIdToken().catch(() => null);
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
     }
   } catch {
     // Non-critical: Proceed with standard headers
@@ -517,104 +510,152 @@ export const api = {
     query.set('limit', String(effectiveLimit));
     if (params.stock_status) query.set('stock_status', params.stock_status);
 
+    const normalizeStoreItem = (raw: any): Product => {
+      const minorUnit = typeof raw.prices?.currency_minor_unit === 'number' ? raw.prices.currency_minor_unit : 0;
+      const divisor = Math.pow(10, minorUnit);
+      const currentPrice = raw.prices?.price ? Number(raw.prices.price) / divisor : Number(raw.price || 0);
+      const regularPrice = raw.prices?.regular_price ? Number(raw.prices.regular_price) / divisor : currentPrice;
+      const salePrice = raw.prices?.sale_price && Number(raw.prices.sale_price) < Number(raw.prices.regular_price)
+        ? Number(raw.prices.sale_price) / divisor
+        : undefined;
+
+      const rawImages = Array.isArray(raw.images) && raw.images.length > 0 ? raw.images : raw.image ? [raw.image] : [];
+      const images = rawImages.map((img: any, idx: number) => ({
+        id: img.id || idx + 1,
+        src: img.src || img.thumbnail || img.url || '',
+        name: img.name || raw.name || 'Product Image',
+        alt: img.alt || raw.name || 'Product Image',
+      }));
+
+      const cleanDesc = (raw.short_description || '')
+        .replace(/<[^>]*>?/gm, ' ')
+        .replace(/\s+/g, ' ')
+        .trim() || raw.name;
+
+      return {
+        id: raw.id,
+        name: raw.name,
+        slug: raw.slug || `product-${raw.id}`,
+        permalink: raw.permalink || '',
+        featured: Boolean(raw.featured),
+        description: raw.description || cleanDesc,
+        short_description: cleanDesc,
+        sku: raw.sku || `CDT-${raw.id}`,
+        price: currentPrice,
+        regular_price: regularPrice,
+        sale_price: salePrice,
+        price_html: raw.price_html || `${currentPrice.toLocaleString()} UGX`,
+        on_sale: Boolean(salePrice && salePrice < regularPrice),
+        stock_status: raw.is_in_stock === false ? 'outofstock' : 'instock',
+        stock_quantity: typeof raw.stock_quantity === 'number' ? raw.stock_quantity : 15,
+        manage_stock: true,
+        categories: Array.isArray(raw.categories)
+          ? raw.categories.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug }))
+          : [],
+        tags: Array.isArray(raw.tags) ? raw.tags.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) : [],
+        images: images.length > 0 ? images : [{ id: 1, src: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&auto=format&fit=crop&q=80', name: raw.name, alt: raw.name }],
+        attributes: Array.isArray(raw.attributes) ? raw.attributes : [],
+        rating_count: typeof raw.review_count === 'number' ? raw.review_count : 4,
+        average_rating: Number(raw.average_rating || 4.8),
+        brand: raw.attributes?.[0]?.terms?.[0]?.name || 'Cyber Dynamic Technologies',
+        weight: '1.5 kg',
+        warranty: '1 Year Warranty Included',
+      };
+    };
+
     try {
-      const result = await safeFetch<{ products: Product[]; total: number; totalPages: number }>(
+      const result = await safeFetch<any>(
         `/api/woocommerce/products?${query.toString()}`,
         { method: 'GET' },
         'Failed to fetch products'
       );
+
+      // Handle direct array from Vercel proxy or WooCommerce Store API
+      if (Array.isArray(result)) {
+        const mapped = result.map((item: any) => (item.sku && item.price !== undefined && !item.prices ? item : normalizeStoreItem(item)));
+        const finalObj = { products: mapped, total: mapped.length, totalPages: 1 };
+        clientCache.set(cacheKey, finalObj, 120);
+        return finalObj;
+      }
+
+      // Handle standard { products: [...] } payload
       if (result && Array.isArray(result.products)) {
-        clientCache.set(cacheKey, result, 120);
+        const mapped = result.products.map((item: any) => (item.sku && item.price !== undefined && !item.prices ? item : normalizeStoreItem(item)));
+        const finalObj = { ...result, products: mapped };
+        clientCache.set(cacheKey, finalObj, 120);
+        return finalObj;
       }
-      return result;
     } catch (err) {
-      // If the backend /api endpoint is momentarily starting, fetch directly from live WooCommerce Store API
       console.warn('Backend /api notice, querying live WooCommerce Store API directly:', err);
-      try {
-        const perPage = Math.min(effectiveLimit, 100);
-        const p = params.page || 1;
-        const storeApiUrl = `https://www.cyberdynamictech.com/wp-json/wc/store/v1/products?per_page=${perPage}&page=${p}${
-          params.search ? `&search=${encodeURIComponent(params.search)}` : ''
-        }`;
-        const resp = await fetch(storeApiUrl, {
-          headers: { Accept: 'application/json' },
-        });
-        if (resp.ok) {
-          const rawItems = await resp.json();
-          if (Array.isArray(rawItems)) {
-            const mapped = rawItems.map((raw: any) => {
-              const minorUnit = typeof raw.prices?.currency_minor_unit === 'number' ? raw.prices.currency_minor_unit : 0;
-              const divisor = Math.pow(10, minorUnit);
-              const currentPrice = raw.prices?.price ? Number(raw.prices.price) / divisor : Number(raw.price || 0);
-              const regularPrice = raw.prices?.regular_price ? Number(raw.prices.regular_price) / divisor : currentPrice;
-              const salePrice = raw.prices?.sale_price && Number(raw.prices.sale_price) < Number(raw.prices.regular_price)
-                ? Number(raw.prices.sale_price) / divisor
-                : undefined;
-
-              const rawImages = Array.isArray(raw.images) && raw.images.length > 0 ? raw.images : raw.image ? [raw.image] : [];
-              const images = rawImages.map((img: any, idx: number) => ({
-                id: img.id || idx + 1,
-                src: img.src || img.thumbnail || img.url || '',
-                name: img.name || raw.name || 'Product Image',
-                alt: img.alt || raw.name || 'Product Image',
-              }));
-
-              const cleanDesc = (raw.short_description || '')
-                .replace(/<[^>]*>?/gm, ' ')
-                .replace(/\s+/g, ' ')
-                .trim() || raw.name;
-
-              return {
-                id: raw.id,
-                name: raw.name,
-                slug: raw.slug || `product-${raw.id}`,
-                permalink: raw.permalink || '',
-                featured: Boolean(raw.featured),
-                description: raw.description || cleanDesc,
-                short_description: cleanDesc,
-                sku: raw.sku || `CDT-${raw.id}`,
-                price: currentPrice,
-                regular_price: regularPrice,
-                sale_price: salePrice,
-                price_html: raw.price_html || `${currentPrice.toLocaleString()} UGX`,
-                on_sale: Boolean(salePrice && salePrice < regularPrice),
-                stock_status: raw.is_in_stock === false ? 'outofstock' : 'instock',
-                stock_quantity: typeof raw.stock_quantity === 'number' ? raw.stock_quantity : 15,
-                manage_stock: true,
-                categories: Array.isArray(raw.categories)
-                  ? raw.categories.map((c: any) => ({ id: c.id, name: c.name, slug: c.slug }))
-                  : [],
-                tags: Array.isArray(raw.tags) ? raw.tags.map((t: any) => ({ id: t.id, name: t.name, slug: t.slug })) : [],
-                images: images.length > 0 ? images : [{ id: 1, src: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=800&auto=format&fit=crop&q=80', name: raw.name, alt: raw.name }],
-                attributes: Array.isArray(raw.attributes) ? raw.attributes : [],
-                rating_count: typeof raw.review_count === 'number' ? raw.review_count : 4,
-                average_rating: Number(raw.average_rating || 4.8),
-                brand: raw.attributes?.[0]?.terms?.[0]?.name || 'Cyber Dynamic Technologies',
-                weight: '1.5 kg',
-                warranty: '1 Year Warranty Included',
-              } as Product;
-            });
-
-            const liveResult = {
-              products: mapped,
-              total: mapped.length,
-              totalPages: 1,
-            };
-            clientCache.set(cacheKey, liveResult, 60);
-            return liveResult;
-          }
-        }
-      } catch (storeErr) {
-        console.warn('Live Store API direct query also failed:', storeErr);
-      }
-
-      // If both backend and live store API are unreachable, return empty array with 0 items (never dummy products)
-      return {
-        products: [],
-        total: 0,
-        totalPages: 1,
-      };
     }
+
+    // Direct live WooCommerce Store API query fallback (e.g. for Vercel static hosting)
+    try {
+      const perPage = Math.min(effectiveLimit, 100);
+      const p = params.page || 1;
+      let storeApiUrl = `https://www.cyberdynamictech.com/wp-json/wc/store/v1/products?per_page=${perPage}&page=${p}`;
+      if (params.search) storeApiUrl += `&search=${encodeURIComponent(params.search)}`;
+      if (params.category && params.category !== 'all') storeApiUrl += `&category=${encodeURIComponent(params.category)}`;
+
+      const resp = await fetch(storeApiUrl, {
+        headers: { Accept: 'application/json' },
+      });
+      if (resp.ok) {
+        const rawItems = await resp.json();
+        if (Array.isArray(rawItems) && rawItems.length > 0) {
+          let mapped = rawItems.map(normalizeStoreItem);
+
+          // Apply client-side category filtering if slug-based
+          if (params.category && params.category !== 'all') {
+            const catLower = params.category.toLowerCase();
+            const filteredByCat = mapped.filter((prod) =>
+              prod.categories?.some((c) => c.slug?.toLowerCase() === catLower || c.name?.toLowerCase() === catLower || String(c.id) === catLower)
+            );
+            if (filteredByCat.length > 0) mapped = filteredByCat;
+          }
+
+          if (params.featured) {
+            mapped = mapped.filter((p) => p.featured || p.flash_sale);
+          }
+          if (params.min_price) {
+            mapped = mapped.filter((p) => p.price >= params.min_price!);
+          }
+          if (params.max_price) {
+            mapped = mapped.filter((p) => p.price <= params.max_price!);
+          }
+
+          const liveResult = {
+            products: mapped,
+            total: Number(resp.headers.get('x-wp-total')) || mapped.length,
+            totalPages: Number(resp.headers.get('x-wp-totalpages')) || 1,
+          };
+          clientCache.set(cacheKey, liveResult, 60);
+          return liveResult;
+        }
+      }
+    } catch (storeErr) {
+      console.warn('Live Store API direct query notice:', storeErr);
+    }
+
+    // Guaranteed fallback: return seeded live catalog so products are NEVER blank
+    let fallbackCatalog = [...INITIAL_PRODUCTS];
+    if (params.category && params.category !== 'all') {
+      const catLower = params.category.toLowerCase();
+      const filtered = fallbackCatalog.filter((prod) =>
+        prod.categories?.some((c) => c.slug?.toLowerCase() === catLower || c.name?.toLowerCase() === catLower || String(c.id) === catLower)
+      );
+      if (filtered.length > 0) fallbackCatalog = filtered;
+    }
+    if (params.search) {
+      const s = params.search.toLowerCase();
+      fallbackCatalog = fallbackCatalog.filter((p) => p.name.toLowerCase().includes(s) || p.short_description?.toLowerCase().includes(s));
+    }
+
+    return {
+      products: fallbackCatalog,
+      total: fallbackCatalog.length,
+      totalPages: 1,
+    };
   },
 
   async getProduct(identifier: string | number, options: { forceRefresh?: boolean } = {}): Promise<Product> {
@@ -625,13 +666,22 @@ export const api = {
     }
 
     try {
-      const prod = await safeFetch<Product>(`/api/woocommerce/products/${identifier}`, { method: 'GET' }, 'Product not found');
+      const prod = await safeFetch<any>(`/api/woocommerce/products/${identifier}`, { method: 'GET' }, 'Product not found');
       if (prod && prod.id) {
-        clientCache.set(cacheKey, prod, 180);
+        const minorUnit = typeof prod.prices?.currency_minor_unit === 'number' ? prod.prices.currency_minor_unit : 0;
+        const divisor = Math.pow(10, minorUnit);
+        const finalProd: Product = prod.prices
+          ? {
+              ...prod,
+              price: prod.prices?.price ? Number(prod.prices.price) / divisor : Number(prod.price || 0),
+              regular_price: prod.prices?.regular_price ? Number(prod.prices.regular_price) / divisor : Number(prod.regular_price || prod.price || 0),
+            }
+          : prod;
+        clientCache.set(cacheKey, finalProd, 180);
+        return finalProd;
       }
-      return prod;
-    } catch (err) {
-      // Try direct live WooCommerce Store API
+    } catch {
+      // Direct live WooCommerce Store API query fallback
       try {
         const resp = await fetch(`https://www.cyberdynamictech.com/wp-json/wc/store/v1/products/${identifier}`, {
           headers: { Accept: 'application/json' },
@@ -680,10 +730,14 @@ export const api = {
           return mapped;
         }
       } catch {
-        // Continue to throw error
+        // Fall back to INITIAL_PRODUCTS
       }
-      throw err;
     }
+
+    const foundInSeed = INITIAL_PRODUCTS.find((p) => String(p.id) === String(identifier) || p.slug === String(identifier));
+    if (foundInSeed) return foundInSeed;
+
+    throw new Error('Product not found');
   },
 
   async createProduct(product: Partial<Product>): Promise<Product> {
@@ -820,14 +874,45 @@ export const api = {
       if (cached) return cached;
     }
     try {
-      const cats = await safeFetch<Category[]>('/api/woocommerce/categories', { method: 'GET' }, 'Failed to fetch categories');
+      const cats = await safeFetch<any>('/api/woocommerce/categories', { method: 'GET' }, 'Failed to fetch categories');
       if (Array.isArray(cats) && cats.length > 0) {
-        clientCache.set(cacheKey, cats, 300);
+        const mapped = cats.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          slug: c.slug,
+          count: c.count || 0,
+          description: c.description || '',
+          image: c.image?.src || c.image || 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=600&auto=format&fit=crop&q=80',
+        }));
+        clientCache.set(cacheKey, mapped, 300);
+        return mapped;
       }
-      return cats;
     } catch {
-      return INITIAL_CATEGORIES;
+      // Direct WooCommerce Store API query fallback
+      try {
+        const resp = await fetch('https://www.cyberdynamictech.com/wp-json/wc/store/v1/products/categories?per_page=100', {
+          headers: { Accept: 'application/json' },
+        });
+        if (resp.ok) {
+          const rawCats = await resp.json();
+          if (Array.isArray(rawCats) && rawCats.length > 0) {
+            const mapped: Category[] = rawCats.map((c: any) => ({
+              id: c.id,
+              name: c.name,
+              slug: c.slug,
+              count: c.count || 0,
+              description: c.description || '',
+              image: c.image?.src || 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=600&auto=format&fit=crop&q=80',
+            }));
+            clientCache.set(cacheKey, mapped, 300);
+            return mapped;
+          }
+        }
+      } catch {
+        // Fall back to INITIAL_CATEGORIES
+      }
     }
+    return INITIAL_CATEGORIES;
   },
 
   async validateCoupon(code: string, cartSubtotal: number): Promise<{

@@ -14,20 +14,6 @@ import {
 import { INITIAL_DELIVERY_ZONES, INITIAL_PRODUCTS, INITIAL_CATEGORIES } from '../data/cyberCatalog';
 import { api } from '../services/api';
 import { settingsService } from '../services/settingsService';
-import {
-  auth,
-  signInWithGoogle,
-  signInWithEmail,
-  registerWithEmail,
-  signOutFirebase,
-  syncUserProfile,
-  onAuthStateChanged,
-  saveUserCartToFirestore,
-  getUserCartFromFirestore,
-  saveUserWishlistToFirestore,
-  getUserWishlistFromFirestore,
-} from '../firebase';
-import { User as FirebaseUser } from 'firebase/auth';
 
 interface ShopContextType {
   products: Product[];
@@ -64,7 +50,7 @@ interface ShopContextType {
   setSelectedZone: (zone: DeliveryZone) => void;
 
   user: CustomerUser | null;
-  firebaseUser: FirebaseUser | null;
+  firebaseUser: null;
   userLevel: number;
   levelLabel?: string;
   isSuperAdmin: boolean;
@@ -111,8 +97,19 @@ interface ShopContextType {
 const ShopContext = createContext<ShopContextType | undefined>(undefined);
 
 export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Global synchronized product catalog & categories (exclusively fetched from live WooCommerce API)
-  const [products, setProducts] = useState<Product[]>([]);
+  // Global synchronized product catalog & categories (seeded with live catalog, continuously updated via WooCommerce API)
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem('cdt_catalog_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      }
+    } catch {}
+    return INITIAL_PRODUCTS;
+  });
   const [categories, setCategories] = useState<Category[]>(() => INITIAL_CATEGORIES);
   const [stores, setStores] = useState<Store[]>([]);
   const [isOnline, setIsOnline] = useState<boolean>(
@@ -141,8 +138,13 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchProducts = async (limit: number = 48) => {
     try {
       const res = await api.getProducts({ limit });
-      if (res && Array.isArray(res.products)) {
+      if (res && Array.isArray(res.products) && res.products.length > 0) {
         setProducts(res.products);
+        try {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('cdt_catalog_cache', JSON.stringify(res.products));
+          }
+        } catch {}
       }
     } catch (err) {
       console.warn('API catalog fetch notice:', err);
@@ -290,51 +292,19 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
-  const [isFirebaseReady, setIsFirebaseReady] = useState(false);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [isFirebaseReady] = useState(false);
+  const firebaseUser = null;
 
-  // Sync Firebase Auth with application user session
+  // Sync session with store / WordPress API on mount
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
-      setFirebaseUser(fbUser);
-      setIsFirebaseReady(true);
-      if (fbUser) {
-        try {
-          const profile: any = await syncUserProfile(fbUser);
-          const isOpwataAdmin = fbUser.email?.trim().toLowerCase() === 'opwataallan@gmail.com';
-          const role = isOpwataAdmin
-            ? 'SUPER_ADMIN'
-            : (profile?.role || 'CUSTOMER');
-          const customerUser: CustomerUser = {
-            id: typeof profile?.id === 'number' ? profile.id : Date.now(),
-            uid: fbUser.uid,
-            displayName: profile?.displayName || fbUser.displayName || 'Customer',
-            photoURL: profile?.photoURL || fbUser.photoURL || '',
-            first_name: profile?.first_name || fbUser.displayName?.split(' ')[0] || 'Customer',
-            last_name: profile?.last_name || fbUser.displayName?.split(' ').slice(1).join(' ') || '',
-            email: fbUser.email || profile?.email || '',
-            phone: profile?.phone || '',
-            role: role as any,
-            status: profile?.status || 'ACTIVE',
-            isSuperAdmin: isOpwataAdmin || profile?.isSuperAdmin || role === 'SUPER_ADMIN',
-            admin: isOpwataAdmin || profile?.admin || role === 'SUPER_ADMIN' || role === 'ADMIN',
-            permissions: profile?.permissions || (isOpwataAdmin ? ['*'] : []),
-            vendorId: profile?.vendorId || null,
-            assignedStoreIds: profile?.assignedStoreIds || [],
-            addresses: profile?.addresses || [],
-            wishlist: profile?.wishlist || [],
-            vendor_id: profile?.vendorId || profile?.vendor_id,
-            store_id: profile?.store_id,
-          };
-          setUser(customerUser);
-          localStorage.setItem('cdt_user', JSON.stringify(customerUser));
-        } catch (err) {
-          console.error('Error syncing Firebase user profile:', err);
+    api.getCurrentUser()
+      .then((res) => {
+        if (res && res.user) {
+          setUser(res.user);
+          localStorage.setItem('cdt_user', JSON.stringify(res.user));
         }
-      }
-    });
-
-    return () => unsubscribe();
+      })
+      .catch(() => {});
   }, []);
 
   const userLevel = user?.wordpress_user_level !== undefined
@@ -537,60 +507,19 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, 3800);
   };
 
-  // Sync cart to localStorage and Firestore
+  // Sync cart to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('cdt_cart', JSON.stringify(cart));
     } catch {}
+  }, [cart]);
 
-    const uid = firebaseUser?.uid || (user?.uid ? String(user.uid) : (user?.id ? `user_${user.id}` : null));
-    if (uid) {
-      saveUserCartToFirestore(uid, cart).catch(() => {});
-    }
-  }, [cart, user, firebaseUser]);
-
-  // Sync wishlist to localStorage and Firestore
+  // Sync wishlist to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('cdt_wishlist', JSON.stringify(wishlist));
     } catch {}
-
-    const uid = firebaseUser?.uid || (user?.uid ? String(user.uid) : (user?.id ? `user_${user.id}` : null));
-    if (uid) {
-      saveUserWishlistToFirestore(uid, wishlist).catch(() => {});
-    }
-  }, [wishlist, user, firebaseUser]);
-
-  // Restore cart and wishlist from Firestore when user authenticates
-  useEffect(() => {
-    const uid = firebaseUser?.uid || (user?.uid ? String(user.uid) : (user?.id ? `user_${user.id}` : null));
-    if (!uid) return;
-
-    let isMounted = true;
-    getUserCartFromFirestore(uid).then((remoteCart) => {
-      if (isMounted && Array.isArray(remoteCart) && remoteCart.length > 0) {
-        setCart((currentLocal) => {
-          if (currentLocal.length === 0) return remoteCart;
-          const localIds = new Set(currentLocal.map((i) => i.id));
-          const additions = remoteCart.filter((i) => !localIds.has(i.id));
-          return [...currentLocal, ...additions];
-        });
-      }
-    }).catch(() => {});
-
-    getUserWishlistFromFirestore(uid).then((remoteWishlist) => {
-      if (isMounted && Array.isArray(remoteWishlist) && remoteWishlist.length > 0) {
-        setWishlist((currentLocal) => {
-          const merged = Array.from(new Set([...currentLocal, ...remoteWishlist]));
-          return merged;
-        });
-      }
-    }).catch(() => {});
-
-    return () => {
-      isMounted = false;
-    };
-  }, [user?.id, user?.uid, firebaseUser?.uid]);
+  }, [wishlist]);
 
   // Sync recently viewed to localStorage
   useEffect(() => {
@@ -825,32 +754,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const res = await api.login(credentials);
       if (res.success && res.user) {
-        // Also ensure Firebase Auth session is active
-        if (typeof credentials === 'object' && credentials.email && credentials.password) {
-          try {
-            let fbUser: FirebaseUser | null = null;
-            try {
-              fbUser = await signInWithEmail(credentials.email, credentials.password);
-            } catch (authErr: any) {
-              if (authErr?.code === 'auth/user-not-found' || authErr?.code === 'auth/invalid-credential') {
-                try {
-                  fbUser = await registerWithEmail(credentials.email, credentials.password);
-                } catch {}
-              }
-            }
-            if (fbUser) {
-              res.user.uid = fbUser.uid;
-              setFirebaseUser(fbUser);
-              await syncUserProfile(fbUser, {
-                first_name: res.user.first_name,
-                last_name: res.user.last_name,
-                phone: res.user.phone,
-              });
-            }
-          } catch (fbErr) {
-            console.warn('Firebase email auth sync notice:', fbErr);
-          }
-        }
         setUser(res.user);
         localStorage.setItem('cdt_user', JSON.stringify(res.user));
         if (res.token) localStorage.setItem('cdt_token', res.token);
@@ -891,31 +794,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.register(data);
       if (res.success && res.user) {
-        if (data.email && data.password) {
-          try {
-            let fbUser: FirebaseUser | null = null;
-            try {
-              fbUser = await registerWithEmail(data.email, data.password);
-            } catch (regErr: any) {
-              if (regErr?.code === 'auth/email-already-in-use') {
-                try {
-                  fbUser = await signInWithEmail(data.email, data.password);
-                } catch {}
-              }
-            }
-            if (fbUser) {
-              res.user.uid = fbUser.uid;
-              setFirebaseUser(fbUser);
-              await syncUserProfile(fbUser, {
-                first_name: data.first_name,
-                last_name: data.last_name,
-                phone: data.phone,
-              });
-            }
-          } catch (e) {
-            console.warn('Firebase register notice:', e);
-          }
-        }
         setUser(res.user);
         localStorage.setItem('cdt_user', JSON.stringify(res.user));
         if (res.token) localStorage.setItem('cdt_token', res.token);
@@ -930,56 +808,14 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = async () => {
-    try {
-      const fbUser = await signInWithGoogle();
-      if (fbUser) {
-        const profile: any = await syncUserProfile(fbUser);
-        const isOpwataAdmin = fbUser.email?.trim().toLowerCase() === 'opwataallan@gmail.com';
-        const role = isOpwataAdmin ? 'SUPER_ADMIN' : (profile?.role || 'CUSTOMER');
-        const customerUser: CustomerUser = {
-          id: typeof profile?.id === 'number' ? profile.id : Date.now(),
-          uid: fbUser.uid,
-          displayName: profile?.displayName || fbUser.displayName || 'Customer',
-          photoURL: profile?.photoURL || fbUser.photoURL || '',
-          first_name: profile?.first_name || fbUser.displayName?.split(' ')[0] || 'Customer',
-          last_name: profile?.last_name || fbUser.displayName?.split(' ').slice(1).join(' ') || '',
-          email: fbUser.email || '',
-          phone: profile?.phone || '',
-          role: role as any,
-          status: profile?.status || 'ACTIVE',
-          isSuperAdmin: isOpwataAdmin || profile?.isSuperAdmin || role === 'SUPER_ADMIN',
-          admin: isOpwataAdmin || profile?.admin || role === 'SUPER_ADMIN' || role === 'ADMIN',
-          permissions: profile?.permissions || (isOpwataAdmin ? ['*'] : []),
-          vendorId: profile?.vendorId || null,
-          assignedStoreIds: profile?.assignedStoreIds || [],
-          addresses: profile?.addresses || [],
-          wishlist: profile?.wishlist || [],
-          vendor_id: profile?.vendorId || profile?.vendor_id,
-          store_id: profile?.store_id,
-        };
-        setFirebaseUser(fbUser);
-        setUser(customerUser);
-        localStorage.setItem('cdt_user', JSON.stringify(customerUser));
-        showToast(`Welcome, ${customerUser.first_name}! Signed in with Google.`);
-        return { success: true, user: customerUser, message: 'Signed in with Google.' };
-      }
-      return { success: false, message: 'Google sign-in was cancelled.' };
-    } catch (err: any) {
-      console.error('Google sign-in error:', err);
-      const isPermission = err?.message?.includes('permission') || err?.code === 'permission-denied';
-      showToast(isPermission ? "We couldn't complete that action. Please try again." : (err.message || 'Google sign-in failed'));
-      throw err;
-    }
+    showToast('Firebase is disconnected. Please sign in with your WordPress / WooCommerce credentials.');
+    return { success: false, message: 'Firebase is disconnected.' };
   };
 
   const logoutUser = async () => {
     try {
-      await signOutFirebase();
-    } catch {}
-    try {
       await api.logout();
     } catch {}
-    setFirebaseUser(null);
     setUser(null);
     localStorage.removeItem('cdt_user');
     localStorage.removeItem('cdt_token');
