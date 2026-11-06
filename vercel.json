@@ -1,5 +1,10 @@
 {
-  "version": 2,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
     {
       "source": "/api/woocommerce/products/:id",
@@ -10,25 +15,43 @@
       "destination": "https://www.cyberdynamictech.com/wp-json/wc/store/v1/products"
     },
     {
-      "source": "/api/woocommerce/categories",
-      "destination": "https://www.cyberdynamictech.com/wp-json/wc/store/v1/products/categories"
-    },
-    {
       "source": "/api/woocommerce/categories/:id",
       "destination": "https://www.cyberdynamictech.com/wp-json/wc/store/v1/products/categories/:id"
     },
     {
-      "source": "/(.*)",
+      "source": "/api/woocommerce/categories",
+      "destination": "https://www.cyberdynamictech.com/wp-json/wc/store/v1/products/categories"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
         { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
       ]
     }
   ]

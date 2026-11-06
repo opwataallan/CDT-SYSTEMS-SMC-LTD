@@ -283,6 +283,7 @@ export interface CustomerUser {
   wordpress_username?: string;
   wordpress_roles?: string[];
   wordpress_user_level?: number;
+  user_level?: number;
   level_label?: string;
   source?: 'wordpress_api' | 'woocommerce_api' | 'woocommerce_customer' | 'app_store';
   first_name: string;

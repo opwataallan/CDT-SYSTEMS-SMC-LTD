@@ -303,14 +303,12 @@ export const FCMSchemaModal: React.FC<FCMSchemaModalProps> = ({
           <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl text-xs text-slate-300 space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-slate-200">
               <ShieldCheck className="w-4 h-4 text-cyan-400" />
-              <span>Future FCM Integration Architecture:</span>
+              <span>Web Push & Webhook Architecture:</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              When Firebase SDK is linked, the device token is registered with Firebase Messaging,
-              and backend order events trigger FCM HTTP v1 messages. The frontend service includes
-              <code className="text-cyan-300 font-mono"> handleFCMIncomingMessage() </code> and
-              <code className="text-cyan-300 font-mono"> /public/firebase-messaging-sw.js </code>
-              to handle background push delivery natively on Android and desktop.
+              Standard Web Push notifications operate directly in the browser and service worker,
+              allowing the store backend and WooCommerce order events to dispatch push updates
+              natively across Android, desktop, and mobile web browsers without third-party proprietary SDKs.
             </p>
           </div>
         </div>

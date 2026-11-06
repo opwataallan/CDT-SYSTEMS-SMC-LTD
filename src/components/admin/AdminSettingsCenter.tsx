@@ -943,7 +943,7 @@ export const AdminSettingsCenter: React.FC = () => {
                       handleFieldChange('branding', 'main_logo', e.target.value);
                       handleFieldChange('branding', 'logo_url', e.target.value);
                     }}
-                    placeholder="https://firebasestorage.googleapis.com/... or image URL"
+                    placeholder="https://www.cyberdynamictech.com/wp-content/uploads/... or image URL"
                     className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
                   />
                 </div>
@@ -1006,7 +1006,7 @@ export const AdminSettingsCenter: React.FC = () => {
                       handleFieldChange('branding', 'mobile_logo', e.target.value);
                       handleFieldChange('branding', 'mobileLogoUrl', e.target.value);
                     }}
-                    placeholder="https://firebasestorage.googleapis.com/... or image URL"
+                    placeholder="https://www.cyberdynamictech.com/wp-content/uploads/... or image URL"
                     className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
                   />
                 </div>
@@ -1072,7 +1072,7 @@ export const AdminSettingsCenter: React.FC = () => {
                       handleFieldChange('branding', 'favicon', e.target.value);
                       handleFieldChange('branding', 'faviconUrl', e.target.value);
                     }}
-                    placeholder="https://firebasestorage.googleapis.com/... or icon URL"
+                    placeholder="https://www.cyberdynamictech.com/wp-content/uploads/... or icon URL"
                     className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
                   />
                 </div>
@@ -1135,7 +1135,7 @@ export const AdminSettingsCenter: React.FC = () => {
                       handleFieldChange('branding', 'default_product_placeholder', e.target.value);
                       handleFieldChange('branding', 'defaultProductPlaceholder', e.target.value);
                     }}
-                    placeholder="https://firebasestorage.googleapis.com/... or image URL"
+                    placeholder="https://www.cyberdynamictech.com/wp-content/uploads/... or image URL"
                     className="w-full h-8.5 px-3 border border-slate-200 rounded-lg text-xs font-mono"
                   />
                 </div>

@@ -50,7 +50,6 @@ interface ShopContextType {
   setSelectedZone: (zone: DeliveryZone) => void;
 
   user: CustomerUser | null;
-  firebaseUser: null;
   userLevel: number;
   levelLabel?: string;
   isSuperAdmin: boolean;
@@ -67,7 +66,6 @@ interface ShopContextType {
   loginUser: (email: string, name?: string, phone?: string) => void;
   login: (credentialsOrEmail: { email: string; password: string } | string, maybePassword?: string) => Promise<{ success: boolean; user?: CustomerUser; message: string }>;
   loginWithGoogle: () => Promise<{ success: boolean; user?: CustomerUser; message: string }>;
-  isFirebaseReady: boolean;
   quickLogin: (role?: 'admin' | 'staff' | 'customer' | 'vendor') => Promise<{ success: boolean; message: string }>;
   register: (data: { first_name: string; last_name?: string; email: string; phone?: string; password: string }) => Promise<{ success: boolean; message: string }>;
   logoutUser: () => Promise<void>;
@@ -292,8 +290,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
-  const [isFirebaseReady] = useState(false);
-  const firebaseUser = null;
 
   // Sync session with store / WordPress API on mount
   useEffect(() => {
@@ -896,7 +892,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         selectedZone,
         setSelectedZone,
         user,
-        firebaseUser,
         userLevel,
         levelLabel: user?.level_label || (userLevel >= 10 ? 'Level 10: Super Administrator' : userLevel >= 7 ? 'Level 7: Shop Manager' : userLevel >= 3 ? 'Level 3: Cashier' : userLevel >= 2 ? 'Level 2: Vendor Partner' : 'Level 0: Customer'),
         isSuperAdmin,
@@ -913,7 +908,6 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loginUser,
         login,
         loginWithGoogle,
-        isFirebaseReady,
         quickLogin,
         register,
         logoutUser,
