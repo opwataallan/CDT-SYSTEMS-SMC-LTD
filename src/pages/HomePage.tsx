@@ -72,11 +72,17 @@ export const HomePage: React.FC = () => {
       if (Array.isArray(cats) && cats.length > 0) {
         setCategories(cats);
       }
-    }).catch(console.error);
-    api.getAdminSettings().then((data) => {
-      if (data?.heroBanners && Array.isArray(data.heroBanners)) setHeroBanners(data.heroBanners);
-    }).catch(console.error);
-  }, []);
+    }).catch(() => {});
+    if (config?.homepage?.banners && Array.isArray(config.homepage.banners) && config.homepage.banners.length > 0) {
+      setHeroBanners(config.homepage.banners);
+    } else {
+      api.getPublicConfig().then((cfg) => {
+        if (cfg?.homepage?.banners && Array.isArray(cfg.homepage.banners)) {
+          setHeroBanners(cfg.homepage.banners);
+        }
+      }).catch(() => {});
+    }
+  }, [config?.homepage?.banners]);
 
   // Synchronize when global store products change
   useEffect(() => {

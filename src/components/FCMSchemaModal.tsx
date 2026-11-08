@@ -37,7 +37,7 @@ export const FCMSchemaModal: React.FC<FCMSchemaModalProps> = ({
   const deviceReg = notificationService.getDeviceRegistration();
   const currentToken = deviceReg.token;
 
-  // Sample FCM Payloads structured according to official Firebase Cloud Messaging v1 specs
+  // Sample Web Push Payloads structured according to standard Web Push & REST notification specs
   const sampleOrderMessage: FCMMessage = {
     messageId: `fcm_msg_${Date.now()}`,
     to: currentToken,
@@ -155,9 +155,9 @@ export const FCMSchemaModal: React.FC<FCMSchemaModalProps> = ({
         return deviceReg;
       case 'fcm_curl':
         return {
-          description: 'HTTP v1 API cURL Example for Backend / Cloud Function dispatch',
-          curl_command: `curl -X POST https://fcm.googleapis.com/v1/projects/YOUR_FIREBASE_PROJECT/messages:send \\
-  -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \\
+          description: 'HTTP API cURL Example for Backend / Webhook dispatch',
+          curl_command: `curl -X POST https://market.cyberdynamictech.com/api/notifications/dispatch \\
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \\
   -H "Content-Type: application/json; UTF-8" \\
   -d '${JSON.stringify({ message: sampleOrderMessage }, null, 2)}'`,
         };
@@ -209,7 +209,7 @@ export const FCMSchemaModal: React.FC<FCMSchemaModalProps> = ({
             </div>
             <div>
               <h3 className="font-extrabold text-sm text-white flex items-center gap-2">
-                Firebase Cloud Messaging (FCM) Integration Schema
+                Web Push & REST Notification Schema
                 <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   Ready
                 </span>

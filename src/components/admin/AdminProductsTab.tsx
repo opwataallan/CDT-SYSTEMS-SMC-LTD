@@ -828,7 +828,7 @@ export const AdminProductsTab: React.FC = () => {
                     {editingProduct ? `Edit: ${editingProduct.name}` : 'Create New Product'}
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    Saved directly to permanent Firestore & server database
+                    Saved directly to WooCommerce & server database
                   </p>
                 </div>
               </div>
@@ -1580,10 +1580,10 @@ export const AdminProductsTab: React.FC = () => {
                       }`}
                     >
                       <Upload className="w-4 h-4" />
-                      <span>{isUploadingImage ? 'Uploading to Firebase Storage...' : 'Upload Image to Storage'}</span>
+                      <span>{isUploadingImage ? 'Attaching Product Image...' : 'Upload Image'}</span>
                     </label>
                     <p className="text-[11px] text-slate-400 mt-2">
-                      Supports JPG, PNG, WebP up to 15MB. Stored permanently in Cloud Storage.
+                      Supports JPG, PNG, WebP up to 15MB. Stored permanently in WooCommerce media library / CDN.
                     </p>
 
                     <div className="mt-3 flex items-center justify-center gap-2 max-w-md mx-auto">

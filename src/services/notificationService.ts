@@ -178,8 +178,8 @@ class NotificationService {
   // =========================================================================
 
   /**
-   * Retrieve or create a persistent FCM device registration schema
-   * Ready for future Firebase Cloud Messaging SDK initialization.
+   * Retrieve or create a persistent device registration schema
+   * Ready for standard Web Push & REST Webhook notification delivery.
    */
   public getDeviceRegistration(): FCMDeviceRegistration {
     const defaultTopics: FCMTopic[] = ['all_users', 'order_updates', 'flash_sales', 'price_drops'];
@@ -653,8 +653,7 @@ class NotificationService {
   // =========================================================================
 
   /**
-   * Ingest and process a message structured according to Firebase Cloud Messaging (FCM) standards.
-   * This ensures seamless drop-in compatibility when Firebase Web SDK is added.
+   * Ingest and process a message structured according to Web Push and REST notification standards.
    */
   public async handleFCMIncomingMessage(fcmMessage: FCMMessage): Promise<void> {
     const notification = fcmMessage.notification;

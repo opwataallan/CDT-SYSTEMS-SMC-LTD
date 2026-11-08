@@ -100,7 +100,18 @@ export const AdminPage: React.FC = () => {
     try {
       const res = await login({ email: loginEmail, password: loginPassword });
       const loggedUser = res?.user || user;
-      if (loggedUser && loggedUser.role !== 'admin' && loggedUser.role !== 'manager') {
+      const role = String(loggedUser?.role || '').toLowerCase();
+      const level = Number(loggedUser?.user_level ?? (loggedUser as any)?.wordpress_user_level ?? 0);
+      const email = String(loggedUser?.email || '').toLowerCase().trim();
+      const isAdminUser =
+        loggedUser && (
+          ['admin', 'manager', 'shop_manager', 'super_admin', 'administrator'].includes(role) ||
+          level >= 7 ||
+          email === 'opwataallan@gmail.com' ||
+          email === 'admin@cyberdynamictech.com'
+        );
+
+      if (loggedUser && !isAdminUser) {
         setLoginError(
           'Access denied: You are signed in, but your role does not possess Administrator or Manager privileges.'
         );

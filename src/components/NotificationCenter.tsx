@@ -679,11 +679,11 @@ export const NotificationCenter: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsFCMModalOpen(true)}
-                title="View Firebase Cloud Messaging (FCM) Integration Schema"
+                title="View Web Push & Notification Schema"
                 className="px-2 py-1 rounded bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-800 font-bold flex items-center gap-1 cursor-pointer transition-colors whitespace-nowrap shadow-2xs"
               >
                 <Zap className="w-3 h-3 text-orange-600" />
-                <span>FCM Schema</span>
+                <span>Push Schema</span>
               </button>
             </div>
 
@@ -704,7 +704,7 @@ export const NotificationCenter: React.FC = () => {
         </div>
       )}
 
-      {/* Firebase Cloud Messaging Schema Viewer Modal */}
+      {/* Web Push & REST Notification Schema Viewer Modal */}
       <FCMSchemaModal
         isOpen={isFCMModalOpen}
         onClose={() => setIsFCMModalOpen(false)}

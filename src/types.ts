@@ -585,7 +585,7 @@ export interface NotificationPreferences {
 }
 
 // ==========================================
-// FIREBASE CLOUD MESSAGING (FCM) & PUSH SCHEMA
+// WEB PUSH & REST NOTIFICATION SCHEMA
 // ==========================================
 
 export type FCMTopic =

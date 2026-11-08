@@ -550,7 +550,7 @@ export const AdminSettingsCenter: React.FC = () => {
     }
   };
 
-  // Upload an image file directly to Firebase Storage and store the resulting URL
+  // Upload an image file directly to WordPress / WooCommerce media and store the resulting URL in settings
   const handleImageUpload = async (
     file: File,
     field: string,
@@ -873,14 +873,14 @@ export const AdminSettingsCenter: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-slate-900 text-xs flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-cyan-600" />
-                    <span>Brand Assets & Firebase Storage</span>
+                    <span>Brand Assets & WooCommerce Media</span>
                   </h3>
                   <span className="text-[10px] bg-cyan-100 text-cyan-800 font-bold px-2 py-0.5 rounded">
-                    Firebase Storage Integrated
+                    WordPress Media Integrated
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-500">
-                  Files uploaded here are stored directly in Firebase Storage (<code className="font-mono text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded">settings/[folder]/</code>) and their persistent HTTPS download URLs are saved in <code className="font-mono text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded">settings/global</code> in Cloud Firestore.
+                  Files uploaded or linked here are saved with persistent HTTPS URLs directly in the WooCommerce database options (<code className="font-mono text-cyan-700 bg-cyan-50 px-1 py-0.5 rounded">wp_options: cdt_marketplace_config</code>) and the WordPress media directory.
                 </p>
               </div>
 
@@ -903,7 +903,7 @@ export const AdminSettingsCenter: React.FC = () => {
                         }`}
                       >
                         <Upload className="w-3.5 h-3.5" />
-                        <span>{isUploadingImage === 'main_logo' ? 'Uploading to Storage...' : 'Upload Logo to Firebase'}</span>
+                        <span>{isUploadingImage === 'main_logo' ? 'Attaching Logo...' : 'Upload Store Logo'}</span>
                       </label>
                       <input
                         id="store-main-logo-upload"
@@ -966,7 +966,7 @@ export const AdminSettingsCenter: React.FC = () => {
                         }`}
                       >
                         <Upload className="w-3.5 h-3.5" />
-                        <span>{isUploadingImage === 'mobile_logo' ? 'Uploading to Storage...' : 'Upload Mobile Logo'}</span>
+                        <span>{isUploadingImage === 'mobile_logo' ? 'Attaching Mobile Logo...' : 'Upload Mobile Logo'}</span>
                       </label>
                       <input
                         id="store-mobile-logo-upload"
@@ -1029,7 +1029,7 @@ export const AdminSettingsCenter: React.FC = () => {
                         }`}
                       >
                         <Upload className="w-3.5 h-3.5" />
-                        <span>{isUploadingImage === 'favicon' ? 'Uploading to Storage...' : 'Upload Favicon'}</span>
+                        <span>{isUploadingImage === 'favicon' ? 'Attaching Favicon...' : 'Upload Favicon'}</span>
                       </label>
                       <input
                         id="store-favicon-upload"
@@ -1095,7 +1095,7 @@ export const AdminSettingsCenter: React.FC = () => {
                         }`}
                       >
                         <Upload className="w-3.5 h-3.5" />
-                        <span>{isUploadingImage === 'default_product_placeholder' ? 'Uploading to Storage...' : 'Upload Placeholder'}</span>
+                        <span>{isUploadingImage === 'default_product_placeholder' ? 'Attaching Placeholder...' : 'Upload Placeholder'}</span>
                       </label>
                       <input
                         id="store-placeholder-upload"
@@ -2381,7 +2381,7 @@ export const AdminSettingsCenter: React.FC = () => {
                   </div>
                   <div>
                     <h4 className="font-extrabold text-sm text-white">System Architecture & Database Storage</h4>
-                    <p className="text-[11px] text-cyan-200/80">WooCommerce stores store data • Settings stored on app • Firebase for Auth only</p>
+                    <p className="text-[11px] text-cyan-200/80">WooCommerce stores all data & settings • Settings synchronized to wp_options • WordPress API Authentication</p>
                   </div>
                 </div>
 
@@ -2392,27 +2392,27 @@ export const AdminSettingsCenter: React.FC = () => {
                       <span>1. WooCommerce Database</span>
                     </div>
                     <p className="text-[11px] text-slate-300">
-                      Stores products, variations, categories, real-time inventory counts, and live customer orders directly at <span className="font-mono text-cyan-200">cyberdynamictech.com</span>.
+                      Stores products, variations, categories, inventory counts, orders, and application configuration directly in WooCommerce MySQL (<span className="font-mono text-cyan-200">wp_options</span>).
                     </p>
                   </div>
 
                   <div className="bg-white/10 backdrop-blur-xs p-3 rounded-lg border border-white/10 space-y-1">
                     <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-[11px]">
                       <SlidersHorizontal size={13} />
-                      <span>2. App Settings Storage</span>
+                      <span>2. App Settings Bridge</span>
                     </div>
                     <p className="text-[11px] text-slate-300">
-                      Marketplace configuration, delivery zones, appearance, POS terminals, and payments are stored securely on the application server (<span className="font-mono text-emerald-200">database.json</span>).
+                      Marketplace configuration automatically pushes to WooCommerce <span className="font-mono text-emerald-200">wp_options: cdt_marketplace_config</span> and syncs to local app memory.
                     </p>
                   </div>
 
                   <div className="bg-white/10 backdrop-blur-xs p-3 rounded-lg border border-white/10 space-y-1">
                     <div className="flex items-center gap-1.5 text-amber-300 font-bold text-[11px]">
                       <Key size={13} />
-                      <span>3. Firebase Authentication</span>
+                      <span>3. WordPress API Authentication</span>
                     </div>
                     <p className="text-[11px] text-slate-300">
-                      Exclusively manages user identity, Google Sign-in, email/password credentials, and session tokens. No Firestore required for settings.
+                      Authenticates users directly via WordPress & WooCommerce REST API, enforcing user roles and permissions without any external cloud datastore.
                     </p>
                   </div>
                 </div>

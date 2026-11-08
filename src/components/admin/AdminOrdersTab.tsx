@@ -254,10 +254,10 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
               onClick={handleRunAudit}
               disabled={isAuditing}
               className="h-9 px-3.5 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 text-cyan-800 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
-              title="Audit and link orders to customer Firebase Auth UIDs"
+              title="Audit and link orders to customer WordPress accounts"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-cyan-600" />
-              <span>{isAuditing ? 'Auditing Orders...' : 'Customer UID Audit'}</span>
+              <span>{isAuditing ? 'Auditing Orders...' : 'Customer Account Audit'}</span>
             </button>
 
             <button
@@ -911,7 +911,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                     Customer Account Order Association Audit
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    Verify that Firestore orders are linked to customer Firebase Auth UIDs.
+                    Verify that WooCommerce orders are linked to customer WordPress accounts.
                   </p>
                 </div>
               </div>
@@ -928,15 +928,15 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
               {/* Summary Stats */}
               <div className="grid grid-cols-3 gap-3">
                 <div className="p-3 bg-slate-100 rounded-xl text-center">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Firestore Orders</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-500 block">Total Orders</span>
                   <span className="text-lg font-black text-slate-900">{auditResult?.totalOrders ?? 0}</span>
                 </div>
                 <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
-                  <span className="text-[10px] uppercase font-bold text-emerald-600 block">Linked to Firebase UID</span>
+                  <span className="text-[10px] uppercase font-bold text-emerald-600 block">Linked to WordPress Account</span>
                   <span className="text-lg font-black text-emerald-700">{auditResult?.linkedOrdersCount ?? 0}</span>
                 </div>
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-center">
-                  <span className="text-[10px] uppercase font-bold text-amber-600 block">Legacy / Guest Orders</span>
+                  <span className="text-[10px] uppercase font-bold text-amber-600 block">Guest Orders</span>
                   <span className="text-lg font-black text-amber-700">{auditResult?.legacyOrdersCount ?? 0}</span>
                 </div>
               </div>
@@ -944,7 +944,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
               <div className="p-3 bg-cyan-50 border border-cyan-200 rounded-xl text-[11px] text-cyan-900 space-y-1">
                 <p className="font-bold flex items-center gap-1.5">
                   <ShieldCheck className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
-                  <span>Permanent Customer Ownership Guarantee</span>
+                  <span>Customer Ownership Verification</span>
                 </p>
                 <p>
                   Orders with a valid <code>userId</code> appear automatically in that customer's "My Orders" account tab across all devices and browser sessions. Existing orders are never automatically re-assigned or deleted.
@@ -954,7 +954,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
               {/* Legacy Orders List */}
               <div className="space-y-2">
                 <h4 className="font-black text-slate-800 text-xs">
-                  Legacy / Unassigned Orders ({auditResult?.legacyOrders.length || 0})
+                  Guest / Unassigned Orders ({auditResult?.legacyOrders.length || 0})
                 </h4>
 
                 {(!auditResult || auditResult.legacyOrders.length === 0) ? (
@@ -962,7 +962,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                     <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto" />
                     <p className="font-bold text-slate-800 text-xs">All Orders Validated</p>
                     <p className="text-[11px] text-slate-500">
-                      No orphaned orders found in Firestore. All orders are properly associated with Firebase Auth UIDs.
+                      No orphaned orders found. All orders are properly associated with WordPress / WooCommerce user accounts.
                     </p>
                   </div>
                 ) : (
@@ -984,7 +984,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                           <div className="flex items-center gap-2">
                             <input
                               type="text"
-                              placeholder="Enter customer Firebase UID (e.g. 5x7ab9...)"
+                              placeholder="Enter customer WordPress / WooCommerce user ID"
                               value={manualUidMap[id] || ''}
                               onChange={(e) => setManualUidMap({ ...manualUidMap, [id]: e.target.value })}
                               className="flex-1 h-8 px-2.5 border border-slate-200 rounded-lg text-xs font-mono focus:outline-hidden focus:border-cyan-500"

@@ -804,8 +804,8 @@ export const ShopProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const loginWithGoogle = async () => {
-    showToast('Firebase is disconnected. Please sign in with your WordPress / WooCommerce credentials.');
-    return { success: false, message: 'Firebase is disconnected.' };
+    showToast('Please sign in with your WordPress / WooCommerce credentials.');
+    return { success: false, message: 'Direct WordPress & WooCommerce authentication is active.' };
   };
 
   const logoutUser = async () => {
