@@ -21,10 +21,18 @@ import {
   Smartphone,
   ShieldCheck,
   X,
+  FileText,
+  Download,
+  Edit3,
+  Plus,
+  Trash2,
+  Ban,
+  CreditCard,
 } from 'lucide-react';
 import { CustomerOrder } from '../../types';
 import { api } from '../../services/api';
 import { useShop } from '../../context/ShopContext';
+import { OrderReceiptModal } from '../OrderReceiptModal';
 
 export interface OrderMigrationAuditResult {
   totalOrders: number;
@@ -78,6 +86,181 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
   const [newStatus, setNewStatus] = useState('');
   const [statusNote, setStatusNote] = useState('');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // Bulk WooCommerce Orders Sync
+  const [isBulkSyncing, setIsBulkSyncing] = useState(false);
+
+  // Order Cancellation
+  const [cancellingOrderId, setCancellingOrderId] = useState<string | null>(null);
+
+  // Receipt / Commercial Invoice Modal
+  const [documentOrder, setDocumentOrder] = useState<CustomerOrder | null>(null);
+  const [documentType, setDocumentType] = useState<'receipt' | 'invoice' | undefined>(undefined);
+
+  // Full Order Change / Edit Modal
+  const [editingOrder, setEditingOrder] = useState<CustomerOrder | null>(null);
+  const [isSavingChanges, setIsSavingChanges] = useState(false);
+  const [editForm, setEditForm] = useState<{
+    status: string;
+    payment_status: string;
+    payment_method_title: string;
+    delivery_zone: string;
+    shipping_total: number;
+    tracking_number: string;
+    shipping_provider: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone: string;
+    address_1: string;
+    customer_note: string;
+    admin_notes: string;
+    line_items: Array<{
+      id: number;
+      product_id: number;
+      name: string;
+      quantity: number;
+      price: number;
+      total: number;
+    }>;
+  }>({
+    status: 'pending',
+    payment_status: 'unpaid',
+    payment_method_title: '',
+    delivery_zone: 'Kampala Central',
+    shipping_total: 0,
+    tracking_number: '',
+    shipping_provider: '',
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    address_1: '',
+    customer_note: '',
+    admin_notes: '',
+    line_items: [],
+  });
+
+  const handleBulkSyncOrders = async () => {
+    setIsBulkSyncing(true);
+    try {
+      const res = await api.syncAllOrdersFromWooCommerce();
+      showToast(res.message || `Successfully fetched previous orders from WooCommerce API.`);
+      await onRefresh();
+    } catch (err: any) {
+      showToast('WooCommerce Sync notice: ' + (err.message || 'Failed to sync orders'));
+    } finally {
+      setIsBulkSyncing(false);
+    }
+  };
+
+  const handleCancelOrder = async (ord: CustomerOrder) => {
+    const reason = window.prompt(
+      `Cancel Order #${ord.order_number}?\nEnter cancellation reason or note:`,
+      'Cancelled by Administrator'
+    );
+    if (reason === null) return; // User aborted prompt
+
+    setCancellingOrderId(String(ord.order_number));
+    try {
+      const res = await api.cancelOrder(ord.order_number, reason);
+      showToast(res.message || `Order #${ord.order_number} has been cancelled.`);
+      await onRefresh();
+    } catch (err: any) {
+      showToast('Cancellation error: ' + (err.message || 'Failed to cancel order'));
+    } finally {
+      setCancellingOrderId(null);
+    }
+  };
+
+  const handleOpenReceipt = (ord: CustomerOrder) => {
+    setDocumentOrder(ord);
+    setDocumentType('receipt');
+  };
+
+  const handleOpenInvoice = (ord: CustomerOrder) => {
+    setDocumentOrder(ord);
+    setDocumentType('invoice');
+  };
+
+  const handleOpenEditModal = (ord: CustomerOrder) => {
+    setEditingOrder(ord);
+    setEditForm({
+      status: ord.status || 'pending',
+      payment_status: ord.payment_status || (ord.status === 'completed' || ord.status === 'delivered' ? 'paid' : 'unpaid'),
+      payment_method_title: ord.payment_method_title || ord.payment_method || 'MTN / Airtel Mobile Money',
+      delivery_zone: ord.delivery_zone || 'Kampala Central',
+      shipping_total: Number(ord.shipping_total) || 0,
+      tracking_number: ord.tracking_number || '',
+      shipping_provider: ord.shipping_provider || 'Cyber Dynamic Regional Express',
+      first_name: ord.billing?.first_name || ord.shipping?.first_name || '',
+      last_name: ord.billing?.last_name || ord.shipping?.last_name || '',
+      email: ord.billing?.email || ord.shipping?.email || '',
+      phone: ord.billing?.phone || ord.shipping?.phone || '',
+      address_1: ord.shipping?.address_1 || ord.billing?.address_1 || '',
+      customer_note: ord.customer_note || '',
+      admin_notes: ord.admin_notes || '',
+      line_items: (ord.line_items || []).map((li, idx) => ({
+        id: li.id || idx + 1,
+        product_id: li.product_id || 0,
+        name: li.name || 'Product',
+        quantity: Number(li.quantity) || 1,
+        price: Number(li.price) || Math.round((Number(li.total) || 0) / (Number(li.quantity) || 1)),
+        total: Number(li.total) || 0,
+      })),
+    });
+  };
+
+  const handleSaveOrderChanges = async () => {
+    if (!editingOrder) return;
+    setIsSavingChanges(true);
+    try {
+      const calculatedSubtotal = editForm.line_items.reduce((acc, item) => acc + (Number(item.total) || 0), 0);
+      const res = await api.updateOrder(editingOrder.order_number, {
+        status: editForm.status as any,
+        payment_status: editForm.payment_status,
+        payment_method_title: editForm.payment_method_title,
+        delivery_zone: editForm.delivery_zone,
+        shipping_total: Number(editForm.shipping_total) || 0,
+        tracking_number: editForm.tracking_number,
+        shipping_provider: editForm.shipping_provider,
+        billing: {
+          ...editingOrder.billing,
+          first_name: editForm.first_name,
+          last_name: editForm.last_name,
+          email: editForm.email,
+          phone: editForm.phone,
+          address_1: editForm.address_1,
+        },
+        shipping: {
+          ...editingOrder.shipping,
+          first_name: editForm.first_name,
+          last_name: editForm.last_name,
+          address_1: editForm.address_1,
+        },
+        customer_note: editForm.customer_note,
+        admin_notes: editForm.admin_notes,
+        line_items: editForm.line_items.map((li) => ({
+          id: li.id,
+          product_id: li.product_id,
+          name: li.name,
+          quantity: Number(li.quantity) || 1,
+          price: Number(li.price) || 0,
+          total: Number(li.total) || ((Number(li.price) || 0) * (Number(li.quantity) || 1)),
+        })),
+        subtotal: calculatedSubtotal,
+        total: calculatedSubtotal + (Number(editForm.shipping_total) || 0) - (editingOrder.discount_total || 0),
+      });
+
+      showToast(res.message || `Order #${editingOrder.order_number} changes saved successfully.`);
+      setEditingOrder(null);
+      await onRefresh();
+    } catch (err: any) {
+      showToast('Failed to save order changes: ' + (err.message || 'Error'));
+    } finally {
+      setIsSavingChanges(false);
+    }
+  };
 
   // Customer Account UID Audit & Safe Migration modal
   const [showAuditModal, setShowAuditModal] = useState(false);
@@ -249,7 +432,17 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            <button
+              onClick={handleBulkSyncOrders}
+              disabled={isBulkSyncing}
+              className="h-9 px-3.5 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+              title="Fetch and synchronize all previous orders from WooCommerce REST API"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-purple-700 ${isBulkSyncing ? 'animate-spin' : ''}`} />
+              <span>{isBulkSyncing ? 'Syncing WC Orders...' : 'Sync Orders from API'}</span>
+            </button>
+
             <button
               onClick={handleRunAudit}
               disabled={isAuditing}
@@ -265,7 +458,7 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
               className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5 text-slate-600" />
-              <span>Refresh Orders</span>
+              <span>Refresh</span>
             </button>
           </div>
         </div>
@@ -555,24 +748,56 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                       </button>
                     )}
 
-                    <div className="flex items-center gap-2">
-                      {!ord.woocommerce_order_id && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-1">
+                      {/* Document Button: Receipt or Invoice */}
+                      <button
+                        onClick={() => (ord.payment_status === 'paid' || ord.status === 'completed' || ord.status === 'delivered') ? handleOpenReceipt(ord) : handleOpenInvoice(ord)}
+                        className={`py-2 px-2.5 font-bold text-[11px] rounded-lg flex items-center justify-center gap-1 cursor-pointer transition-colors border ${
+                          (ord.payment_status === 'paid' || ord.status === 'completed' || ord.status === 'delivered')
+                            ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+                            : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+                        }`}
+                        title={
+                          (ord.payment_status === 'paid' || ord.status === 'completed' || ord.status === 'delivered')
+                            ? 'Download or Print Payment Receipt'
+                            : 'Download or Print Commercial Invoice'
+                        }
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>
+                          {(ord.payment_status === 'paid' || ord.status === 'completed' || ord.status === 'delivered') ? 'Receipt' : 'Invoice'}
+                        </span>
+                      </button>
+
+                      {/* Change Order Button */}
+                      <button
+                        onClick={() => handleOpenEditModal(ord)}
+                        className="py-2 px-2.5 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-200 font-bold text-[11px] rounded-lg flex items-center justify-center gap-1 cursor-pointer transition-colors"
+                        title="Edit order items, quantities, addresses, tracking & status"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-cyan-700" />
+                        <span>Change</span>
+                      </button>
+
+                      {/* Cancel Order Button */}
+                      {ord.status !== 'cancelled' && (
                         <button
-                          onClick={() => handleSyncToWooCommerce(ord)}
-                          disabled={isSyncing}
-                          className="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg flex items-center justify-center gap-1 cursor-pointer"
+                          onClick={() => handleCancelOrder(ord)}
+                          disabled={cancellingOrderId === ord.order_number}
+                          className="py-2 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-bold text-[11px] rounded-lg flex items-center justify-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
+                          title="Cancel this order"
                         >
-                          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                          <span>Sync WC</span>
+                          <Ban className="w-3.5 h-3.5 text-rose-600" />
+                          <span>{cancellingOrderId === ord.order_number ? '...' : 'Cancel'}</span>
                         </button>
                       )}
 
                       <button
                         onClick={() => handleOpenStatusModal(ord)}
-                        className="flex-1 py-2 px-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-1 cursor-pointer"
+                        className="py-2 px-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-[11px] rounded-lg flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Truck className="w-3.5 h-3.5" />
-                        <span>Update Stage</span>
+                        <span>Stage</span>
                       </button>
                     </div>
                   </div>
@@ -743,22 +968,66 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
                         </td>
 
                         {/* Actions */}
-                        <td className="p-3.5 text-right space-x-1.5 whitespace-nowrap">
+                        <td className="p-3.5 text-right space-x-1 whitespace-nowrap">
                           {isAwaitingPayment && (
                             <button
                               onClick={() => handleConfirmPayment(ord)}
                               disabled={isConfirming}
-                              className="px-2.5 py-1 rounded-lg bg-[#007f19] hover:bg-[#006013] disabled:opacity-50 text-white font-bold text-[10px] transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1"
+                              className="px-2 py-1 rounded-lg bg-[#007f19] hover:bg-[#006013] disabled:opacity-50 text-white font-bold text-[10px] transition-colors cursor-pointer shadow-2xs inline-flex items-center gap-1"
                             >
                               <Check className="w-3 h-3" />
-                              <span>{isConfirming ? 'Verifying...' : 'Confirm Payment'}</span>
+                              <span>{isConfirming ? 'Verifying...' : 'Confirm'}</span>
                             </button>
                           )}
+
+                          {/* Document Button: Receipt or Invoice */}
+                          <button
+                            onClick={() => (ord.payment_status === 'paid' || ord.status === 'completed' || ord.status === 'delivered') ? handleOpenReceipt(ord) : handleOpenInvoice(ord)}
+                            className={`px-2 py-1 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 transition-colors cursor-pointer border ${
+                              (ord.payment_status === 'paid' || ord.status === 'completed' || ord.status === 'delivered')
+                                ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300'
+                                : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+                            }`}
+                            title={
+                              (ord.payment_status === 'paid' || ord.status === 'completed' || ord.status === 'delivered')
+                                ? 'Download or Print Payment Receipt'
+                                : 'Download or Print Commercial Invoice'
+                            }
+                          >
+                            <FileText className="w-3 h-3" />
+                            <span>
+                              {(ord.payment_status === 'paid' || ord.status === 'completed' || ord.status === 'delivered') ? 'Receipt' : 'Invoice'}
+                            </span>
+                          </button>
+
+                          {/* Change Order Button */}
+                          <button
+                            onClick={() => handleOpenEditModal(ord)}
+                            className="px-2 py-1 rounded-lg bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-200 font-bold text-[10px] transition-colors cursor-pointer inline-flex items-center gap-1"
+                            title="Edit order items, quantities, addresses, tracking & status"
+                          >
+                            <Edit3 className="w-3 h-3 text-cyan-700" />
+                            <span>Change</span>
+                          </button>
+
+                          {/* Cancel Order Button */}
+                          {ord.status !== 'cancelled' && (
+                            <button
+                              onClick={() => handleCancelOrder(ord)}
+                              disabled={cancellingOrderId === ord.order_number}
+                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 font-bold text-[10px] transition-colors cursor-pointer inline-flex items-center gap-1 disabled:opacity-50"
+                              title="Cancel this order"
+                            >
+                              <Ban className="w-3 h-3 text-rose-600" />
+                              <span>{cancellingOrderId === ord.order_number ? '...' : 'Cancel'}</span>
+                            </button>
+                          )}
+
                           <button
                             onClick={() => handleOpenStatusModal(ord)}
-                            className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 font-bold text-[10px] transition-colors cursor-pointer"
+                            className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 font-bold text-[10px] transition-colors cursor-pointer"
                           >
-                            Update Stage
+                            Stage
                           </button>
                         </td>
                       </tr>
@@ -1015,6 +1284,415 @@ export const AdminOrdersTab: React.FC<AdminOrdersTabProps> = ({ orders, onRefres
               >
                 Close Audit
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. OFFICIAL RECEIPT OR COMMERCIAL INVOICE MODAL */}
+      {documentOrder && (
+        <OrderReceiptModal
+          order={documentOrder}
+          forceType={documentType}
+          onClose={() => {
+            setDocumentOrder(null);
+            setDocumentType(undefined);
+          }}
+        />
+      )}
+
+      {/* 6. ADMIN CHANGE / EDIT ORDER MODAL */}
+      {editingOrder && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto animate-in fade-in duration-150">
+          <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-4 max-h-[92vh] flex flex-col">
+            {/* Modal Header */}
+            <div className="px-5 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-2.5">
+                <span className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-400">
+                  <Edit3 className="w-4 h-4" />
+                </span>
+                <div>
+                  <h3 className="font-black text-sm text-white">
+                    Change Order: #{editingOrder.order_number}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Modify order items, quantities, pricing, customer details, delivery & payment stage
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setEditingOrder(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Scrollable Form Body */}
+            <div className="p-5 overflow-y-auto space-y-5 text-xs bg-slate-50/50">
+              {/* Status & Payment Settings */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <Truck className="w-3.5 h-3.5 text-cyan-600" />
+                  <span>Order Stage & Payment Status</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Progression Stage:</label>
+                    <select
+                      value={editForm.status}
+                      onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg font-bold bg-white focus:outline-hidden focus:border-cyan-500"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="pending_payment">Pending Payment Confirmation</option>
+                      <option value="processing">Processing (Packing & Testing)</option>
+                      <option value="packed">Packed & Sealed in Hub</option>
+                      <option value="shipped">Dispatched / En Route</option>
+                      <option value="out-for-delivery">Out for Delivery in District</option>
+                      <option value="delivered">Delivered to Customer</option>
+                      <option value="completed">Completed & Reconciled</option>
+                      <option value="cancelled">Cancelled</option>
+                      <option value="refunded">Refunded</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Payment Status:</label>
+                    <select
+                      value={editForm.payment_status}
+                      onChange={(e) => setEditForm({ ...editForm, payment_status: e.target.value })}
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg font-bold bg-white focus:outline-hidden focus:border-cyan-500"
+                    >
+                      <option value="paid">Paid (Receipt Ready)</option>
+                      <option value="unpaid">Unpaid / Pending (Invoice Ready)</option>
+                      <option value="refunded">Refunded / Voided</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Payment Channel:</label>
+                    <input
+                      type="text"
+                      value={editForm.payment_method_title}
+                      onChange={(e) => setEditForm({ ...editForm, payment_method_title: e.target.value })}
+                      placeholder="e.g. MTN Mobile Money (*165*3#)"
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Customer & Delivery Coordinates */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-cyan-600" />
+                  <span>Customer & Shipping Information</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">First Name:</label>
+                    <input
+                      type="text"
+                      value={editForm.first_name}
+                      onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Last Name:</label>
+                    <input
+                      type="text"
+                      value={editForm.last_name}
+                      onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Customer Email:</label>
+                    <input
+                      type="email"
+                      value={editForm.email}
+                      onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Customer Phone (Mobile Money):</label>
+                    <input
+                      type="text"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white font-mono"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="font-bold text-slate-700 block mb-1">Delivery Physical Address / Building:</label>
+                    <input
+                      type="text"
+                      value={editForm.address_1}
+                      onChange={(e) => setEditForm({ ...editForm, address_1: e.target.value })}
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Delivery Zone / District:</label>
+                    <input
+                      type="text"
+                      value={editForm.delivery_zone}
+                      onChange={(e) => setEditForm({ ...editForm, delivery_zone: e.target.value })}
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Shipping / Courier Fee (UGX):</label>
+                    <input
+                      type="number"
+                      value={editForm.shipping_total}
+                      onChange={(e) => setEditForm({ ...editForm, shipping_total: Number(e.target.value) || 0 })}
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Courier Service Provider:</label>
+                    <input
+                      type="text"
+                      value={editForm.shipping_provider}
+                      onChange={(e) => setEditForm({ ...editForm, shipping_provider: e.target.value })}
+                      placeholder="e.g. Cyber Dynamic Express"
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Courier Tracking Number:</label>
+                    <input
+                      type="text"
+                      value={editForm.tracking_number}
+                      onChange={(e) => setEditForm({ ...editForm, tracking_number: e.target.value })}
+                      placeholder="e.g. CDT-TRK-9901"
+                      className="w-full h-9 px-3 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Line Items Editor with Live Calculation */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <Package className="w-3.5 h-3.5 text-cyan-600" />
+                    <span>Order Items & Pricing ({editForm.line_items.length})</span>
+                  </h4>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditForm({
+                        ...editForm,
+                        line_items: [
+                          ...editForm.line_items,
+                          {
+                            id: Date.now(),
+                            product_id: 100,
+                            name: 'Additional Hardware / Component',
+                            quantity: 1,
+                            price: 50000,
+                            total: 50000,
+                          },
+                        ],
+                      });
+                    }}
+                    className="px-2.5 py-1 bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-200 font-bold text-[10px] rounded-lg inline-flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Plus className="w-3 h-3 text-cyan-600" />
+                    <span>Add Item</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2.5">
+                  {editForm.line_items.map((item, idx) => (
+                    <div key={idx} className="p-3 rounded-lg border border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div className="flex-1 w-full sm:w-auto">
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Item Name</label>
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) => {
+                            const updated = [...editForm.line_items];
+                            updated[idx].name = e.target.value;
+                            setEditForm({ ...editForm, line_items: updated });
+                          }}
+                          className="w-full h-8 px-2.5 bg-white border border-slate-200 rounded text-xs font-semibold focus:outline-hidden focus:border-cyan-500"
+                        />
+                      </div>
+
+                      <div className="w-24">
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Unit Price</label>
+                        <input
+                          type="number"
+                          value={item.price}
+                          onChange={(e) => {
+                            const updated = [...editForm.line_items];
+                            const p = Number(e.target.value) || 0;
+                            updated[idx].price = p;
+                            updated[idx].total = p * (updated[idx].quantity || 1);
+                            setEditForm({ ...editForm, line_items: updated });
+                          }}
+                          className="w-full h-8 px-2 bg-white border border-slate-200 rounded text-xs font-mono text-right focus:outline-hidden focus:border-cyan-500"
+                        />
+                      </div>
+
+                      <div className="w-20">
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5 text-center">Qty</label>
+                        <div className="flex items-center border border-slate-200 rounded bg-white overflow-hidden h-8">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...editForm.line_items];
+                              if (updated[idx].quantity > 1) {
+                                updated[idx].quantity -= 1;
+                                updated[idx].total = updated[idx].price * updated[idx].quantity;
+                                setEditForm({ ...editForm, line_items: updated });
+                              }
+                            }}
+                            className="px-2 h-full text-slate-600 hover:bg-slate-100 font-bold"
+                          >
+                            -
+                          </button>
+                          <span className="flex-1 text-center font-bold font-mono text-xs">{item.quantity}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = [...editForm.line_items];
+                              updated[idx].quantity += 1;
+                              updated[idx].total = updated[idx].price * updated[idx].quantity;
+                              setEditForm({ ...editForm, line_items: updated });
+                            }}
+                            className="px-2 h-full text-slate-600 hover:bg-slate-100 font-bold"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="w-28 text-right">
+                        <label className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Line Total</label>
+                        <span className="font-mono font-black text-slate-900 text-xs block py-1.5">
+                          {formatPrice(item.total)}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = editForm.line_items.filter((_, i) => i !== idx);
+                          setEditForm({ ...editForm, line_items: updated });
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer self-end sm:self-center"
+                        title="Remove Item"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Live Calculations Summary Box */}
+                <div className="p-3 bg-slate-100 rounded-xl space-y-1 text-xs">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Recalculated Subtotal:</span>
+                    <span className="font-mono font-bold">
+                      {formatPrice(editForm.line_items.reduce((acc, i) => acc + (Number(i.total) || 0), 0))}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Shipping Fee:</span>
+                    <span className="font-mono font-bold">
+                      {formatPrice(Number(editForm.shipping_total) || 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-slate-900 font-black text-sm pt-1.5 border-t border-slate-200">
+                    <span>New Order Grand Total:</span>
+                    <span className="font-mono text-cyan-700">
+                      {formatPrice(
+                        editForm.line_items.reduce((acc, i) => acc + (Number(i.total) || 0), 0) +
+                        (Number(editForm.shipping_total) || 0)
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                <h4 className="font-black text-slate-900 text-xs uppercase tracking-wider">
+                  Customer & Internal Admin Notes
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Customer / Delivery Note:</label>
+                    <textarea
+                      rows={2}
+                      value={editForm.customer_note}
+                      onChange={(e) => setEditForm({ ...editForm, customer_note: e.target.value })}
+                      placeholder="e.g. Leave with security at gate"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 block mb-1">Internal Admin Note:</label>
+                    <textarea
+                      rows={2}
+                      value={editForm.admin_notes}
+                      onChange={(e) => setEditForm({ ...editForm, admin_notes: e.target.value })}
+                      placeholder="e.g. Customer requested upgrade to 16GB RAM"
+                      className="w-full p-2.5 border border-slate-200 rounded-lg focus:outline-hidden focus:border-cyan-500 bg-white"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Action Footer */}
+            <div className="p-4 bg-white border-t border-slate-200 flex items-center justify-between">
+              <p className="text-[11px] text-slate-500">
+                Changes will sync to WooCommerce if order is linked.
+              </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingOrder(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveOrderChanges}
+                  disabled={isSavingChanges}
+                  className="px-5 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 text-white font-bold text-xs rounded-lg shadow-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  {isSavingChanges ? (
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isSavingChanges ? 'Saving Changes...' : 'Save Order Changes'}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1312,6 +1312,31 @@ export const api = {
     }, 'Failed to update order status');
   },
 
+  async updateOrder(
+    identifier: string | number,
+    updates: Partial<CustomerOrder> & { note?: string }
+  ): Promise<{ success: boolean; order: CustomerOrder; message: string }> {
+    return safeFetch(`/api/admin/orders/${identifier}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    }, 'Failed to update order details');
+  },
+
+  async syncAllOrdersFromWooCommerce(): Promise<{
+    success: boolean;
+    count: number;
+    orders: CustomerOrder[];
+    source: string;
+    message: string;
+  }> {
+    return safeFetch('/api/admin/orders/sync-woocommerce', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }, 'Failed to sync orders from WooCommerce');
+  },
+
   async cancelOrder(
     identifier: string | number,
     reason?: string

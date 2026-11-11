@@ -121,15 +121,20 @@ export interface CartItem {
 }
 
 export interface CustomerAddress {
-  id: string;
-  type: 'shipping' | 'billing';
+  id?: string;
+  type?: 'shipping' | 'billing';
   first_name: string;
   last_name: string;
-  phone: string;
-  email: string;
+  phone?: string;
+  email?: string;
   district: string;
   city: string;
   address_1: string;
+  address_2?: string;
+  company?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
   landmark?: string;
   delivery_instructions?: string;
   is_default?: boolean;
@@ -150,13 +155,14 @@ export interface DeliveryZone {
   description: string;
 }
 
-export type PaymentMethodType = 'momo' | 'airtel' | 'card' | 'cod';
+export type PaymentMethodType = 'momo' | 'airtel' | 'card' | 'cod' | string;
 
 export interface PaymentDetails {
   method: PaymentMethodType;
   phone_number?: string;
   transaction_ref?: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'awaiting_confirmation';
+  status: 'pending' | 'processing' | 'completed' | 'failed' | 'awaiting_confirmation' | 'confirmed' | string;
+  amount?: number;
   account_name?: string;
   payment_number?: string;
   confirmed_by?: string;
@@ -168,11 +174,11 @@ export type OrderStatus = 'pending' | 'pending_payment' | 'processing' | 'on-hol
 
 export interface OrderTimelineEvent {
   title: string;
-  status: OrderStatus;
+  status: OrderStatus | string;
   timestamp: string;
-  description: string;
+  description?: string;
   completed: boolean;
-  current: boolean;
+  current?: boolean;
 }
 
 export interface OrderLineItem {
@@ -183,6 +189,7 @@ export interface OrderLineItem {
   quantity: number;
   price: number;
   total: number;
+  sku?: string;
   image?: string;
   attributes?: Record<string, string>;
   vendor_id?: string;
@@ -238,6 +245,11 @@ export interface CustomerOrder {
   woocommerce_receipt_url?: string;
   woocommerce_synced?: boolean;
   woocommerce_sync_error?: string;
+  payment_status?: 'paid' | 'unpaid' | 'pending' | 'refunded' | string;
+  tax_total?: number;
+  tracking_number?: string;
+  shipping_provider?: string;
+  admin_notes?: string;
   vendor_orders?: VendorOrder[];
   is_multi_vendor?: boolean;
 }

@@ -11,10 +11,13 @@ import {
   ShieldCheck,
   AlertCircle,
   Download,
+  FileText,
+  Printer,
 } from 'lucide-react';
 import { api } from '../services/api';
 import { CustomerOrder } from '../types';
 import { useShop } from '../context/ShopContext';
+import { OrderReceiptModal } from '../components/OrderReceiptModal';
 
 interface TrackOrderPageProps {
   initialOrderNumber?: string;
@@ -29,6 +32,7 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
   const [order, setOrder] = useState<CustomerOrder | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDocModal, setShowDocModal] = useState(false);
 
   const fetchOrder = async (query: string, contact?: string) => {
     if (!query.trim()) return;
@@ -178,12 +182,24 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
                 Status: {order.status}
               </span>
               <button
-                onClick={() => window.print()}
-                className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs flex items-center gap-1 cursor-pointer"
-                title="Print Order Receipt"
+                onClick={() => setShowDocModal(true)}
+                className={`px-3 py-1.5 rounded-lg text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors ${
+                  order.payment_status === 'paid' || order.status === 'completed' || order.status === 'delivered'
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : 'bg-cyan-600 hover:bg-cyan-700'
+                }`}
+                title={
+                  order.payment_status === 'paid' || order.status === 'completed' || order.status === 'delivered'
+                    ? 'Download or Print Official Payment Receipt'
+                    : 'Download or Print Commercial Invoice'
+                }
               >
                 <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline text-[11px]">Print Receipt</span>
+                <span>
+                  {order.payment_status === 'paid' || order.status === 'completed' || order.status === 'delivered'
+                    ? 'Official Receipt'
+                    : 'Commercial Invoice'}
+                </span>
               </button>
             </div>
           </div>
@@ -307,6 +323,14 @@ export const TrackOrderPage: React.FC<TrackOrderPageProps> = ({ initialOrderNumb
             </a>
           </div>
         </div>
+      )}
+
+      {/* Official Receipt or Commercial Invoice Modal */}
+      {showDocModal && order && (
+        <OrderReceiptModal
+          order={order}
+          onClose={() => setShowDocModal(false)}
+        />
       )}
     </div>
   );
